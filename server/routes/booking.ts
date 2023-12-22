@@ -1,13 +1,14 @@
 // routes/bookings.ts
 import express from 'express';
-import { createBooking, getAllBookings, getBooking, updateBooking } from '../controllers/bookingControllers';
+import { createBooking, getAllBookings, getBooking, getUpcomingActivities, updateBooking } from '../controllers/bookingControllers';
 
 
-const bookingsroute = express.Router();
+const bookingsRoute = express.Router();
 
-bookingsroute.post('/',  createBooking);
-bookingsroute.get('/',  getAllBookings);
-bookingsroute.get('/:id',  getBooking);
-bookingsroute.put('/:id',  updateBooking);
+bookingsRoute.post('/',  createBooking);
+bookingsRoute.get('/',  getAllBookings);
+bookingsRoute.get('/:id',  getBooking);
+bookingsRoute.put('/:id',  updateBooking);
+bookingsRoute.get('/upcoming', getUpcomingActivities);
 
-export default bookingsroute;
+export default bookingsRoute;

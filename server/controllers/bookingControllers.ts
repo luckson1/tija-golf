@@ -81,3 +81,62 @@ const BookingSchema = z.object({
     }
   };
   
+ export async function getUpcomingActivities (req:Request, res:Response) {
+    // Get current date
+    const currentDate = new Date();
+  try {
+    const usersId=await getUser()
+    if (!usersId)  return   res.status(401).send('Unauthorised');
+    // Fetch upcoming bookings for the user, including the event, class, or tournament details
+    const bookings = await prisma.booking.findMany({
+      where: {
+        usersId: usersId,
+        OR: [
+          {
+            event: {
+              startDate: {
+                gt: currentDate,
+              },
+            },
+          },
+          {
+            class: {
+              startDate: {
+                gt: currentDate,
+              },
+            },
+          },
+          {
+            tournament: {
+              startDate: {
+                gt: currentDate,
+              },
+            },
+          },
+        ],
+      },
+      include: {
+        event: true,
+        class: true,
+        tournament: true,
+      },
+    });
+  
+    // Extract the activities from the bookings
+    const activities = bookings.map(booking => {
+      return {
+        ...booking.event,
+        ...booking.class,
+        ...booking.tournament,
+        bookingDate: booking.bookingDate,
+      };
+    }).filter(activity => activity.startDate); // Filter out undefined results
+  
+    // Sort by startDate
+    activities.sort((a, b) => a?.startDate?.getTime()!- b?.startDate?.getTime()!);
+  
+    return activities;
+  } catch (error) {
+    
+  }
+  }
