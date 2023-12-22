@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import  { Request, Response } from 'express';
-import { getUser, supabaseClient } from 'utils';
+import { getUser } from 'utils';
 type IdParams = {
     id?: string;
   };
