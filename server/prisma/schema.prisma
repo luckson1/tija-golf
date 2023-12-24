@@ -355,6 +355,7 @@ model Booking {
   tournament Tournament? @relation(fields: [tournamentId], references: [id])
   payments   Payment[]
   usersId    String      @db.Uuid
+  status  PaymentStatus @default(Pending)
 
   @@schema("auth")
 }
@@ -488,6 +489,16 @@ model Payment {
 
 enum PaymentStatus {
   Pending
+  Completed
+  Failed
+  Refunded
+
+  @@schema("auth")
+}
+
+enum BookingStatus {
+  Pending
+  Confirmed
   Completed
   Failed
   Refunded
