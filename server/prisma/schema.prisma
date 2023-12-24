@@ -280,7 +280,7 @@ model users {
   OrganizationMember          OrganizationMember[]
   Booking                     Booking[]
   Payment                     Payment[]
-  Profile                     Profile[]
+  Profile                     Profile?
 
   @@index([instance_id])
   @@schema("auth")
@@ -318,7 +318,9 @@ enum factor_type {
 model Organization {
   id                 String               @id @default(cuid())
   name               String
-  Session            Tee[]
+  location           String
+  image              String
+  Tee                Tee[]
   Event              Event[]
   Class              Class[]
   Tournament         Tournament[]
@@ -341,13 +343,13 @@ model OrganizationMember {
 model Booking {
   id           String   @id @default(cuid())
   user         users    @relation(fields: [usersId], references: [id])
-  sessionId    String?
+  teeId        String?
   eventId      String?
   classId      String?
   tournamentId String?
   bookingDate  DateTime @default(now())
 
-  session    Tee?        @relation(fields: [sessionId], references: [id])
+  tee        Tee?        @relation(fields: [teeId], references: [id])
   event      Event?      @relation(fields: [eventId], references: [id])
   class      Class?      @relation(fields: [classId], references: [id])
   tournament Tournament? @relation(fields: [tournamentId], references: [id])
@@ -359,11 +361,11 @@ model Booking {
 
 model Tee {
   id             String       @id @default(cuid())
-  name           String
-  description    String
+  holes          String         @default("9 holes")
+  kit             String     @default("No")
+  isExistingGame  String     @default("No")
   bookings       Booking[]
   startDate      DateTime
-  endDate        DateTime
   payments       Payment[]
   organisation   Organization @relation(fields: [organizationId], references: [id])
   organizationId String
@@ -373,7 +375,6 @@ model Tee {
 
 model Event {
   id             String       @id @default(cuid())
-  name           String
   description    String
   bookings       Booking[]
   startDate      DateTime
@@ -387,7 +388,7 @@ model Event {
 
 model Class {
   id             String          @id @default(cuid())
-  name           String
+  cohort         Int
   description    String
   bookings       Booking[]
   startDate      DateTime // Overall start date of the class
@@ -438,24 +439,27 @@ model Tournament {
 }
 
 model Profile {
-  id          String @id @default(cuid())
+  id          String   @id @default(cuid())
   name        String
   email       String
   phoneNumber String
-  user        users  @relation(fields: [usersId], references: [id])
-  usersId     String @db.Uuid
-  gender Gender
+  level       String   @default("Beginner")
+  user        users    @relation(fields: [usersId], references: [id])
+  usersId     String   @unique @db.Uuid
+  gender      Gender
   dateOfBirth DateTime
-  Cohort Int
-
+  cohort      Int
 
   @@schema("auth")
 }
+
 enum Gender {
   male
   female
-    @@schema("auth")
+
+  @@schema("auth")
 }
+
 model Payment {
   id               String        @id @default(cuid())
   bookingId        String
@@ -467,8 +471,8 @@ model Payment {
   paymentMethod    String
 
   booking        Booking      @relation(fields: [bookingId], references: [id])
-  Session        Tee?         @relation(fields: [sessionId], references: [id])
-  sessionId      String?
+  Tee            Tee?         @relation(fields: [teeId], references: [id])
+  teeId          String?
   Event          Event?       @relation(fields: [eventId], references: [id])
   eventId        String?
   Class          Class?       @relation(fields: [classId], references: [id])

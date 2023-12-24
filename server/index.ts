@@ -5,6 +5,7 @@ import  teesRoute from './routes/tees'
 import classesRoute from "./routes/classes"
 import profileRoute from 'routes/profile';
 import tournamentRoute from 'routes/tournaments';
+import orgRouter from 'routes/organisation';
 const app = express();
 
 const PORT= process.env.PORT || 5000
@@ -23,6 +24,8 @@ app.use('/api/bookings', bookingsRoute);
 app.use('/api/classes', classesRoute);
 app.use('/api/tee',  teesRoute);
 app.use('/api/profile', profileRoute);
+app.use('/api/organization', orgRouter);
+
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
