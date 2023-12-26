@@ -84,4 +84,8 @@ export const editProfile = async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Error updating profile', error });
   }
 };
+export const testProfile = async (req: Request, res: Response) => {
+console.log("Testing")
+res.send("Hi there, nice testing!!")
+};
 

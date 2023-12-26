@@ -22,3 +22,14 @@ export const getAllOrganisations = async (req:Request, res:Response) => {
       res.status(500).send(error);
     }
   };
+
+  export const testOrganisations = async (req:Request, res:Response) => {
+    try {
+      
+      const organizations = await prisma.organization.findMany(
+      );
+      res.json(organizations);
+    } catch (error) {
+      res.status(500).send(error);
+    }
+  };
