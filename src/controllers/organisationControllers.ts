@@ -5,6 +5,8 @@ import { getUser } from "../utils";
 const prisma = new PrismaClient();
 export const getAllOrganisations = async (req:Request, res:Response) => {
     try {
+      const token=req.headers.authorization;
+      console.log(token)
         const usersId= await getUser()
 
         if (!usersId)  return   res.status(401).send('Unauthorised');
