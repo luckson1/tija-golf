@@ -11,7 +11,7 @@ const orgRouter = express.Router();
 
 orgRouter.get('/',  getAllOrganisations);
 
-orgRouter.get('/test',  testOrganisations);
+orgRouter.get('/all',  testOrganisations);
 
 
 export default orgRouter;
