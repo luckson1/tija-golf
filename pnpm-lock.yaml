@@ -137,7 +137,7 @@ packages:
     dependencies:
       '@supabase/node-fetch': 2.6.15
       '@types/phoenix': 1.6.4
-      ws: 8.15.1
+      ws: 8.16.0
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
@@ -196,7 +196,7 @@ packages:
     resolution: {integrity: sha512-OaJ7XLaelTgrvlZD8/aa0vvvxZdUmlCn6MtWeB7TkiKW70BQLc9XEPpDLPdbo52ZhXUCrznlWdCHWxJWtdyajA==}
     dependencies:
       '@types/node': 20.10.4
-      '@types/qs': 6.9.10
+      '@types/qs': 6.9.11
       '@types/range-parser': 1.2.7
       '@types/send': 0.17.4
     dev: true
@@ -206,7 +206,7 @@ packages:
     dependencies:
       '@types/body-parser': 1.19.5
       '@types/express-serve-static-core': 4.17.41
-      '@types/qs': 6.9.10
+      '@types/qs': 6.9.11
       '@types/serve-static': 1.15.5
     dev: true
 
@@ -232,8 +232,8 @@ packages:
     resolution: {integrity: sha512-B34A7uot1Cv0XtaHRYDATltAdKx0BvVKNgYNqE4WjtPUa4VQJM7kxeXcVKaH+KS+kCmZ+6w+QaUdcljiheiBJA==}
     dev: false
 
-  /@types/qs@6.9.10:
-    resolution: {integrity: sha512-3Gnx08Ns1sEoCrWssEgTSJs/rsT2vhGP+Ja9cnnk9k4ALxinORlQneLXFeFKOTJMOeZUFD1s7w+w2AphTpvzZw==}
+  /@types/qs@6.9.11:
+    resolution: {integrity: sha512-oGk0gmhnEJK4Yyk+oI7EfXsLayXatCWPHary1MtcmbAifkobT9cM9yutG/hZKIseOU0MqbIwQ/u2nn/Gb+ltuQ==}
     dev: true
 
   /@types/range-parser@1.2.7:
@@ -873,8 +873,8 @@ packages:
       webidl-conversions: 3.0.1
     dev: false
 
-  /ws@8.15.1:
-    resolution: {integrity: sha512-W5OZiCjXEmk0yZ66ZN82beM5Sz7l7coYxpRkzS+p9PP+ToQry8szKh+61eNktr7EA9DOwvFGhfC605jDHbP6QQ==}
+  /ws@8.16.0:
+    resolution: {integrity: sha512-HS0c//TP7Ina87TfiPUz1rQzMhHrl/SG2guqRcTOIUYD2q8uhUdNHZYJUaQ8aTGPzCh+c6oawMKW35nFl1dxyQ==}
     engines: {node: '>=10.0.0'}
     peerDependencies:
       bufferutil: ^4.0.1

@@ -1,7 +1,8 @@
-import { PrismaClient } from '@prisma/client';
+
 import { z } from 'zod';
 import  { Request, Response } from 'express';
 import { getUser } from '../utils';
+import { PrismaClient } from '@prisma/client';
 type IdParams = {
     id?: string;
   };
