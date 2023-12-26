@@ -1,6 +1,7 @@
 
-import { getAllOrganisations } from 'controllers/organisationControllers';
+
 import express from 'express';
+import { getAllOrganisations } from '../controllers/organisationControllers';
 
 
 

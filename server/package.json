@@ -2,13 +2,11 @@
   "name": "golf-app",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
-  "type": "module",
+  "main": "dist/index.js",
   "scripts": {
-    "dev": "ts-node api/index.ts",
+    "start": "ts-node api/index.ts",
     "build": "tsc",
-    "start": "node build/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "serve": "node dist/index.js"
   },
   "keywords": [],
   "author": "",
@@ -17,6 +15,8 @@
     "@prisma/client": "^5.7.0",
     "@supabase/supabase-js": "^2.39.1",
     "express": "^4.18.2",
+    "install": "^0.13.0",
+    "npm": "^10.2.5",
     "prisma": "^5.7.0",
     "zod": "^3.22.4"
   },

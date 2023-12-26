@@ -1,5 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { z } from "zod";
+import { Request, Response } from "express";
+import { getUser } from "../utils";
 
 const prisma = new PrismaClient();
 const timeRegex = /^(0?[1-9]|1[0-2]):[0-5][0-9] [AP]M$/;
@@ -23,8 +25,8 @@ function combineDateAndTime(data: TeeData): Date {
 
   return combinedDate;
 }
-import { Request, Response } from "express";
-import { getUser } from "utils";
+
+
 type IdParams = {
   id?: string;
 };

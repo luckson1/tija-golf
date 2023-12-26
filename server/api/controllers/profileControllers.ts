@@ -1,5 +1,12 @@
 import { z } from 'zod';
 
+
+
+export type ProfileInput = z.infer<typeof profileSchema>;
+import { PrismaClient } from '@prisma/client';
+import { Request, Response } from 'express';
+import { getUser } from '../utils';
+
 export const profileSchema = z.object({
   name: z.string(),
   email: z.string().email(),
@@ -9,12 +16,6 @@ export const profileSchema = z.object({
   dateOfBirth: z.string(),
   cohort: z.number(),
 });
-
-export type ProfileInput = z.infer<typeof profileSchema>;
-import { PrismaClient } from '@prisma/client';
-import { Request, Response } from 'express';
-import { getUser } from 'utils';
-
 
 const prisma = new PrismaClient();
 

@@ -3,9 +3,10 @@ import express from 'express';
 import bookingsRoute from './routes/booking';
 import  teesRoute from './routes/tees'
 import classesRoute from "./routes/classes"
-import profileRoute from 'routes/profile';
-import tournamentRoute from 'routes/tournaments';
-import orgRouter from 'routes/organisation';
+import tournamentRoute from './routes/tournaments';
+import profileRoute from './routes/profile';
+import orgRouter from './routes/organisation';
+
 const app = express();
 
 const PORT= process.env.PORT || 5000

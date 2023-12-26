@@ -6,24 +6,25 @@ import  { Request, Response } from 'express';
 type IdParams = {
     id?: string;
   };
-  type EventData = z.infer<typeof EventSchema>;
-const EventSchema = z.object({
+  type ClassData = z.infer<typeof ClassSchema>;
+const ClassSchema = z.object({
   name: z.string().min(1, "Name is required"),
   description: z.string(),
   organizationId: z.string().min(1, "Organization ID is required"),
   startDate: z.date(),
   endDate: z.date(),
+  cohort:z.number()
 });
 
-export const createEvent = async (req:Request, res:Response) => {
+export const createClass = async (req: Request<{}, {},ClassData>, res: Response) => {
   try {
     // Validate the input using Zod
-    const parsedData = EventSchema.parse(req.body);
+    const parsedData = ClassSchema.parse(req.body);
 
-    // Create the event in the database
-    const newEvent = await prisma.event.create({
+    // Create the class in the database
+    const newclass = await prisma.class.create({
       data: {
-        name: parsedData.name,
+        cohort: parsedData.cohort,
         description: parsedData.description,
         organizationId: parsedData.organizationId,
         startDate: parsedData.startDate,
@@ -31,8 +32,8 @@ export const createEvent = async (req:Request, res:Response) => {
       },
     });
 
-    // Send the created event as a response
-    res.status(201).json(newEvent);
+    // Send the created class as a response
+    res.status(201).json(newclass);
   } catch (error) {
     if (error instanceof z.ZodError) {
       // If the error is a Zod validation error, send a bad request response
@@ -45,46 +46,46 @@ export const createEvent = async (req:Request, res:Response) => {
 };
 
 
-export const getAllEvents = async (req:Request, res:Response) => {
+export const getAllClasses = async (req:Request, res:Response) => {
     try {
-      // Fetch all event records from the database
-      const events = await prisma.event.findMany({
+      // Fetch all class records from the database
+      const classes = await prisma.class.findMany({
         include: {
-          organisation: true, // Include related organization data
+          organization: true, // Include related organization data
           bookings: true, // Include related bookings
           payments: true, // Include related payments
         },
       });
   
-      // Send the retrieved events as a response
-      res.json(events);
+      // Send the retrieved classs as a response
+      res.json(classes);
     } catch (error) {
       // Handle potential errors
       res.status(500).send(error);
     }
   };
 
-  export const getEvent = async (req:Request, res:Response) => {
+  export const getClass = async (req:Request, res:Response) => {
     try {
-      // Extract the event ID from the request parameters
+      // Extract the class ID from the request parameters
       const { id } = req.params;
       const parsedData = z.string().parse(id);
-      // Fetch the event record from the database
-      const event = await prisma.event.findUnique({
+      // Fetch the class record from the database
+      const c = await prisma.class.findUnique({
         where: { id:  parsedData  },
         include: {
-          organisation: true, // Include related organization data
+          organization: true, // Include related organization data
           bookings: true, // Include related bookings
           payments: true, // Include related payments
         },
       });
   
-      if (event) {
-        // Send the retrieved event as a response
-        res.json(event);
+      if (c) {
+        // Send the retrieved class as a response
+        res.json(c);
       } else {
-        // If no event is found, send a 404 response
-        res.status(404).send("event not found");
+        // If no class is found, send a 404 response
+        res.status(404).send("class not found");
       }
     } catch (error) {
         if (error instanceof z.ZodError) {
@@ -98,8 +99,8 @@ export const getAllEvents = async (req:Request, res:Response) => {
 
 
 
-// Assuming you have a similar Zod schema for event updates
-const eventUpdateSchema = z.object({
+// Assuming you have a similar Zod schema for class updates
+const classUpdateSchema = z.object({
   name: z.string().min(1).optional(),
   description: z.string().optional(),
   organizationId: z.string(),
@@ -107,22 +108,22 @@ const eventUpdateSchema = z.object({
   endDate: z.date().optional(),
 });
 
-export const updateEvent = async (req:Request, res:Response) => {
+export const updateClass = async (req:Request, res:Response) => {
   try {
     const { id } = req.params;
-    const parsedId = z.string().parse(id); // Get the event ID from the route parameter
+    const parsedId = z.string().parse(id); // Get the class ID from the route parameter
 
     // Validate and parse the request data
-    const updateData = eventUpdateSchema.parse(req.body);
+    const updateData = classUpdateSchema.parse(req.body);
 
-    // Update the event in the database
-    const updatedevent = await prisma.event.update({
+    // Update the class in the database
+    const updatedclass = await prisma.class.update({
       where: { id:  parsedId  },
       data: updateData,
     });
 
-    // Send the updated event as a response
-    res.json(updatedevent);
+    // Send the updated class as a response
+    res.json(updatedclass);
   } catch (error) {
     if (error instanceof z.ZodError) {
       // If the error is a Zod validation error, send a bad request response

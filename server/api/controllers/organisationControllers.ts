@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
-import { getUser } from "utils";
 import  { Request, Response } from 'express';
+import { getUser } from "../utils";
 
 const prisma = new PrismaClient();
 export const getAllOrganisations = async (req:Request, res:Response) => {
