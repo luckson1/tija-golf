@@ -48,7 +48,7 @@ export const fetchProfile = async (req: Request, res: Response) => {
     const usersId=await getUser(token)
     if (!usersId)  return   res.status(401).send('Unauthorised');
 
-
+console.log(usersId)
 
     const profile = await prisma.profile.findFirst({
       where: {
