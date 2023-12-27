@@ -7,15 +7,15 @@ import { PrismaClient } from '@prisma/client';
 import { Request, Response } from 'express';
 import { getUser } from '../utils';
 
-export const profileSchema = z.object({
-  name: z.string(),
-  email: z.string().email(),
-  phoneNumber: z.string(),
+
+const profileSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  email: z.string().email("Invalid email address"),
+  phoneNumber: z.string().min(1, "Phone number is required"),
   gender: z.enum(['male', 'female']),
   dateOfBirth: z.date(),
-  cohort: z.number(),
-});
-
+  cohort: z.number().min(1, "Cohort is required"),
+})
 const prisma = new PrismaClient();
 
 export const createProfile = async (req: Request, res: Response) => {
