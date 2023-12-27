@@ -50,13 +50,13 @@ export const fetchProfile = async (req: Request, res: Response) => {
 
 console.log(usersId)
 
-    const profile = await prisma.profile.findFirst({
+    const data = await prisma.profile.findUnique({
       where: {
         usersId
       }
     });
-console.log(profile?.email)
-    res.status(201).json({ profile });
+console.log(data?.email)
+    res.status(201).json({ data });
   } catch (error) {
     
     res.status(500).json({ message: 'Error creating profile', error });
