@@ -13,7 +13,7 @@ const profileSchema = z.object({
   email: z.string().email("Invalid email address"),
   phoneNumber: z.string().min(1, "Phone number is required"),
   gender: z.enum(['male', 'female']),
-  dateOfBirth: z.date(),
+  dateOfBirth: z.string().datetime(),
   cohort: z.number().min(1, "Cohort is required"),
 })
 const prisma = new PrismaClient();
