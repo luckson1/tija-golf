@@ -73,12 +73,16 @@ export const fetchProfile = async (req: Request, res: Response) => {
 export const editProfile = async (req: Request, res: Response) => {
  
   try {
-    const data = profileSchema.parse(req.body);
+
     const token=req.headers.authorization;
   
     if(!token) return   res.status(403).send('Forbidden');
     const usersId=await getUser(token)
     if (!usersId)  return   res.status(401).send('Unauthorised')
+    const isValid = profileSchema.safeParse(req.body).success;
+    const body=req.body
+    const data= {...body, usersId}
+console.log(data, isValid)
     const profile = await prisma.profile.update({
       where: { usersId },
       data,
