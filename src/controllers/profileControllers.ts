@@ -25,9 +25,10 @@ export const createProfile = async (req: Request, res: Response) => {
     if(!token) return   res.status(403).send('Forbidden');
     const usersId=await getUser(token)
     if (!usersId)  return   res.status(401).send('Unauthorised');
-    const body = profileSchema.parse(req.body);
+    const isValid = profileSchema.safeParse(req.body).success;
+    const body=req.body
     const data= {...body, usersId}
-console.log(data)
+console.log(data, isValid)
     const profile = await prisma.profile.create({ data });
 
     res.status(201).json({ message: 'Profile created successfully', profile });
