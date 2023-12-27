@@ -11,9 +11,8 @@ export const profileSchema = z.object({
   name: z.string(),
   email: z.string().email(),
   phoneNumber: z.string(),
-  usersId: z.string().uuid(),
   gender: z.enum(['male', 'female']),
-  dateOfBirth: z.string(),
+  dateOfBirth: z.date(),
   cohort: z.number(),
 });
 
@@ -34,7 +33,7 @@ export const createProfile = async (req: Request, res: Response) => {
   } catch (error) {
     if (error instanceof z.ZodError) {
         // If the error is a Zod validation error, send a bad request response
-        return res.status(400).json(error.errors);
+        return res.status(400).json({message: "validation errors",  errors:error.errors});
       }
     res.status(500).json({ message: 'Error creating profile', error });
   }
