@@ -37,7 +37,7 @@ const TeeSchema = z.object({
   isExistingGame: z.enum(["Yes", "No"]),
 
   organizationId: z.string().min(1, "Organization ID is required"),
-  date: z.date(),
+  date: z.string().datetime(),
  startTime: z.string().regex(timeRegex, { message: "Invalid time format. Use HH:MM in 24-hour format." }),
 });
 
