@@ -452,6 +452,7 @@ model Profile {
   gender      Gender
   dateOfBirth DateTime
   cohort      Int
+  memberNumber Int @default(autoincrement())
 
   @@schema("auth")
 }
