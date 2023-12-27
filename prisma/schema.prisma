@@ -348,6 +348,7 @@ model Booking {
   eventId      String?
   classId      String?
   tournamentId String?
+  bookingREf Int @default(autoincrement())
   bookingDate  DateTime @default(now())
 
   tee        Tee?        @relation(fields: [teeId], references: [id])
@@ -396,7 +397,7 @@ model Class {
   startDate      DateTime // Overall start date of the class
   endDate        DateTime // Overall end date of the class
   organizationId String
-  organization   Organization    @relation(fields: [organizationId], references: [id])
+  organisation   Organization    @relation(fields: [organizationId], references: [id])
   schedules      ClassSchedule[] // Specific session schedules
   payments       Payment[]
 
