@@ -53,10 +53,14 @@ export const createTee = async (req: Request, res: Response) => {
 const  startDate=combineDateAndTime(parsedData)
 console.log(startDate)
 console.log(parsedData.date)
+const {holes, kit, isExistingGame, organizationId, }=parsedData
     // Create the Tee in the database
     const newTee = await prisma.tee.create({
       data: {
-        ...parsedData,
+        holes,
+        kit,
+        isExistingGame,
+        organizationId,
         startDate
       },
     });
