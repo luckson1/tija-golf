@@ -6,9 +6,9 @@ export const supabaseClient =  (  process.env.NEXT_PUBLIC_SUPABASE_URL &&
   ) : null;
 
 
-export async function getUser () {
+export async function getUser (token:string) {
     const supabase=supabaseClient
-const userData= await supabase?.auth?.getUser()
+const userData= await supabase?.auth?.getUser(token)
 const usersId=userData?.data.user?.id
 return usersId
 }

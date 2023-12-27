@@ -43,7 +43,9 @@ const TeeSchema = z.object({
 
 export const createTee = async (req: Request, res: Response) => {
   try {
-    const usersId=await getUser()
+    const token=req.headers.authorization;
+    if(!token) return   res.status(403).send('Forbidden');
+    const usersId=await getUser(token)
     if (!usersId)  return   res.status(401).send('Unauthorised');
     // Validate the input using Zod
     const parsedData = TeeSchema.parse(req.body);

@@ -21,7 +21,9 @@ const prisma = new PrismaClient();
 
 export const createProfile = async (req: Request, res: Response) => {
   try {
-    const usersId=await getUser()
+    const token=req.headers.authorization;
+    if(!token) return   res.status(403).send('Forbidden');
+    const usersId=await getUser(token)
     if (!usersId)  return   res.status(401).send('Unauthorised');
     const body = profileSchema.parse(req.body);
     const data= {...body, usersId}
@@ -40,7 +42,9 @@ export const createProfile = async (req: Request, res: Response) => {
 
 export const fetchProfile = async (req: Request, res: Response) => {
   try {
-    const usersId=await getUser()
+    const token=req.headers.authorization;
+    if(!token) return   res.status(403).send('Forbidden');
+    const usersId=await getUser(token)
     if (!usersId)  return   res.status(401).send('Unauthorised');
 
 

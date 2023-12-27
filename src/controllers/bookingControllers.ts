@@ -19,7 +19,9 @@ const BookingSchema = z.object({
   export const createBooking = async (req: Request, res: Response) => {
 
     try {
-      const usersId=await getUser()
+      const token=req.headers.authorization;
+      if(!token) return   res.status(403).send('Forbidden');
+      const usersId=await getUser(token)
       if (!usersId)  return   res.status(401).send('Unauthorised');
         const data = BookingSchema.parse(req.body);
       const booking = await prisma.booking.create({
@@ -67,7 +69,9 @@ const BookingSchema = z.object({
     try {
         const data = BookingSchema.parse(req.body);
         const id=z.string().parse(req.params?.id)
-        const usersId=await getUser()
+        const token=req.headers.authorization;
+        if(!token) return   res.status(403).send('Forbidden');
+        const usersId=await getUser(token)
         if (!usersId)  return   res.status(401).send('Unauthorised');
       const booking = await prisma.booking.update({
         where: { id, usersId},
@@ -86,7 +90,9 @@ const BookingSchema = z.object({
     // Get current date
     const currentDate = new Date();
   try {
-    const usersId=await getUser()
+    const token=req.headers.authorization;
+    if(!token) return   res.status(403).send('Forbidden');
+    const usersId=await getUser(token)
     if (!usersId)  return   res.status(401).send('Unauthorised');
     // Fetch upcoming bookings for the user, including the event, class, or tournament details
     const bookings = await prisma.booking.findMany({
