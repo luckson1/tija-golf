@@ -21,13 +21,13 @@ const prisma = new PrismaClient();
 export const createProfile = async (req: Request, res: Response) => {
   try {
     const token=req.headers.authorization;
-    console.log(req.body, "body")
+  
     if(!token) return   res.status(403).send('Forbidden');
     const usersId=await getUser(token)
     if (!usersId)  return   res.status(401).send('Unauthorised');
     const body = profileSchema.parse(req.body);
     const data= {...body, usersId}
-
+console.log(data)
     const profile = await prisma.profile.create({ data });
 
     res.status(201).json({ message: 'Profile created successfully', profile });
