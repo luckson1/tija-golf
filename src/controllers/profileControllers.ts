@@ -31,7 +31,7 @@ export const createProfile = async (req: Request, res: Response) => {
 console.log(data, isValid)
     const profile = await prisma.profile.create({ data });
 
-    res.status(201).json({ message: 'Profile created successfully', profile });
+    res.status(200).json( profile );
   } catch (error) {
     if (error instanceof z.ZodError) {
         // If the error is a Zod validation error, send a bad request response
@@ -48,15 +48,15 @@ export const fetchProfile = async (req: Request, res: Response) => {
     const usersId=await getUser(token)
     if (!usersId)  return   res.status(401).send('Unauthorised');
 
-console.log(usersId)
 
-    const data = await prisma.profile.findUnique({
+
+    const profile = await prisma.profile.findUnique({
       where: {
         usersId
       }
     });
-console.log(data?.email)
-    res.status(201).json({ data });
+
+    res.status(200).json( profile );
   } catch (error) {
     
     res.status(500).json({ message: 'Error creating profile', error });
@@ -80,7 +80,7 @@ export const editProfile = async (req: Request, res: Response) => {
       data,
     });
 
-    res.status(200).json({ message: 'Profile updated successfully', profile });
+    res.status(200).json( profile );
   } catch (error) {
     if (error instanceof z.ZodError) {
         // If the error is a Zod validation error, send a bad request response
