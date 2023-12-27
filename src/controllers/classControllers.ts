@@ -51,7 +51,7 @@ export const getAllClasses = async (req:Request, res:Response) => {
       // Fetch all class records from the database
       const classes = await prisma.class.findMany({
         include: {
-          organization: true, // Include related organization data
+          organisation: true, // Include related organization data
           bookings: true, // Include related bookings
           payments: true, // Include related payments
         },
@@ -74,7 +74,7 @@ export const getAllClasses = async (req:Request, res:Response) => {
       const c = await prisma.class.findUnique({
         where: { id:  parsedData  },
         include: {
-          organization: true, // Include related organization data
+          organisation: true, // Include related organization data
           bookings: true, // Include related bookings
           payments: true, // Include related payments
         },
