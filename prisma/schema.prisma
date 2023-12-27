@@ -348,7 +348,7 @@ model Booking {
   eventId      String?
   classId      String?
   tournamentId String?
-  bookingREf Int @default(autoincrement())
+  bookingRef Int @default(autoincrement())
   bookingDate  DateTime @default(now())
 
   tee        Tee?        @relation(fields: [teeId], references: [id])
