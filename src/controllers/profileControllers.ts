@@ -50,7 +50,7 @@ export const fetchProfile = async (req: Request, res: Response) => {
 
 
 
-    const profile = await prisma.profile.findUnique({
+    const profile = await prisma.profile.findFirst({
       where: {
         usersId
       }
