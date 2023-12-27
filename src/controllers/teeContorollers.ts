@@ -49,12 +49,12 @@ export const createTee = async (req: Request, res: Response) => {
     if (!usersId)  return   res.status(401).send('Unauthorised');
     // Validate the input using Zod
     const parsedData = TeeSchema.parse(req.body);
-
+const  startDate=combineDateAndTime(parsedData)
     // Create the Tee in the database
     const newTee = await prisma.tee.create({
       data: {
         ...parsedData,
-        startDate: combineDateAndTime(parsedData)
+        startDate
       },
     });
 
@@ -70,8 +70,9 @@ const booking= await prisma.booking.create({
     res.status(201).json(booking);
   } catch (error) {
     if (error instanceof z.ZodError) {
+      console.log(error.errors.at(0)?.message)
       // If the error is a Zod validation error, send a bad request response
-      return res.status(400).json(error.errors);
+      return res.status(400).json(error.errors.at(0)?.message);
     }
 
     // Handle other types of errors
