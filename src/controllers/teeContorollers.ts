@@ -34,7 +34,6 @@ type TeeData = z.infer<typeof TeeSchema>;
 const TeeSchema = z.object({
   holes: z.enum(["9 holes", "18 holes"]),
   kit: z.enum(["Yes", "No"]),
-  isExistingGame: z.enum(["Yes", "No"]),
 
   organizationId: z.string().min(1, "Organization ID is required"),
   date: z.string().datetime(),
@@ -53,13 +52,12 @@ export const createTee = async (req: Request, res: Response) => {
 const  startDate=combineDateAndTime(parsedData)
 console.log(" combined", startDate)
 console.log(parsedData.date)
-const {holes, kit, isExistingGame, organizationId, }=parsedData
+const {holes, kit, organizationId, }=parsedData
     // Create the Tee in the database
     const newTee = await prisma.tee.create({
       data: {
         holes,
         kit,
-        isExistingGame,
         organizationId,
         startDate
       },
