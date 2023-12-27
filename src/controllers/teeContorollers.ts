@@ -51,7 +51,7 @@ export const createTee = async (req: Request, res: Response) => {
 
     const parsedData = TeeSchema.parse(req.body);
 const  startDate=combineDateAndTime(parsedData)
-console.log(startDate)
+console.log(" combined", startDate)
 console.log(parsedData.date)
 const {holes, kit, isExistingGame, organizationId, }=parsedData
     // Create the Tee in the database
