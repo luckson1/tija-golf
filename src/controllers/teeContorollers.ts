@@ -48,8 +48,10 @@ export const createTee = async (req: Request, res: Response) => {
     const usersId=await getUser(token)
     if (!usersId)  return   res.status(401).send('Unauthorised');
     // Validate the input using Zod
+ 
     const parsedData = TeeSchema.parse(req.body);
 const  startDate=combineDateAndTime(parsedData)
+console.log(startDate)
     // Create the Tee in the database
     const newTee = await prisma.tee.create({
       data: {
