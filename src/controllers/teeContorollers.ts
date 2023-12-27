@@ -52,6 +52,7 @@ export const createTee = async (req: Request, res: Response) => {
     const parsedData = TeeSchema.parse(req.body);
 const  startDate=combineDateAndTime(parsedData)
 console.log(startDate)
+console.log(parsedData.date)
     // Create the Tee in the database
     const newTee = await prisma.tee.create({
       data: {
@@ -139,7 +140,7 @@ const TeeUpdateSchema = z.object({
   name: z.string().min(1).optional(),
   description: z.string(),
   organizationId: z.string(),
-  startDate: z.date(),
+  startDate: z.string().datetime(),
   endDate: z.date(),
 });
 
