@@ -55,7 +55,7 @@ console.log(usersId)
         usersId
       }
     });
-
+console.log(profile?.email)
     res.status(201).json({ profile });
   } catch (error) {
     
