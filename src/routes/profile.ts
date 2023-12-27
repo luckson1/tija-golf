@@ -6,7 +6,7 @@ import { createProfile, editProfile, fetchProfile, testProfile } from '../contro
 const profileRoute = express.Router();
 
 profileRoute.post('/create', createProfile);
-profileRoute.put('/:id', editProfile);
+profileRoute.put('/', editProfile);
 profileRoute.get('/', fetchProfile);
 profileRoute.get('/test', testProfile);
 
