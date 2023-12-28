@@ -182,8 +182,11 @@ const BookingSchema = z.object({
           not: null,
         },
       },
-      include: {
-        
+      
+      select: {
+        status: true,
+        id: true,
+        bookingRef: true,
         tee: {
           include: {
             organisation: true
@@ -198,10 +201,10 @@ const BookingSchema = z.object({
         },
       },
     });
-    return bookings
-  
+
+    res.json(bookings)
    
   } catch (error) {
-    
+    res.status(500).send(error);
   }
   }
