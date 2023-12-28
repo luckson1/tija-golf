@@ -24,6 +24,7 @@ function combineDateAndTime(dateStr: string, timeStr: string): Date {
 
   date = setHours(date, hours);
   date = setMinutes(date, minutes);
+  // adjust for EAC time
   date = addHours(date, -3);
 
   return date;

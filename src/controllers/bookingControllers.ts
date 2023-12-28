@@ -123,9 +123,28 @@ const BookingSchema = z.object({
         ],
       },
       include: {
-        event: true,
-        class: true,
-        tournament: true,
+        event: {
+          include: {
+            organisation: true
+          }
+        },
+        class: {
+          include: {
+            organisation: true
+          }
+        },
+        tournament: {
+          include: {
+            organisation: true
+          }
+        },
+        tee: {
+          include: {
+            organisation: true
+          }
+        },
+        
+        
       },
     });
   
@@ -135,6 +154,7 @@ const BookingSchema = z.object({
         ...booking.event,
         ...booking.class,
         ...booking.tournament,
+        ...booking.tee,
         bookingDate: booking.bookingDate,
       };
     }).filter(activity => activity.startDate); // Filter out undefined results
@@ -143,6 +163,44 @@ const BookingSchema = z.object({
     activities.sort((a, b) => a?.startDate?.getTime()!- b?.startDate?.getTime()!);
   
     return activities;
+  } catch (error) {
+    
+  }
+  }
+  export async function getTeeBookings(req:Request, res:Response) {
+  
+  try {
+    const token=req.headers.authorization;
+    if(!token) return   res.status(403).send('Forbidden');
+    const usersId=await getUser(token)
+    if (!usersId)  return   res.status(401).send('Unauthorised');
+    // Fetch upcoming bookings for the user, including the event, class, or tournament details
+    const bookings = await prisma.booking.findMany({
+      where: {
+        usersId: usersId,
+        teeId: {
+          not: null,
+        },
+      },
+      include: {
+        
+        tee: {
+          include: {
+            organisation: true
+          }
+        },
+        
+        
+      },
+      orderBy: {
+        tee: {
+          startDate: 'asc', // Order by tee startDate in ascending order
+        },
+      },
+    });
+    return bookings
+  
+   
   } catch (error) {
     
   }
