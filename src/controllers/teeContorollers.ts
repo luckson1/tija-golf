@@ -2,7 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import { z } from "zod";
 import { Request, Response } from "express";
 import { getUser } from "../utils";
-import { parseISO, setHours, setMinutes, startOfDay } from 'date-fns'
+import { parseISO, setHours, setMinutes, startOfDay , addHours} from 'date-fns'
 
 const prisma = new PrismaClient();
 const timeRegex = /^(0?[1-9]|1[0-2]):[0-5][0-9] [AP]M$/;
@@ -24,6 +24,7 @@ function combineDateAndTime(dateStr: string, timeStr: string): Date {
 
   date = setHours(date, hours);
   date = setMinutes(date, minutes);
+  date = addHours(date, -3);
 
   return date;
 }
