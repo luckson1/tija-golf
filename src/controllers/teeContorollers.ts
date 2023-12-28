@@ -2,16 +2,30 @@ import { PrismaClient } from "@prisma/client";
 import { z } from "zod";
 import { Request, Response } from "express";
 import { getUser } from "../utils";
-import { setHours, setMinutes } from 'date-fns';
+import { parseISO, setHours, setMinutes, startOfDay } from 'date-fns'
 
 const prisma = new PrismaClient();
 const timeRegex = /^(0?[1-9]|1[0-2]):[0-5][0-9] [AP]M$/;
-function combineDateAndTime(data:TeeData): Date {
-  const timeStr=data.startTime
-  const date=new Date(data.date)
-  const time = new Date(`1970-01-01T${timeStr}`);
+function combineDateAndTime(dateStr: string, timeStr: string): Date {
+  let date = parseISO(dateStr); // Parse the date string
+  date = startOfDay(date); // Reset time to 00:00:00
 
-  return setMinutes(setHours(date, time.getHours()), time.getMinutes());
+  // Extract hours and minutes from the time string
+  const [time, modifier] = timeStr.split(' ');
+  let [hours, minutes] = time.split(':').map((val) => parseInt(val, 10));
+
+  // Convert 12-hour time to 24-hour time
+  if (hours === 12) {
+    hours = 0;
+  }
+  if (modifier.toUpperCase() === 'PM') {
+    hours += 12;
+  }
+
+  date = setHours(date, hours);
+  date = setMinutes(date, minutes);
+
+  return date;
 }
 
 
@@ -37,7 +51,7 @@ export const createTee = async (req: Request, res: Response) => {
     // Validate the input using Zod
 
     const parsedData = TeeSchema.parse(req.body);
-const  startDate=combineDateAndTime(parsedData)
+const  startDate=combineDateAndTime(parsedData.date, parsedData.startTime)
 console.log(" combined", startDate)
 console.log(parsedData.date)
 const {holes, kit, organizationId, }=parsedData
