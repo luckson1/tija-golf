@@ -8,7 +8,7 @@ const prisma = new PrismaClient();
 const timeRegex = /^(0?[1-9]|1[0-2]):[0-5][0-9] [AP]M$/;
 function combineDateAndTime(data:TeeData): Date {
   const timeStr=data.startTime
-  const date=data.date
+  const date=new Date(data.date)
   const time = new Date(`1970-01-01T${timeStr}`);
 
   return setMinutes(setHours(date, time.getHours()), time.getMinutes());
