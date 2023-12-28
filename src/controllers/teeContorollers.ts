@@ -2,28 +2,16 @@ import { PrismaClient } from "@prisma/client";
 import { z } from "zod";
 import { Request, Response } from "express";
 import { getUser } from "../utils";
+import { setHours, setMinutes } from 'date-fns';
 
 const prisma = new PrismaClient();
 const timeRegex = /^(0?[1-9]|1[0-2]):[0-5][0-9] [AP]M$/;
-function combineDateAndTime(data: TeeData): Date {
-  // Extract the date and time
-  const { date, startTime } = data;
+function combineDateAndTime(data:TeeData): Date {
+  const timeStr=data.startTime
+  const date=data.date
+  const time = new Date(`1970-01-01T${timeStr}`);
 
-  // Convert 12-hour format time to 24-hour format
-  const [time, modifier] = startTime.split(' ');
-  let [hours, minutes] = time? time?.split(':') : [undefined, undefined];
-  if (hours === '12') {
-    hours = '00';
-  }
-  if (modifier === 'PM' && hours) {
-    hours = (parseInt(hours, 10) + 12).toString();
-  }
-
-  // Combine the date and time
-  const combinedDate = new Date(date);
-  combinedDate.setHours(parseInt(hours ?? "09", 10), parseInt(minutes ?? "00", 10));
-
-  return combinedDate;
+  return setMinutes(setHours(date, time.getHours()), time.getMinutes());
 }
 
 
