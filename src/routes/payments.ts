@@ -5,7 +5,7 @@ import { encriptPayment } from '../controllers/payments';
 
 const paymentRoute = express.Router();
 
-paymentRoute.post('/encript', encriptPayment);
+paymentRoute.post('/encrypt', encriptPayment);
 
 
 export default paymentRoute;
