@@ -35,7 +35,7 @@ export const encriptPayment = async (req:Request, res:Response) => {
       const payloadObj = apiSchema.parse(req.body);
   
       const payloadStr = JSON.stringify(payloadObj)
-  
+  console.log("IVKey:", IVKey , "secretKey:", secretKey)
       var result = encryption?.encrypt(payloadStr);
       res.status(201).json(result);
     } catch (error) {
