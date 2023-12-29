@@ -27,8 +27,8 @@ const apiSchema = z.object({
 
 export const encriptPayment = async (req:Request, res:Response) => {
     const accessKey = process.env.ACCESS_KEY
-const IVKey = process.env.IV_KEY;
-const secretKey = process.env.SECRET_KEY;
+const IVKey = process.env.IVKey;
+const secretKey = process.env.secretKey;
 const algorithm = "aes-256-cbc";
 const encryption = IVKey && secretKey ? new checkoutEncrypt.Encryption(IVKey, secretKey, algorithm) : null
     try {
