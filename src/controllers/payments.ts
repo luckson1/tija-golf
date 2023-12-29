@@ -23,13 +23,14 @@ const apiSchema = z.object({
   prefill_msisdn: z.boolean().optional().default(true),
 });
 
-const accessKey = process.env.ACCESS_KEY
+
+
+export const encriptPayment = async (req:Request, res:Response) => {
+    const accessKey = process.env.ACCESS_KEY
 const IVKey = process.env.IV_KEY;
 const secretKey = process.env.SECRET_KEY;
 const algorithm = "aes-256-cbc";
 const encryption = IVKey && secretKey ? new checkoutEncrypt.Encryption(IVKey, secretKey, algorithm) : null
-
-export const encriptPayment = async (req:Request, res:Response) => {
     try {
       // Validate the input using Zod
       const payloadObj = apiSchema.parse(req.body);
