@@ -1,6 +1,9 @@
 lockfileVersion: '6.0'
 
 dependencies:
+  '@cellulant/checkout_encryption':
+    specifier: ^1.0.4
+    version: 1.0.4
   '@prisma/client':
     specifier: ^5.7.0
     version: 5.7.0(prisma@5.7.0)
@@ -41,6 +44,10 @@ devDependencies:
     version: 5.3.3
 
 packages:
+
+  /@cellulant/checkout_encryption@1.0.4:
+    resolution: {integrity: sha512-8d1bjvcbp5PPfsquR0/BlL/K4Puxds+fuHbIDeKzmObCJZ7VzZpmkuivnQE1955kHXTOAylUMP3lQ/KT06T25g==}
+    dev: false
 
   /@cspotcode/source-map-support@0.8.1:
     resolution: {integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==}

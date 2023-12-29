@@ -6,6 +6,7 @@ import classesRoute from "./routes/classes"
 import tournamentRoute from './routes/tournaments';
 import profileRoute from './routes/profile';
 import orgRouter from './routes/organisation';
+import paymentRoute from './routes/payments';
 
 const app = express();
 
@@ -26,6 +27,7 @@ app.use('/api/classes', classesRoute);
 app.use('/api/tee',  teesRoute);
 app.use('/api/profile', profileRoute);
 app.use('/api/organization', orgRouter);
+app.use('/api/payments', paymentRoute);
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
