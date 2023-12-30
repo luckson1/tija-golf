@@ -1,6 +1,7 @@
-import { z } from 'zod';
-import checkoutEncrypt from '@cellulant/checkout_encryption' 
-import { Request, Response } from 'express';
+import { z } from "zod";
+import checkoutEncrypt from "@cellulant/checkout_encryption";
+import { Request, Response } from "express";
+import { PrismaClient } from "@prisma/client";
 // const apiSchema = z.object({
 //   merchant_transaction_id: z.string(),
 //   account_number: z.string(),
@@ -23,7 +24,7 @@ import { Request, Response } from 'express';
 //   prefill_msisdn: z.boolean().optional().default(true),
 // });
 
-
+const prisma = new PrismaClient();
 
 const apiSchema = z.object({
   merchantTransactionID: z.string(),
@@ -47,28 +48,85 @@ const apiSchema = z.object({
   extraData: z.record(z.any()).optional(), // JSON is represented as a record of any type
 });
 
+const webhookRequestSchema = z.object({
+  merchantTransactionID: z.string(),
+  requestAmount: z.string(),
+  currencyCode: z.string(),
+  accountNumber: z.string(),
+  serviceCode: z.string(),
+  countryCode: z.string(),
+  requestStatusCode: z.number(),
+  dueDate: z.string().optional(),
+  payerClientCode: z.string().optional(),
+  requestDescription: z.string().optional(),
+  languageCode: z.string().optional(),
+  MSISDN: z.string(),
+  customerFirstName: z.string(),
+  customerLastName: z.string(),
+  customerEmail: z.string().email(),
+  successRedirectUrl: z.string().url(),
+  failRedirectUrl: z.string().url(),
+  paymentWebhookUrl: z.string().url(),
+  extraData: z.record(z.unknown()).optional(), // JSON is a record type with unknown values
+});
+export const encriptPayment = async (req: Request, res: Response) => {
+  const accessKey = process.env.ACCESS_KEY;
+  const IVKey = process.env.IVKey;
+  const secretKey = process.env.secretKey;
+  const algorithm = "aes-256-cbc";
+  const encryption =
+    IVKey && secretKey
+      ? new checkoutEncrypt.Encryption(IVKey, secretKey, algorithm)
+      : null;
+  try {
+    // Validate the input using Zod
+    const payloadObj = apiSchema.parse(req.body);
 
-export const encriptPayment = async (req:Request, res:Response) => {
-    const accessKey = process.env.ACCESS_KEY
-const IVKey = process.env.IVKey;
-const secretKey = process.env.secretKey;
-const algorithm = "aes-256-cbc";
-const encryption = IVKey && secretKey ? new checkoutEncrypt.Encryption(IVKey, secretKey, algorithm) : null
-    try {
-      // Validate the input using Zod
-      const payloadObj = apiSchema.parse(req.body);
-  
-      const payloadStr = JSON.stringify(payloadObj)
-  console.log("IVKey:", IVKey , "secretKey:", secretKey)
-      var result = encryption?.encrypt(payloadStr);
-      res.status(201).json(result);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        // If the error is a Zod validation error, send a bad request response
-        return res.status(400).json(error.errors);
-      }
-  
-      // Handle other types of errors
-      res.status(500).send(error);
+    const payloadStr = JSON.stringify(payloadObj);
+    console.log("IVKey:", IVKey, "secretKey:", secretKey);
+    var result = encryption?.encrypt(payloadStr);
+    res.status(201).json(result);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      // If the error is a Zod validation error, send a bad request response
+      return res.status(400).json(error.errors);
     }
-  };
+
+    // Handle other types of errors
+    res.status(500).send(error);
+  }
+};
+export const webHookReq = async (req: Request, res: Response) => {
+  try {
+    // Validate the input using Zod
+    const payloadObj = webhookRequestSchema.parse(req.body);
+    const payment = await prisma.payment.update({
+      where: {
+        id: payloadObj.accountNumber,
+      },
+      data: {
+        status:
+          payloadObj.requestStatusCode === 99
+            ? "Failed"
+            : payloadObj.requestStatusCode === 129
+            ? "Expired"
+            : payloadObj.requestStatusCode === 176
+            ? "Partial"
+            : payloadObj.requestStatusCode === 178
+            ? "Completed"
+            : payloadObj.requestStatusCode === 179
+            ? "Refunded"
+            : "Failed",
+      },
+    });
+    res.status(201).json(payment);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      // If the error is a Zod validation error, send a bad request response
+      return res.status(400).json(error.errors);
+    }
+
+    // Handle other types of errors
+    res.status(500).send(error);
+  }
+};

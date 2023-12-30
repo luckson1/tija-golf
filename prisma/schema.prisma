@@ -472,6 +472,7 @@ model Payment {
   status           PaymentStatus @default(Pending)
   paymentDate      DateTime      @default(now())
   paymentMethod    String?
+  checkoutRequestID Int?
 
   booking        Booking      @relation(fields: [bookingId], references: [id])
   Tee            Tee?         @relation(fields: [teeId], references: [id])
@@ -494,7 +495,8 @@ enum PaymentStatus {
   Completed
   Failed
   Refunded
-
+Partial
+Expired
   @@schema("auth")
 }
 
