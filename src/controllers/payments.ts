@@ -1,28 +1,51 @@
 import { z } from 'zod';
 import checkoutEncrypt from '@cellulant/checkout_encryption' 
 import { Request, Response } from 'express';
-const apiSchema = z.object({
-  merchant_transaction_id: z.string(),
-  account_number: z.string(),
-  msisdn: z.string(),
-  country_code: z.string().length(3),
-  currency_code: z.string().length(3),
-  due_date: z.string(), // You might want to use a custom validator for date format
-  request_amount: z.number(),
-  service_code: z.string(),
-  callback_url: z.string(),
-  success_redirect_url: z.string(),
-  fail_redirect_url: z.string(),
-  customer_first_name: z.string().optional(),
-  customer_last_name: z.string().optional(),
-  customer_email: z.string().email().optional(),
-  payment_option_code: z.string().optional(),
-  pending_redirect_url: z.string().optional(),
-  request_description: z.string().optional(),
-  language_code: z.enum(['fr', 'en', 'ar', 'pt']).optional(),
-  prefill_msisdn: z.boolean().optional().default(true),
-});
+// const apiSchema = z.object({
+//   merchant_transaction_id: z.string(),
+//   account_number: z.string(),
+//   msisdn: z.string(),
+//   country_code: z.string().length(3),
+//   currency_code: z.string().length(3),
+//   due_date: z.string(), // You might want to use a custom validator for date format
+//   request_amount: z.number(),
+//   service_code: z.string(),
+//   callback_url: z.string(),
+//   success_redirect_url: z.string(),
+//   fail_redirect_url: z.string(),
+//   customer_first_name: z.string().optional(),
+//   customer_last_name: z.string().optional(),
+//   customer_email: z.string().email().optional(),
+//   payment_option_code: z.string().optional(),
+//   pending_redirect_url: z.string().optional(),
+//   request_description: z.string().optional(),
+//   language_code: z.enum(['fr', 'en', 'ar', 'pt']).optional(),
+//   prefill_msisdn: z.boolean().optional().default(true),
+// });
 
+
+
+const apiSchema = z.object({
+  merchantTransactionID: z.string(),
+  requestAmount: z.string(), // Assuming this should be a string representing a numerical value
+  currencyCode: z.string(),
+  accountNumber: z.string(),
+  serviceCode: z.string(),
+  countryCode: z.string(),
+  dueDate: z.string().optional(), // Assuming the date is in string format
+  payerClientCode: z.string().optional(),
+  requestDescription: z.string().optional(),
+  languageCode: z.string().optional(),
+  MSISDN: z.string(),
+  customerFirstName: z.string(),
+  customerLastName: z.string(),
+  customerEmail: z.string().email(),
+  successRedirectUrl: z.string(),
+  pendingRedirectUrl: z.string().optional(),
+  failRedirectUrl: z.string(),
+  paymentWebhookUrl: z.string(),
+  extraData: z.record(z.any()).optional(), // JSON is represented as a record of any type
+});
 
 
 export const encriptPayment = async (req:Request, res:Response) => {
