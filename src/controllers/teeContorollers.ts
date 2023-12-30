@@ -44,6 +44,19 @@ const TeeSchema = z.object({
  startTime: z.string().regex(timeRegex, { message: "Invalid time format. Use HH:MM in 24-hour format." }),
 });
 
+
+
+
+const CreatePaymentSchema = z.object({
+  bookingId: z.string(),
+  usersId: z.string(),
+  amount: z.number(),
+  teeId: z.string(),
+  organizationId: z.string(),
+});
+
+// Use this schema to validate data when creating a payment
+
 export const createTee = async (req: Request, res: Response) => {
   try {
     const token=req.headers.authorization;
@@ -174,5 +187,40 @@ export const updateTee = async (req: Request, res: Response) => {
 
     // Handle other types of errors
     res.status(500).send(error);
+  }
+};
+
+
+
+// Express route handler
+export const createPayment = async (req: Request, res: Response) => {
+  try {
+    // Validate the request body using the Zod schema
+    const parsedData = CreatePaymentSchema.parse(req.body);
+
+    // Use the parsed data to create a new payment in the database
+    const payment = await prisma.payment.create({
+      data: {
+        bookingId: parsedData.bookingId,
+        usersId: parsedData.usersId,
+        amount: parsedData.amount,
+        organizationId: parsedData.organizationId,
+        // Optional fields are included conditionally
+        ...(parsedData.teeId && { teeId: parsedData.teeId }),
+      },
+ 
+    });
+
+    // Send back the created payment data
+    res.status(201).json(payment);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      // If the error is a Zod validation error, send a bad request response
+      res.status(400).json({ errors: error.issues });
+    } else {
+      // Handle other types of errors
+      console.error('Unexpected Error:', error);
+      res.status(500).send('An unexpected error occurred');
+    }
   }
 };

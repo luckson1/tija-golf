@@ -1,6 +1,6 @@
 
 import express from 'express';
-import { createTee, getAllTees, getTee, updateTee } from '../controllers/teeContorollers';
+import { createPayment, createTee, getAllTees, getTee, updateTee } from '../controllers/teeContorollers';
 
 
 
@@ -8,6 +8,7 @@ import { createTee, getAllTees, getTee, updateTee } from '../controllers/teeCont
 const teesRoute = express.Router();
 
 teesRoute.post('/', createTee);
+teesRoute.post('/pay', createPayment);
 teesRoute.get('/', getAllTees);
 teesRoute.get('/:id', getTee);
 teesRoute.put('/:id', updateTee);

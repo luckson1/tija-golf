@@ -467,12 +467,11 @@ enum Gender {
 model Payment {
   id               String        @id @default(cuid())
   bookingId        String
-  productServiceId String
   user             users         @relation(fields: [usersId], references: [id])
   amount           Float
-  status           PaymentStatus
+  status           PaymentStatus @default(Pending)
   paymentDate      DateTime      @default(now())
-  paymentMethod    String
+  paymentMethod    String?
 
   booking        Booking      @relation(fields: [bookingId], references: [id])
   Tee            Tee?         @relation(fields: [teeId], references: [id])
@@ -501,6 +500,7 @@ enum PaymentStatus {
 
 enum BookingStatus {
   Pending
+  Partial
   Confirmed
   Completed
   Failed
