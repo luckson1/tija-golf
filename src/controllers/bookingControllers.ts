@@ -231,7 +231,7 @@ const BookingSchema = z.object({
         startDate: true,
       holes: true,
     kit: true,
-        
+
 package: {
   select: {
     amount: true,
@@ -242,6 +242,7 @@ package: {
                 select: {
                   name: true,
                   location: true,
+                  image: true
                   
                 }
               }
