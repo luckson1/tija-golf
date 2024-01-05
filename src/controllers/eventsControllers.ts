@@ -86,7 +86,12 @@ export const getAllEvents = async (req:Request, res:Response) => {
       const events = await prisma.listedEvent.findMany({
         include: {
           // Include related bookings
-        Package: true// Include related payments
+        Package: {
+          orderBy: {
+            amount: "asc"
+          }
+        }
+        
         },
       });
   
