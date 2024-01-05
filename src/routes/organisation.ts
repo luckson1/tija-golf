@@ -7,11 +7,11 @@ import { getAllOrganisations, testOrganisations } from '../controllers/organisat
 
 
 
-const orgRouter = express.Router();
+const orgRoute = express.Router();
 
-orgRouter.get('/',  getAllOrganisations);
+orgRoute.get('/',  getAllOrganisations);
 
-orgRouter.get('/all',  testOrganisations);
+orgRoute.get('/all',  testOrganisations);
 
 
-export default orgRouter;
+export default orgRoute;

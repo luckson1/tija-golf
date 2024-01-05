@@ -1,32 +1,68 @@
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
-
-const prisma = new PrismaClient();
 import  { Request, Response } from 'express';
-type IdParams = {
-    id?: string;
-  };
-  type EventData = z.infer<typeof EventSchema>;
+import { addHours, parseISO, setHours, setMinutes, startOfDay } from 'date-fns';
+import { getUser } from '../utils';
+function combineDateAndTime(dateStr: string, timeStr: string): Date {
+  let date = parseISO(dateStr); // Parse the date string
+  date = startOfDay(date); // Reset time to 00:00:00
+
+  // Extract hours and minutes from the time string
+  const [time, modifier] = timeStr.split(' ');
+  let [hours, minutes] = time.split(':').map((val) => parseInt(val, 10));
+
+  // Convert 12-hour time to 24-hour time
+  if (hours === 12) {
+    hours = 0;
+  }
+  if (modifier.toUpperCase() === 'PM') {
+    hours += 12;
+  }
+
+  date = setHours(date, hours);
+  date = setMinutes(date, minutes);
+  // adjust for EAC time
+  date = addHours(date, -3);
+
+  return date;
+}
+
+const timeRegex = /^(0?[1-9]|1[0-2]):[0-5][0-9] [AP]M$/;
+
+type EventData = z.infer<typeof EventSchema>;
 const EventSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  description: z.string(),
-  organizationId: z.string().min(1, "Organization ID is required"),
-  startDate: z.date(),
-  endDate: z.date(),
+  holes: z.enum(["9 holes", "18 holes"]),
+  kit: z.enum(["Yes", "No"]),
+
+  listedEventId: z.string().min(1, "Organization ID is required"),
+  date: z.string().datetime(),
+ startTime: z.string().regex(timeRegex, { message: "Invalid time format. Use HH:MM in 24-hour format." }),
+ packageId: z.string()
 });
+const prisma = new PrismaClient();
+
+
 
 export const createEvent = async (req:Request, res:Response) => {
   try {
+    const token=req.headers.authorization;
+    if(!token) return   res.status(403).send('Forbidden');
+    const usersId=await getUser(token)
+    if (!usersId)  return   res.status(401).send('Unauthorised');
     // Validate the input using Zod
-    const parsedData = EventSchema.parse(req.body);
+
+    const {holes, kit, date, startTime, listedEventId, packageId} = EventSchema.parse(req.body);
+const  startDate=combineDateAndTime(date, startTime)
 
     // Create the event in the database
     const newEvent = await prisma.event.create({
       data: {
-        description: parsedData.description,
-        organizationId: parsedData.organizationId,
-        startDate: parsedData.startDate,
-        endDate: parsedData.endDate,
+        startDate,
+        holes,
+        kit,
+        listedEventId,
+        packageId
+
       },
     });
 
@@ -47,11 +83,10 @@ export const createEvent = async (req:Request, res:Response) => {
 export const getAllEvents = async (req:Request, res:Response) => {
     try {
       // Fetch all event records from the database
-      const events = await prisma.event.findMany({
+      const events = await prisma.listedEvent.findMany({
         include: {
-          organisation: true, // Include related organization data
-          bookings: true, // Include related bookings
-          payments: true, // Include related payments
+          // Include related bookings
+        Package: true// Include related payments
         },
       });
   
@@ -72,7 +107,6 @@ export const getAllEvents = async (req:Request, res:Response) => {
       const event = await prisma.event.findUnique({
         where: { id:  parsedData  },
         include: {
-          organisation: true, // Include related organization data
           bookings: true, // Include related bookings
           payments: true, // Include related payments
         },

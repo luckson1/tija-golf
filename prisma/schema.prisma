@@ -1,6 +1,6 @@
 generator client {
-  provider        = "prisma-client-js"
-  
+  provider = "prisma-client-js"
+
   previewFeatures = ["multiSchema"]
 }
 
@@ -282,6 +282,8 @@ model users {
   Booking                     Booking[]
   Payment                     Payment[]
   Profile                     Profile?
+  EventMember                 EventMember[]
+  LikedEventMember            LikedEventMember[]
 
   @@index([instance_id])
   @@schema("auth")
@@ -322,7 +324,6 @@ model Organization {
   location           String
   image              String
   Tee                Tee[]
-  Event              Event[]
   Class              Class[]
   Tournament         Tournament[]
   Payment            Payment[]
@@ -348,25 +349,25 @@ model Booking {
   eventId      String?
   classId      String?
   tournamentId String?
-  bookingRef Int @default(autoincrement())
+  bookingRef   Int      @default(autoincrement())
   bookingDate  DateTime @default(now())
 
-  tee        Tee?        @relation(fields: [teeId], references: [id])
-  event      Event?      @relation(fields: [eventId], references: [id])
-  class      Class?      @relation(fields: [classId], references: [id])
-  tournament Tournament? @relation(fields: [tournamentId], references: [id])
+  tee        Tee?          @relation(fields: [teeId], references: [id])
+  event      Event?        @relation(fields: [eventId], references: [id])
+  class      Class?        @relation(fields: [classId], references: [id])
+  tournament Tournament?   @relation(fields: [tournamentId], references: [id])
   payments   Payment[]
-  usersId    String      @db.Uuid
-  status  PaymentStatus @default(Pending)
+  usersId    String        @db.Uuid
+  status     PaymentStatus @default(Pending)
 
   @@schema("auth")
 }
 
 model Tee {
   id             String       @id @default(cuid())
-  holes          String         @default("9 holes")
-  kit             String     @default("No")
-  isExistingGame  String     @default("No")
+  holes          String       @default("9 holes")
+  kit            String       @default("No")
+  isExistingGame String       @default("No")
   bookings       Booking[]
   startDate      DateTime
   payments       Payment[]
@@ -376,15 +377,65 @@ model Tee {
   @@schema("auth")
 }
 
+model EventMember {
+  user          users       @relation(fields: [usersId], references: [id])
+  usersId       String      @db.Uuid
+  events        ListedEvent @relation(fields: [listedEventId], references: [id])
+  listedEventId String
+
+  @@id([usersId, listedEventId])
+  @@schema("auth")
+}
+
+model LikedEventMember {
+  user          users       @relation(fields: [usersId], references: [id])
+  usersId       String      @db.Uuid
+  events        ListedEvent @relation(fields: [listedEventId], references: [id])
+  listedEventId String
+
+  @@id([usersId, listedEventId])
+  @@schema("auth")
+}
+
+model ListedEvent {
+  id               String             @id @default(cuid())
+  name             String
+  location         String
+  description      String
+  image            String
+  startDate        DateTime           @default(now())
+  Event            Event[]
+  Payment          Payment[]
+  EventMember      EventMember[]
+  LikedEventMember LikedEventMember[]
+  Package          Package[]
+
+  @@schema("auth")
+}
+
 model Event {
-  id             String       @id @default(cuid())
-  description    String
+  id             String      @id @default(cuid())
+  holes          String      @default("9 holes")
+  kit            String      @default("No")
+  isExistingGame String      @default("No")
   bookings       Booking[]
   startDate      DateTime
-  endDate        DateTime
-  organisation   Organization @relation(fields: [organizationId], references: [id])
   payments       Payment[]
-  organizationId String
+  ListedEvent    ListedEvent @relation(fields: [listedEventId], references: [id])
+  listedEventId  String
+  package        Package     @relation(fields: [packageId], references: [id])
+  packageId      String
+
+  @@schema("auth")
+}
+
+model Package {
+  id            String      @id @default(cuid())
+  amount        String
+  name          String
+  event         ListedEvent @relation(fields: [listedEventId], references: [id])
+  listedEventId String
+  Event         Event[]
 
   @@schema("auth")
 }
@@ -442,17 +493,17 @@ model Tournament {
 }
 
 model Profile {
-  id          String   @id @default(cuid())
-  name        String
-  email       String
-  phoneNumber String
-  level       String   @default("Beginner")
-  user        users    @relation(fields: [usersId], references: [id])
-  usersId     String   @unique @db.Uuid
-  gender      Gender
-  dateOfBirth DateTime
-  cohort      Int
-  memberNumber Int @default(autoincrement())
+  id           String   @id @default(cuid())
+  name         String
+  email        String
+  phoneNumber  String
+  level        String   @default("Beginner")
+  user         users    @relation(fields: [usersId], references: [id])
+  usersId      String   @unique @db.Uuid
+  gender       Gender
+  dateOfBirth  DateTime
+  cohort       Int
+  memberNumber Int      @default(autoincrement())
 
   @@schema("auth")
 }
@@ -465,13 +516,13 @@ enum Gender {
 }
 
 model Payment {
-  id               String        @id @default(cuid())
-  bookingId        String
-  user             users         @relation(fields: [usersId], references: [id])
-  amount           Float
-  status           PaymentStatus @default(Pending)
-  paymentDate      DateTime      @default(now())
-  paymentMethod    String?
+  id                String        @id @default(cuid())
+  bookingId         String
+  user              users         @relation(fields: [usersId], references: [id])
+  amount            Float
+  status            PaymentStatus @default(Pending)
+  paymentDate       DateTime      @default(now())
+  paymentMethod     String?
   checkoutRequestID Int?
 
   booking        Booking      @relation(fields: [bookingId], references: [id])
@@ -486,6 +537,8 @@ model Payment {
   organisation   Organization @relation(fields: [organizationId], references: [id])
   organizationId String
   usersId        String       @db.Uuid
+  ListedEvent    ListedEvent? @relation(fields: [listedEventId], references: [id])
+  listedEventId  String?
 
   @@schema("auth")
 }
@@ -495,8 +548,9 @@ enum PaymentStatus {
   Completed
   Failed
   Refunded
-Partial
-Expired
+  Partial
+  Expired
+
   @@schema("auth")
 }
 

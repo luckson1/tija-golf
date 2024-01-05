@@ -5,8 +5,9 @@ import  teesRoute from './routes/tees'
 import classesRoute from "./routes/classes"
 import tournamentRoute from './routes/tournaments';
 import profileRoute from './routes/profile';
-import orgRouter from './routes/organisation';
+import orgRoute from './routes/organisation';
 import paymentRoute from './routes/payments';
+import eventRoute from './routes/events';
 
 const app = express();
 
@@ -25,8 +26,9 @@ app.use('/api/tournaments', tournamentRoute);
 app.use('/api/bookings', bookingsRoute);
 app.use('/api/classes', classesRoute);
 app.use('/api/tee',  teesRoute);
+app.use('/api/events',  eventRoute);
 app.use('/api/profile', profileRoute);
-app.use('/api/organization', orgRouter);
+app.use('/api/organization', orgRoute);
 app.use('/api/payments', paymentRoute);
 
 app.listen(PORT, () => {

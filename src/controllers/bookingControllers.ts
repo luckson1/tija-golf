@@ -123,11 +123,7 @@ const BookingSchema = z.object({
         ],
       },
       include: {
-        event: {
-          include: {
-            organisation: true
-          }
-        },
+        event:true,
         class: {
           include: {
             organisation: true

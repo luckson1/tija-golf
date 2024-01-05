@@ -5,11 +5,11 @@ import { createEvent, getAllEvents, getEvent, updateEvent } from '../controllers
 
 
 
-const eventRouter = express.Router();
+const eventRoute = express.Router();
 
-eventRouter.post('/',  createEvent);
-eventRouter.get('/',  getAllEvents);
-eventRouter.get('/:id',  getEvent);
-eventRouter.put('/:id',  updateEvent);
+eventRoute.post('/',  createEvent);
+eventRoute.get('/',  getAllEvents);
+eventRoute.get('/:id',  getEvent);
+eventRoute.put('/:id',  updateEvent);
 
-export default eventRouter;
+export default eventRoute;
