@@ -66,8 +66,21 @@ const  startDate=combineDateAndTime(date, startTime)
       },
     });
 
-    // Send the created event as a response
-    res.status(201).json(newEvent);
+    const booking= await prisma.booking.create({
+      data: {
+        usersId,
+        eventId: newEvent.id
+      },
+      include: {
+        event: {
+          include: {
+            package: true
+          }
+        }
+        
+      }
+    })
+    res.status(201).json(booking);
   } catch (error) {
     if (error instanceof z.ZodError) {
       // If the error is a Zod validation error, send a bad request response

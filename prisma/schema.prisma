@@ -425,7 +425,7 @@ model Event {
   ListedEvent    ListedEvent @relation(fields: [listedEventId], references: [id])
   listedEventId  String
   package        Package     @relation(fields: [packageId], references: [id])
-  packageId      String
+  packageId      String @unique
 
   @@schema("auth")
 }
@@ -436,7 +436,7 @@ model Package {
   name          String
   event         ListedEvent @relation(fields: [listedEventId], references: [id])
   listedEventId String
-  Event         Event[]
+  Event         Event?
 
   @@schema("auth")
 }
