@@ -71,10 +71,15 @@ const  startDate=combineDateAndTime(date, startTime)
         usersId,
         eventId: newEvent.id
       },
-      include: {
+      select: {
+        bookingRef:true,
         event: {
           include: {
-            package: true
+            package: {
+              select: {
+                amount: true
+              }
+            }
           }
         }
         
