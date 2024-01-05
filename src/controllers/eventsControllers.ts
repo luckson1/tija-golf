@@ -77,7 +77,8 @@ const  startDate=combineDateAndTime(date, startTime)
           include: {
             package: {
               select: {
-                amount: true
+                amount: true,
+                name: true
               }
             }
           }
