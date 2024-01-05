@@ -204,3 +204,62 @@ const BookingSchema = z.object({
     res.status(500).send(error);
   }
   }
+
+  export async function getEventBookings(req:Request, res:Response) {
+  
+    try {
+      const token=req.headers.authorization;
+      if(!token) return   res.status(403).send('Forbidden');
+      const usersId=await getUser(token)
+      if (!usersId)  return   res.status(401).send('Unauthorised');
+      // Fetch upcoming bookings for the user, including the event, class, or tournament details
+      const bookings = await prisma.booking.findMany({
+        where: {
+          usersId: usersId,
+          eventId: {
+            not: null,
+          },
+        },
+        
+        select: {
+          status: true,
+          id: true,
+          bookingRef: true,
+          event: {
+            select: {
+        id: true,
+        startDate: true,
+      holes: true,
+    kit: true,
+        
+package: {
+  select: {
+    amount: true,
+    name: true
+  }
+},
+              ListedEvent: {
+                select: {
+                  name: true,
+                  location: true,
+                  
+                }
+              }
+            }
+          },
+          
+          
+        },
+        orderBy: {
+          event: {
+            startDate: 'asc', // Order by tee startDate in ascending order
+          },
+        },
+      });
+  
+      res.json(bookings)
+     
+    } catch (error) {
+      res.status(500).send(error);
+    }
+    }
