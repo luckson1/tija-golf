@@ -402,6 +402,7 @@ model ListedEvent {
   name             String
   location         String
   description      String
+  type String @default("Tournament")
   image            String
   startDate        DateTime           @default(now())
   Event            Event[]
