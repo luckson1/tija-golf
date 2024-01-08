@@ -104,6 +104,7 @@ export const updatePartner = async (req:Request, res:Response) => {
     // Send the updated partner as a response
     res.json(updatedpartner);
   } catch (error) {
+    console.log(error)
     if (error instanceof z.ZodError) {
       // If the error is a Zod validation error, send a bad request response
       return res.status(400).json(error.errors);
