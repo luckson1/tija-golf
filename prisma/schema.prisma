@@ -441,6 +441,18 @@ model Package {
   @@schema("auth")
 }
 
+model Partner {
+  id            String      @id @default(cuid())
+name String
+image String
+email String
+phone String
+location String
+website String
+description String
+
+  @@schema("public")
+}
 model Class {
   id             String          @id @default(cuid())
   cohort         Int

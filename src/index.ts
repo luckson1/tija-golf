@@ -8,6 +8,7 @@ import profileRoute from './routes/profile';
 import orgRoute from './routes/organisation';
 import paymentRoute from './routes/payments';
 import eventRoute from './routes/events';
+import partnerRoute from './routes/partners';
 
 const app = express();
 
@@ -23,6 +24,7 @@ app.use(express.json());
 // Define your routes and handlers here
 app.get("/", (req, res)=> res.send("Hi there, welcome here!!"))
 app.use('/api/tournaments', tournamentRoute);
+app.use('/api/partners', partnerRoute);
 app.use('/api/bookings', bookingsRoute);
 app.use('/api/classes', classesRoute);
 app.use('/api/tee',  teesRoute);
