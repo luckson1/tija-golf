@@ -50,6 +50,7 @@ export const getAllPartners = async (req:Request, res:Response) => {
       // Send the retrieved partners as a response
       res.json(partners);
     } catch (error) {
+      console.log(error)
       // Handle potential errors
       res.status(500).send(error);
     }
