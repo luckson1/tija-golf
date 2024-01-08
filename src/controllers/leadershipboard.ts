@@ -5,8 +5,10 @@ export const getLatestBoard = async (req:Request, res:Response) => {
     try {
         const board = await prisma.leaderBoard.findFirst({
             select: {
+             
                 LeaderBoardPoint: {
                     select: {
+                        id:true,
                         points: true,
                         user: {
                             select: {
@@ -29,7 +31,7 @@ export const getLatestBoard = async (req:Request, res:Response) => {
         });
 
         if (board) {
-            const formattedBoard=board.LeaderBoardPoint.map(b=> ({points:b.points, user: b.user.Profile?.name}))
+            const formattedBoard=board.LeaderBoardPoint.map(b=> ({id: b.id, points:b.points, user: b.user.Profile?.name}))
             
             res.json(formattedBoard);
         } else {
