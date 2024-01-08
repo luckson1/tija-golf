@@ -283,6 +283,7 @@ model users {
   identities                  identities[]
   mfa_factors                 mfa_factors[]
   sessions                    sessions[]
+  LeaderBoardPoint            LeaderBoardPoint[]
 
   @@index([instance_id])
   @@schema("auth")
@@ -502,6 +503,25 @@ model Partner {
   location    String
   website     String
   description String
+
+  @@schema("auth")
+}
+
+model LeaderBoardPoint {
+  id            String      @id @default(cuid())
+  user          users       @relation(fields: [usersId], references: [id])
+  points        Int
+  usersId       String      @db.Uuid
+  board         LeaderBoard @relation(fields: [leaderBoardId], references: [id])
+  leaderBoardId String
+
+  @@schema("auth")
+}
+
+model LeaderBoard {
+  id               String             @id @default(cuid())
+  date             DateTime           @default(now())
+  LeaderBoardPoint LeaderBoardPoint[]
 
   @@schema("auth")
 }
