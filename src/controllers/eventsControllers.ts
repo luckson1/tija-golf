@@ -94,6 +94,7 @@ const  startDate=combineDateAndTime(date, startTime)
     }
 
     // Handle other types of errors
+    console.log(error)
     res.status(500).send(error);
   }
 };
