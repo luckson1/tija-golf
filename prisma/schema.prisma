@@ -391,7 +391,7 @@ model Event {
   isExistingGame String      @default("No")
   kit            String      @default("No")
   listedEventId  String
-  packageId      String      @unique
+  packageId      String
   bookings       Booking[]
   ListedEvent    ListedEvent @relation(fields: [listedEventId], references: [id])
   package        Package     @relation(fields: [packageId], references: [id])
@@ -405,7 +405,7 @@ model Package {
   amount        String
   name          String
   listedEventId String
-  Event         Event?
+  Event         Event[]
   event         ListedEvent @relation(fields: [listedEventId], references: [id])
 
   @@schema("auth")
