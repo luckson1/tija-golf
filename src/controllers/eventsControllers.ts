@@ -65,7 +65,7 @@ const  startDate=combineDateAndTime(date, startTime)
 
       },
     });
-
+console.log(packageId)
     const booking= await prisma.booking.create({
       data: {
         usersId,
@@ -92,6 +92,8 @@ const  startDate=combineDateAndTime(date, startTime)
       // If the error is a Zod validation error, send a bad request response
       return res.status(400).json(error.errors);
     }
+
+
 
     // Handle other types of errors
     console.log(error)
