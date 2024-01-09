@@ -45,6 +45,7 @@ const prisma = new PrismaClient();
 
 export const createEvent = async (req:Request, res:Response) => {
   try {
+    
     const token=req.headers.authorization;
     if(!token) return   res.status(403).send('Forbidden');
     const usersId=await getUser(token)
@@ -52,6 +53,7 @@ export const createEvent = async (req:Request, res:Response) => {
     // Validate the input using Zod
 
     const {holes, kit, date, startTime, listedEventId, packageId} = EventSchema.parse(req.body);
+    console.log(packageId)
 const  startDate=combineDateAndTime(date, startTime)
 
     // Create the event in the database
@@ -65,7 +67,7 @@ const  startDate=combineDateAndTime(date, startTime)
 
       },
     });
-console.log(packageId)
+
     const booking= await prisma.booking.create({
       data: {
         usersId,
