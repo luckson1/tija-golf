@@ -129,6 +129,7 @@ export const encriptPayment = async (req: Request, res: Response) => {
 };
 export const webHookReq = async (req: Request, res: Response) => {
   try {
+    console.log("payment got here")
     // Validate the input using Zod
     const payloadObj = webhookRequestSchema.parse(req.body);
     const payment = await prisma.payment.update({
