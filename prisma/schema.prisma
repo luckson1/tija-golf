@@ -581,6 +581,10 @@ enum PaymentStatus {
   Refunded
   Partial
   Expired
+  Received
+  Rejected
+  Accepted
+
 
   @@schema("auth")
 }

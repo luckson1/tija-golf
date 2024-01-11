@@ -2,73 +2,104 @@ import { z } from "zod";
 import checkoutEncrypt from "@cellulant/checkout_encryption";
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
-// const apiSchema = z.object({
-//   merchant_transaction_id: z.string(),
-//   account_number: z.string(),
-//   msisdn: z.string(),
-//   country_code: z.string().length(3),
-//   currency_code: z.string().length(3),
-//   due_date: z.string(), // You might want to use a custom validator for date format
-//   request_amount: z.number(),
-//   service_code: z.string(),
-//   callback_url: z.string(),
-//   success_redirect_url: z.string(),
-//   fail_redirect_url: z.string(),
-//   customer_first_name: z.string().optional(),
-//   customer_last_name: z.string().optional(),
-//   customer_email: z.string().email().optional(),
-//   payment_option_code: z.string().optional(),
-//   pending_redirect_url: z.string().optional(),
-//   request_description: z.string().optional(),
-//   language_code: z.enum(['fr', 'en', 'ar', 'pt']).optional(),
-//   prefill_msisdn: z.boolean().optional().default(true),
-// });
+
+const apiSchema = z.object({
+  msisdn: z.string(),
+  account_number: z.string(),
+  country_code: z.string().length(3),
+  currency_code: z.string().length(3),
+  customer_first_name: z.string(),
+  customer_last_name: z.string(),
+  due_date: z.string(), // You may want to use a custom validation for date format
+  merchant_transaction_id: z.string(),
+  payment_option_code: z.string().optional(),
+  callback_url: z.string().url(),
+  pending_redirect_url: z.string().url().optional(),
+  request_amount: z.number(),
+  request_description: z.string(),
+  service_code: z.string(),
+  success_redirect_url: z.string().url(),
+  fail_redirect_url: z.string().url(),
+  language_code: z.enum(["fr", "en", "ar", "pt"]),
+  charge_beneficiaries: z.array(z.unknown()).optional(), // Replace z.unknown() with the appropriate schema for the objects in the array
+});
+
+type Payment = z.infer<typeof apiSchema>;
 
 const prisma = new PrismaClient();
 
-const apiSchema = z.object({
-  merchantTransactionID: z.string(),
-  requestAmount: z.string(), // Assuming this should be a string representing a numerical value
-  currencyCode: z.string(),
-  accountNumber: z.string(),
-  serviceCode: z.string(),
-  countryCode: z.string(),
-  dueDate: z.string().optional(), // Assuming the date is in string format
-  payerClientCode: z.string().optional(),
-  requestDescription: z.string().optional(),
-  languageCode: z.string().optional(),
-  MSISDN: z.string(),
-  customerFirstName: z.string(),
-  customerLastName: z.string(),
-  customerEmail: z.string().email(),
-  successRedirectUrl: z.string(),
-  pendingRedirectUrl: z.string().optional(),
-  failRedirectUrl: z.string(),
-  paymentWebhookUrl: z.string(),
-  extraData: z.record(z.any()).optional(), // JSON is represented as a record of any type
-});
+// const apiSchema = z.object({
+//   merchantTransactionID: z.string(),
+//   requestAmount: z.string(), // Assuming this should be a string representing a numerical value
+//   currencyCode: z.string(),
+//   accountNumber: z.string(),
+//   serviceCode: z.string(),
+//   countryCode: z.string(),
+//   dueDate: z.string().optional(), // Assuming the date is in string format
+//   payerClientCode: z.string().optional(),
+//   requestDescription: z.string().optional(),
+//   languageCode: z.string().optional(),
+//   MSISDN: z.string(),
+//   customerFirstName: z.string(),
+//   customerLastName: z.string(),
+//   customerEmail: z.string().email(),
+//   successRedirectUrl: z.string(),
+//   pendingRedirectUrl: z.string().optional(),
+//   failRedirectUrl: z.string(),
+//   paymentWebhookUrl: z.string(),
+//   extraData: z.record(z.any()).optional(), // JSON is represented as a record of any type
+// });
 
 const webhookRequestSchema = z.object({
-  merchantTransactionID: z.string(),
-  requestAmount: z.string(),
-  currencyCode: z.string(),
-  accountNumber: z.string(),
-  serviceCode: z.string(),
-  countryCode: z.string(),
-  requestStatusCode: z.number(),
-  dueDate: z.string().optional(),
-  payerClientCode: z.string().optional(),
-  requestDescription: z.string().optional(),
-  languageCode: z.string().optional(),
-  MSISDN: z.string(),
-  customerFirstName: z.string(),
-  customerLastName: z.string(),
-  customerEmail: z.string().email(),
-  successRedirectUrl: z.string().url(),
-  failRedirectUrl: z.string().url(),
-  paymentWebhookUrl: z.string().url(),
-  extraData: z.record(z.unknown()).optional(), // JSON is a record type with unknown values
+  checkout_request_id: z.number().int(),
+  merchant_transaction_id: z.string(),
+  request_amount: z.number(),
+  original_request_amount: z.number(),
+  request_currency_code: z.string().length(3),
+  original_request_currency_code: z.string().length(3),
+  account_number: z.string(),
+  currency_code: z.string().length(3),
+  amount_paid: z.number(),
+  service_charge_amount: z.number(),
+  request_date: z.string(), // You may want to use a custom validation for date format
+  service_code: z.string(),
+  request_status_code: z.enum([
+    "177",
+    "178",
+    "179",
+    "129",
+    "180",
+    "183",
+    "188",
+  ]),
+  request_status_description: z.string(),
+  msisdn: z.string(),
+  payments: z.array(z.unknown()), // Replace with actual schema for payment objects
+  failed_payments: z.array(z.unknown()), // Replace with actual schema for failed payment objects
+  status_date: z.string().optional(), // You may want to use a custom validation for date format
+  country_abbrev: z.string().length(2),
+  errors: z
+    .array(
+      z.object({
+        customer_name: z.string(),
+        account_number: z.string(),
+        cpp_transaction_id: z.string(),
+        currency_code: z.string().length(3),
+        payer_client_code: z.string(),
+        payer_client_name: z.string(),
+        amount_paid: z.number(),
+        service_code: z.string(),
+        date_payment_received: z.string(), // You may want to use a custom validation for date format
+        msisdn: z.string(),
+        payer_transaction_id: z.string(),
+        error: z.string(),
+      })
+    )
+    .optional(),
 });
+
+type PaymentResponse = z.infer<typeof webhookRequestSchema>;
+
 export const encriptPayment = async (req: Request, res: Response) => {
   const accessKey = process.env.ACCESS_KEY;
   const IVKey = process.env.IVKey;
@@ -102,20 +133,24 @@ export const webHookReq = async (req: Request, res: Response) => {
     const payloadObj = webhookRequestSchema.parse(req.body);
     const payment = await prisma.payment.update({
       where: {
-        id: payloadObj.accountNumber,
+        id: payloadObj.account_number,
       },
       data: {
         status:
-          payloadObj.requestStatusCode === 99
-            ? "Failed"
-            : payloadObj.requestStatusCode === 129
+          payloadObj.request_status_code === "180"
+            ? "Rejected"
+            : payloadObj.request_status_code === "129"
             ? "Expired"
-            : payloadObj.requestStatusCode === 176
+            : payloadObj.request_status_code === "177"
             ? "Partial"
-            : payloadObj.requestStatusCode === 178
+            : payloadObj.request_status_code === "178"
             ? "Completed"
-            : payloadObj.requestStatusCode === 179
+            : payloadObj.request_status_code === "179"
             ? "Refunded"
+            : payloadObj.request_status_code === "183"
+            ? "Accepted"
+            : payloadObj.request_status_code === "188"
+            ? "Received"
             : "Failed",
       },
     });
