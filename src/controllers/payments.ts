@@ -156,10 +156,11 @@ export const webHookReq = async (req: Request, res: Response) => {
     res.status(201).json(payment);
   } catch (error) {
     if (error instanceof z.ZodError) {
+      console.log( "validation", error)
       // If the error is a Zod validation error, send a bad request response
       return res.status(400).json(error.errors);
     }
-
+    console.log( "others", error)
     // Handle other types of errors
     res.status(500).send(error);
   }
