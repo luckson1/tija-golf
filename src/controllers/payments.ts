@@ -51,17 +51,15 @@ const prisma = new PrismaClient();
 // });
 
 const webhookRequestSchema = z.object({
-  checkout_request_id: z.number().int(),
-  merchant_transaction_id: z.string(),
+
   request_amount: z.number(),
   original_request_amount: z.number(),
-  request_currency_code: z.string().length(3),
-  original_request_currency_code: z.string().length(3),
+
   account_number: z.string(),
-  currency_code: z.string().length(3),
+
   amount_paid: z.number(),
   service_charge_amount: z.number(),
-  request_date: z.string(), // You may want to use a custom validation for date format
+
   service_code: z.string(),
   request_status_code: z.enum([
     "177",
