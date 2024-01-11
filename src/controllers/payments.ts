@@ -129,6 +129,7 @@ export const webHookReq = async (req: Request, res: Response) => {
   try {
     console.log("payment got here")
     // Validate the input using Zod
+    console.log(req.body)
     const payloadObj = webhookRequestSchema.parse(req.body);
     const payment = await prisma.payment.update({
       where: {
