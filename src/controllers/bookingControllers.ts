@@ -242,7 +242,8 @@ package: {
                 select: {
                   name: true,
                   location: true,
-                  image: true
+                  image: true,
+                  type: true
                   
                 }
               }
