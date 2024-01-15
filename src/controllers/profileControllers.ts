@@ -15,6 +15,7 @@ const profileSchema = z.object({
   gender: z.enum(['male', 'female']),
   dateOfBirth: z.string().datetime(),
   cohort: z.number().min(1, "Cohort is required"),
+  countryCode: z.string()
 })
 const prisma = new PrismaClient();
 

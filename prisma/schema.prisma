@@ -461,6 +461,7 @@ model Profile {
   phoneNumber  String
   cohort       Int
   level        String   @default("Beginner")
+  countryCode String @default("254")
   memberNumber Int      @default(autoincrement())
   user         users    @relation(fields: [usersId], references: [id])
 
