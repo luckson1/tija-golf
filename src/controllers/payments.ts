@@ -109,7 +109,7 @@ export const encriptPayment = async (req: Request, res: Response) => {
       : null;
   try {
     // Validate the input using Zod
- const newUrl="exp://u.expo.dev/update/3fa0e214-7c12-408c-aeb9-58cf7b13efdc/--/(app)/(payments)/successful_payments"
+ const newUrl="exp://u.expo.dev/update/ca868c97-3cc6-4179-a495-8f63d2f3241c/--/(app)/(payments)/successful_payments"
     const payloadObj = apiSchema.parse(req.body);
     const toEncrypt= {... payloadObj, success_redirect_url:newUrl, pending_redirect_url: newUrl, fail_redirect_url: newUrl }
     const payloadStr = JSON.stringify(toEncrypt);
