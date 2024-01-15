@@ -111,7 +111,7 @@ export const encriptPayment = async (req: Request, res: Response) => {
     // Validate the input using Zod
  const newUrl="exp://u.expo.dev/update/8497796c-4723-4175-9175-7818157f4d45/--/(app)/(payments)/successful_payments"
     const payloadObj = apiSchema.parse(req.body);
-    const toEncrypt= {... payloadObj, success_redirect_url:newUrl, pending_redirect_url: newUrl, fail_redirect_url: newUrl }
+    const toEncrypt= {... payloadObj, success_redirect_url:newUrl, pending_redirect_url: newUrl, fail_redirect_url: newUrl,  due_date: undefined }
     const payloadStr = JSON.stringify(toEncrypt);
    
     console.log("IVKey:", IVKey, "secretKey:", secretKey);
