@@ -195,3 +195,42 @@ export const webHookReq = async (req: Request, res: Response) => {
     res.status(500).send(error);
   }
 };
+export const simulation = async (req: Request, res: Response) => {
+  try {
+    
+const idSchema=z.object({bookingRef:z.number()})
+    const{ bookingRef} = idSchema.parse(req.body);
+    const booking = await prisma.booking.update({
+      where: {
+
+    bookingRef 
+ },
+ 
+      data: {
+        status:
+        "Completed"
+            
+      },
+      
+    });
+    const payment=await prisma.payment.update({
+      where: {
+        bookingId: booking.id
+      },
+      data: {
+        status:
+        "Completed"
+      }
+    })
+    res.status(201).json(payment);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      console.log( "validation")
+      // If the error is a Zod validation error, send a bad request response
+      return res.status(400).json(error.errors);
+    }
+    console.log( "others")
+    // Handle other types of errors
+    res.status(500).send(error);
+  }
+};
