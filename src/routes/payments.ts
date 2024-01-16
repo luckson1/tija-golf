@@ -7,7 +7,7 @@ const paymentRoute = express.Router();
 
 paymentRoute.post('/encrypt', encriptPayment);
 paymentRoute.post('/webhook', webHookReq);
-paymentRoute.post('/webhook', simulation);
+paymentRoute.post('/simulate', simulation);
 
 
 export default paymentRoute;
