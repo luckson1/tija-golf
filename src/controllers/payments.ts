@@ -111,7 +111,7 @@ export const encriptPayment = async (req: Request, res: Response) => {
     // Validate the input using Zod
  const newUrl="exp://u.expo.dev/update/8497796c-4723-4175-9175-7818157f4d45/--/(app)/(payments)/successful_payments"
     const payloadObj = apiSchema.parse(req.body);
-    const toEncrypt= {... payloadObj, success_redirect_url:newUrl, pending_redirect_url: newUrl, fail_redirect_url: newUrl,  due_date: undefined, country_code: "KEN"  }
+    const toEncrypt= {... payloadObj, success_redirect_url:newUrl, pending_redirect_url: newUrl, fail_redirect_url: newUrl,  due_date: undefined  }
     const payloadStr = JSON.stringify(toEncrypt);
    
     console.log("IVKey:", IVKey, "secretKey:", secretKey);
@@ -133,9 +133,36 @@ export const webHookReq = async (req: Request, res: Response) => {
     // Validate the input using Zod
     console.log("body", req.body)
     const payloadObj = webhookRequestSchema.parse(req.body);
-    const payment = await prisma.payment.update({
+    const booking = await prisma.booking.update({
       where: {
-        id: payloadObj.account_number,
+
+    bookingRef:    Number(payloadObj.account_number)
+ },
+ 
+      data: {
+        status:
+          payloadObj.request_status_code === "180"
+            ? "Rejected"
+            : payloadObj.request_status_code === "129"
+            ? "Expired"
+            : payloadObj.request_status_code === "177"
+            ? "Partial"
+            : payloadObj.request_status_code === "178"
+            ? "Completed"
+            : payloadObj.request_status_code === "179"
+            ? "Refunded"
+            : payloadObj.request_status_code === "183"
+            ? "Accepted"
+            : payloadObj.request_status_code === "188"
+            ? "Received"
+            : "Failed",
+            
+      },
+      
+    });
+    const payment=await prisma.payment.update({
+      where: {
+        bookingId: booking.id
       },
       data: {
         status:
@@ -154,8 +181,8 @@ export const webHookReq = async (req: Request, res: Response) => {
             : payloadObj.request_status_code === "188"
             ? "Received"
             : "Failed",
-      },
-    });
+      }
+    })
     res.status(201).json(payment);
   } catch (error) {
     if (error instanceof z.ZodError) {

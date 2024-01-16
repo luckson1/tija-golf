@@ -322,13 +322,13 @@ model Booking {
   usersId      String        @db.Uuid
   teeId        String?
   status       PaymentStatus @default(Pending)
-  bookingRef   Int           @default(autoincrement())
+  bookingRef   Int           @default(autoincrement()) @unique
   class        Class?        @relation(fields: [classId], references: [id])
   event        Event?        @relation(fields: [eventId], references: [id])
   tee          Tee?          @relation(fields: [teeId], references: [id])
   tournament   Tournament?   @relation(fields: [tournamentId], references: [id])
   user         users         @relation(fields: [usersId], references: [id])
-  payments     Payment[]
+  payments     Payment?
 
   @@schema("auth")
 }
@@ -470,7 +470,7 @@ model Profile {
 
 model Payment {
   id                String        @id @default(cuid())
-  bookingId         String
+  bookingId         String @unique
   amount            Float
   status            PaymentStatus @default(Pending)
   paymentDate       DateTime      @default(now())
