@@ -54,6 +54,9 @@ const BookingSchema = z.object({
     try {
       const booking = await prisma.booking.findUnique({
         where: { id: req.params.id },
+        select: {
+          status: true
+        }
       });
       if (booking) {
         res.json(booking);
