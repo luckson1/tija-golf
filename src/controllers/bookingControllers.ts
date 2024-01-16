@@ -59,7 +59,8 @@ const BookingSchema = z.object({
         }
       });
       if (booking) {
-        res.json(booking);
+        const status=booking.status
+        res.json(status);
       } else {
         res.status(404).send('Booking not found');
       }
