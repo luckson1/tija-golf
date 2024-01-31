@@ -99,9 +99,9 @@ const webhookRequestSchema = z.object({
 type PaymentResponse = z.infer<typeof webhookRequestSchema>;
 
 export const encriptPayment = async (req: Request, res: Response) => {
-  const accessKey = process.env.ACCESS_KEY;
-  const IVKey = process.env.IVKey;
-  const secretKey = process.env.secretKey;
+  const accessKey = process.env.APPSETTING_ACCESS_KEY;
+  const IVKey = process.env.APPSETTING_IVKey;
+  const secretKey = process.env.APPSETTING_secretKey;
   const algorithm = "aes-256-cbc";
   const encryption =
     IVKey && secretKey
