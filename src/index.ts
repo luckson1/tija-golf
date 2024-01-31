@@ -23,7 +23,7 @@ app.use(express.json());
 
 
 // Define your routes and handlers here
-app.get("/", (req, res)=> res.send(`${process.env}`))
+app.get("/", (req, res)=> res.send(` Hello there and welcome: ${process.env.APPSETTING_SUPABASE_URL}`))
 app.use('/api/tournaments', tournamentRoute);
 app.use('/api/partners', partnerRoute);
 app.use('/api/board', leadershipBoardRoute);
