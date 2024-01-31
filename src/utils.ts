@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
-export const supabaseClient =  (  process.env.SUPABASE_URL && 
-    process.env.SUPABASE_SERVICE_ROLE_KEY) ? createClient(
-    process.env.SUPABASE_URL ,
-   process.env.SUPABASE_SERVICE_ROLE_KEY,
+export const supabaseClient =  (  process.env.APPSETTING_SUPABASE_URL && 
+    process.env.APPSETTING_SUPABASE_SERVICE_ROLE_KEY) ? createClient(
+    process.env.APPSETTING_SUPABASE_URL ,
+   process.env.APPSETTING_SUPABASE_SERVICE_ROLE_KEY,
   ) : null;
 
 
