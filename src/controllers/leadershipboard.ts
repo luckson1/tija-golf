@@ -10,15 +10,11 @@ export const getLatestBoard = async (req:Request, res:Response) => {
                     select: {
                         id:true,
                         points: true,
-                        user: {
-                            select: {
-                               Profile: {
-                                select: {
-                                    name: true
-                                }
-                               } 
-                            }
+                       profile: {
+                        select: {
+                            name: true
                         }
+                       }
                     },
                     orderBy: {
                         points: 'asc'
@@ -31,7 +27,7 @@ export const getLatestBoard = async (req:Request, res:Response) => {
         });
 
         if (board) {
-            const formattedBoard=board.LeaderBoardPoint.map(b=> ({id: b.id, points:b.points, user: b.user.Profile?.name}))
+            const formattedBoard=board.LeaderBoardPoint.map(b=> ({id: b.id, points:b.points, user: b.profile.name}))
             
             res.json(formattedBoard);
         } else {
