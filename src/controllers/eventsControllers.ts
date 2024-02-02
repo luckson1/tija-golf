@@ -112,7 +112,7 @@ export const getAllEvents = async (req:Request, res:Response) => {
           // Include related bookings
         Package: {
           orderBy: {
-            amount: "asc"
+            price: "asc"
           }
         }
         
