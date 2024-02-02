@@ -120,6 +120,7 @@ model Event {
 model Package {
   id            String      @id @default(cuid())
   amount        String
+  price Int @default(0)
   name          String
   listedEventId String
   Event         Event[]
