@@ -8,10 +8,10 @@ import { getAllOrganisations, testOrganisations } from '../controllers/organisat
 
 
 const orgRoute = express.Router();
-
+orgRoute.get('/all',  testOrganisations);
 orgRoute.get('/',  getAllOrganisations);
 
-orgRoute.get('/all',  testOrganisations);
+
 
 
 export default orgRoute;

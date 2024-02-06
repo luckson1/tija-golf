@@ -28,10 +28,10 @@ export const getAllOrganisations = async (req:Request, res:Response) => {
   export const testOrganisations = async (req:Request, res:Response) => {
     try {
     
-      const token=req.headers.authorization;
-      if(!token) return   res.status(403).send('Forbidden');
-        const usersId= await getUser(token)
-      console.log(usersId)
+      // const token=req.headers.authorization;
+      // if(!token) return   res.status(403).send('Forbidden');
+      //   const usersId= await getUser(token)
+      // console.log(usersId)
       const organizations = await prisma.organization.findMany(
       );
       res.json(organizations);
