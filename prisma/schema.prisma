@@ -14,6 +14,7 @@ model Organization {
   name               String
   image              String
   location           String
+  kitPrice Int @default(1500)
   Class              Class[]
   OrganizationMember OrganizationMember[]
   Payment            Payment[]
@@ -90,6 +91,7 @@ model ListedEvent {
   location         String
   description      String
   image            String
+    kitPrice Int @default(1500)
   startDate        DateTime           @default(now())
   type             String             @default("Tournament")
   Event            Event[]
