@@ -15,6 +15,7 @@ model Organization {
   image              String
   location           String
   kitPrice Int @default(1500)
+  teePrice Float @default(4500)
   Class              Class[]
   OrganizationMember OrganizationMember[]
   Payment            Payment[]
