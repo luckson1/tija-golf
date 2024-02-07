@@ -38,10 +38,16 @@ export const createBooking = async (req: Request, res: Response) => {
 };
 
 export const getAllBookings = async (req: Request, res: Response) => {
+  const token = req.headers.authorization;
+    if (!token) return res.status(403).send("Forbidden");
+    const usersId = await getUser(token);
+    if (!usersId) return res.status(401).send("Unauthorised");
+
   try {
     const bookings = await prisma.booking.findMany({
       where: {
         status: "Completed",
+        usersId
       },
       select: {
         id: true,
