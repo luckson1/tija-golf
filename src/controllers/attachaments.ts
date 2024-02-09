@@ -47,7 +47,10 @@ id
     res.json({ url });
   } catch (error) {
     console.error(error);
-    res.status(500).send('Error uploading file to Azure Storage.');
+    if (error instanceof z.ZodError) {
+      return res.status(400).json(error.errors);
+    }
+    res.status(500).send('Error uploading file to Azure Storage. ');
   }
   
 }
