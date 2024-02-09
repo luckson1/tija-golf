@@ -22,7 +22,7 @@ const storage = multer.diskStorage({
 
 const attachmentRoute = express.Router();
 
-attachmentRoute.post('/upload', uploadFile.single('file'), upload);
+attachmentRoute.put('/upload', uploadFile.single('file'), upload);
 
 
 
