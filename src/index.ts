@@ -10,12 +10,13 @@ import paymentRoute from './routes/payments';
 import eventRoute from './routes/events';
 import partnerRoute from './routes/partners';
 import leadershipBoardRoute from './routes/leadershipboard';
-
+// import attachmentRoute from './routes/attachments';
 const app = express();
 
 const PORT= process.env.PORT || 5000
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 
 
@@ -23,7 +24,7 @@ app.use(express.json());
 
 
 // Define your routes and handlers here
-app.get("/", (req, res)=> res.send(` Hello there and welcome: ${process.env.APPSETTING_SUPABASE_URL}`))
+app.get("/", (req, res)=> res.send(` Hello there and welcome: ${process.env.APPSETTING_IVKey} ${ process.env.APPSETTING_secretKey}`))
 app.use('/api/tournaments', tournamentRoute);
 app.use('/api/partners', partnerRoute);
 app.use('/api/board', leadershipBoardRoute);
@@ -34,6 +35,7 @@ app.use('/api/events',  eventRoute);
 app.use('/api/profile', profileRoute);
 app.use('/api/organization', orgRoute);
 app.use('/api/payments', paymentRoute);
+// app.use('/api/attachments', attachmentRoute);
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
