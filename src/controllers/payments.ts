@@ -99,7 +99,7 @@ const webhookRequestSchema = z.object({
 type PaymentResponse = z.infer<typeof webhookRequestSchema>;
 
 export const encriptPayment = async (req: Request, res: Response) => {
-  const accessKey = process.env.APPSETTING_ACCESS_KEY;
+  // const accessKey = process.env.APPSETTING_accessKey;
   const IVKey = process.env.APPSETTING_IVKey;
   const secretKey = process.env.APPSETTING_secretKey;
   const algorithm = "aes-256-cbc";
@@ -109,9 +109,9 @@ export const encriptPayment = async (req: Request, res: Response) => {
       : null;
   try {
     // Validate the input using Zod
- const newUrl="exp://u.expo.dev/update/8497796c-4723-4175-9175-7818157f4d45/--/(app)/(payments)/successful_payments"
+
     const payloadObj = apiSchema.parse(req.body);
-    const toEncrypt= {... payloadObj, success_redirect_url:newUrl, pending_redirect_url: newUrl, fail_redirect_url: newUrl,  due_date: undefined  }
+    const toEncrypt= {... payloadObj,   due_date: undefined  }
     const payloadStr = JSON.stringify(toEncrypt);
    
     console.log("IVKey:", IVKey, "secretKey:", secretKey);
