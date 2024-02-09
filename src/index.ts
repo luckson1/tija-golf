@@ -24,7 +24,7 @@ app.use(express.urlencoded({ extended: true }));
 
 
 // Define your routes and handlers here
-app.get("/", (req, res)=> res.send(` Hello there and welcome: ${process.env.APPSETTING_IVKey} ${ process.env.APPSETTING_secretKey}`))
+app.get("/", (req, res)=> res.send(` Hello there and welcome: ${process.env.APPSETTING_AZURE_STORAGE_CONNECTION_STRING} `))
 app.use('/api/tournaments', tournamentRoute);
 app.use('/api/partners', partnerRoute);
 app.use('/api/board', leadershipBoardRoute);
