@@ -6,18 +6,23 @@ import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { getUser } from '../utils';
 const prisma = new PrismaClient();
-const AZURE_STORAGE_CONNECTION_STRING = process.env.AZURE_STORAGE_CONNECTION_STRING;
-const containerName = 'your-container-name';
-if (!AZURE_STORAGE_CONNECTION_STRING ) throw new Error("AZURE_STORAGE_CONNECTION_STRING needed")
-const blobServiceClient = BlobServiceClient.fromConnectionString(AZURE_STORAGE_CONNECTION_STRING);
-const containerClient = blobServiceClient.getContainerClient(containerName);
 const ProfileImageSchema = z.object({
-id:z.string()
-});
+  id:z.string()
+  });
 export const uploadFileToAzure = async (filePath:string, fileName:string) => {
-  const blobClient = containerClient.getBlockBlobClient(fileName);
-  const uploadResponse = await blobClient.uploadFile(filePath);
-  return blobClient.url;
+try {
+  const AZURE_STORAGE_CONNECTION_STRING = process.env.APPSETTING_AZURE_STORAGE_CONNECTION_STRING;
+  const containerName = 'your-container-name';
+  if (!AZURE_STORAGE_CONNECTION_STRING ) throw new Error("AZURE_STORAGE_CONNECTION_STRING needed")
+  const blobServiceClient = BlobServiceClient.fromConnectionString(AZURE_STORAGE_CONNECTION_STRING);
+  const containerClient = blobServiceClient.getContainerClient(containerName);
+
+    const blobClient = containerClient.getBlockBlobClient(fileName);
+    const uploadResponse = await blobClient.uploadFile(filePath);
+    return blobClient.url;
+} catch (error) {
+  console.log(error)
+}
 };
 
 export const upload =async (req: Request, res: Response) => {
@@ -31,7 +36,7 @@ export const upload =async (req: Request, res: Response) => {
 
     const url = await uploadFileToAzure(req?.file?.path, req?.file?.filename);
     fs.unlinkSync(req?.file?.path); // Remove the file from the server after upload
-    const profileImage=prisma.profile.update({
+    const profileImage= await prisma.profile.update({
       where: {
 id
       },
