@@ -1,5 +1,5 @@
 import  fs  from 'fs'
-import  path  from 'path'
+
 import {BlobServiceClient} from "@azure/storage-blob"
 import { Request, Response } from "express";
 import { PrismaClient } from '@prisma/client';
@@ -12,16 +12,18 @@ const ProfileImageSchema = z.object({
 export const uploadFileToAzure = async (filePath:string, fileName:string) => {
 try {
   const AZURE_STORAGE_CONNECTION_STRING = process.env.APPSETTING_AZURE_STORAGE_CONNECTION_STRING;
-  const containerName = 'your-container-name';
+  const containerName = 'tijaeprocurementdev';
   if (!AZURE_STORAGE_CONNECTION_STRING ) throw new Error("AZURE_STORAGE_CONNECTION_STRING needed")
   const blobServiceClient = BlobServiceClient.fromConnectionString(AZURE_STORAGE_CONNECTION_STRING);
   const containerClient = blobServiceClient.getContainerClient(containerName);
 
     const blobClient = containerClient.getBlockBlobClient(fileName);
     const uploadResponse = await blobClient.uploadFile(filePath);
+
+    console.log(blobClient.url)
     return blobClient.url;
 } catch (error) {
-  console.log(error)
+  console.log( "errror", error)
 }
 };
 
@@ -35,6 +37,7 @@ export const upload =async (req: Request, res: Response) => {
     const {id} = ProfileImageSchema.parse(req.body);
 
     const url = await uploadFileToAzure(req?.file?.path, req?.file?.filename);
+    console.log(url)
     fs.unlinkSync(req?.file?.path); // Remove the file from the server after upload
     const profileImage= await prisma.profile.update({
       where: {
@@ -44,9 +47,10 @@ id
         image:url
       }
     })
+
     res.json({ url });
   } catch (error) {
-    console.error(error);
+    console.error("err", error);
     if (error instanceof z.ZodError) {
       return res.status(400).json(error.errors);
     }
