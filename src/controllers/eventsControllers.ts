@@ -67,7 +67,7 @@ const  startDate=combineDateAndTime(date, startTime)
 
       },
     });
-
+ 
     const booking= await prisma.booking.create({
       data: {
         usersId,
@@ -88,7 +88,14 @@ const  startDate=combineDateAndTime(date, startTime)
         
       }
     })
-    res.status(201).json(booking);
+    const kitCost= kit ? await prisma.kitPrices.findFirst({where: {
+      listedEventId,
+
+    }, select: {
+      amount: true
+    }}) : null
+ const amount=kitCost? Number(booking.event?.package.amount) + kitCost.amount :  Number(booking.event?.package.amount)
+    res.status(201).json({...booking, amount});
   } catch (error) {
     if (error instanceof z.ZodError) {
       // If the error is a Zod validation error, send a bad request response
