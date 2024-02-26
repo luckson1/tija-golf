@@ -14,13 +14,45 @@ model Organization {
   name               String
   image              String
   location           String
-  kitPrice Int @default(1500)
-  teePrice Float @default(4500)
+  kitPrice           Int                  @default(1500)
+  teePrice           Float                @default(4500)
   Class              Class[]
   OrganizationMember OrganizationMember[]
   Payment            Payment[]
   Tee                Tee[]
   Tournament         Tournament[]
+  HolesPrices        HolesPrices[]
+  KitPrices          KitPrices[]
+
+  @@schema("auth")
+}
+
+enum HolesNumber {
+  Nine
+  Eighteen
+
+  @@schema("auth")
+}
+
+model HolesPrices {
+  id             String       @id @default(cuid())
+  amount         Float
+  numberOfHoles  HolesNumber
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  organizationId String?
+  ListedEvent    ListedEvent? @relation(fields: [listedEventId], references: [id])
+  listedEventId  String?
+
+  @@schema("auth")
+}
+
+model KitPrices {
+  id             String        @id @default(cuid())
+  amount         Float
+  Organization   Organization? @relation(fields: [organizationId], references: [id])
+  organizationId String?
+  ListedEvent    ListedEvent?  @relation(fields: [listedEventId], references: [id])
+  listedEventId  String?
 
   @@schema("auth")
 }
@@ -92,7 +124,7 @@ model ListedEvent {
   location         String
   description      String
   image            String
-    kitPrice Int @default(1500)
+  kitPrice         Int                @default(1500)
   startDate        DateTime           @default(now())
   type             String             @default("Tournament")
   Event            Event[]
@@ -100,6 +132,8 @@ model ListedEvent {
   LikedEventMember LikedEventMember[]
   Package          Package[]
   Payment          Payment[]
+  KitPrices        KitPrices[]
+  HolesPrices      HolesPrices[]
 
   @@schema("auth")
 }
@@ -123,7 +157,7 @@ model Event {
 model Package {
   id            String      @id @default(cuid())
   amount        String
-  price Int @default(0)
+  price         Int         @default(0)
   name          String
   listedEventId String
   Event         Event[]
@@ -185,7 +219,7 @@ model Profile {
   countryCode      String             @default("254")
   memberNumber     Int                @default(autoincrement())
   LeaderBoardPoint LeaderBoardPoint[]
-  image String @default("https://res.cloudinary.com/dhciks96e/image/upload/v1703149574/DALL_E_2023-12-21_12.05.54_-_A_realistic_headshot_of_a_30-year-old_Kenyan_man_with_a_friendly_and_confident_expression._He_s_wearing_a_golf_cap_and_a_polo_shirt_suggesting_his_in_mg0tge.png")
+  image            String             @default("https://res.cloudinary.com/dhciks96e/image/upload/v1703149574/DALL_E_2023-12-21_12.05.54_-_A_realistic_headshot_of_a_30-year-old_Kenyan_man_with_a_friendly_and_confident_expression._He_s_wearing_a_golf_cap_and_a_polo_shirt_suggesting_his_in_mg0tge.png")
 
   @@schema("auth")
 }

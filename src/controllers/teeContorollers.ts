@@ -2,7 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import { z } from "zod";
 import { Request, Response } from "express";
 import { getUser } from "../utils";
-import { parseISO, setHours, setMinutes, startOfDay , addHours} from 'date-fns'
+import { parseISO, setHours, setMinutes, startOfDay, addHours } from "date-fns";
 
 const prisma = new PrismaClient();
 const timeRegex = /^(0?[1-9]|1[0-2]):[0-5][0-9] [AP]M$/;
@@ -11,14 +11,14 @@ function combineDateAndTime(dateStr: string, timeStr: string): Date {
   date = startOfDay(date); // Reset time to 00:00:00
 
   // Extract hours and minutes from the time string
-  const [time, modifier] = timeStr.split(' ');
-  let [hours, minutes] = time.split(':').map((val) => parseInt(val, 10));
+  const [time, modifier] = timeStr.split(" ");
+  let [hours, minutes] = time.split(":").map((val) => parseInt(val, 10));
 
   // Convert 12-hour time to 24-hour time
   if (hours === 12) {
     hours = 0;
   }
-  if (modifier.toUpperCase() === 'PM') {
+  if (modifier.toUpperCase() === "PM") {
     hours += 12;
   }
 
@@ -30,7 +30,6 @@ function combineDateAndTime(dateStr: string, timeStr: string): Date {
   return date;
 }
 
-
 type IdParams = {
   id?: string;
 };
@@ -41,11 +40,10 @@ const TeeSchema = z.object({
 
   organizationId: z.string().min(1, "Organization ID is required"),
   date: z.string().datetime(),
- startTime: z.string().regex(timeRegex, { message: "Invalid time format. Use HH:MM in 24-hour format." }),
+  startTime: z.string().regex(timeRegex, {
+    message: "Invalid time format. Use HH:MM in 24-hour format.",
+  }),
 });
-
-
-
 
 const CreatePaymentSchema = z.object({
   bookingId: z.string(),
@@ -59,46 +57,73 @@ const CreatePaymentSchema = z.object({
 
 export const createTee = async (req: Request, res: Response) => {
   try {
-    const token=req.headers.authorization;
-    if(!token) return   res.status(403).send('Forbidden');
-    const usersId=await getUser(token)
-    if (!usersId)  return   res.status(401).send('Unauthorised');
+    const token = req.headers.authorization;
+    if (!token) return res.status(403).send("Forbidden");
+    const usersId = await getUser(token);
+    if (!usersId) return res.status(401).send("Unauthorised");
     // Validate the input using Zod
 
     const parsedData = TeeSchema.parse(req.body);
-const  startDate=combineDateAndTime(parsedData.date, parsedData.startTime)
-console.log(" combined", startDate)
-console.log(parsedData.date)
-const {holes, kit, organizationId, }=parsedData
+    const startDate = combineDateAndTime(parsedData.date, parsedData.startTime);
+
+    console.log(parsedData.date);
+    const { holes, kit, organizationId } = parsedData;
     // Create the Tee in the database
     const newTee = await prisma.tee.create({
       data: {
         holes,
         kit,
         organizationId,
-        startDate
+        startDate,
       },
     });
 
-const booking= await prisma.booking.create({
-  data: {
-    usersId,
-    teeId: newTee.id
-  },
-  include: {
-    tee: true
-  }
-})
-    res.status(201).json(booking);
+    const booking = await prisma.booking.create({
+      data: {
+        usersId,
+        teeId: newTee.id,
+      },
+      include: {
+        tee: true,
+      },
+    });
+    const kitCost = kit
+      ? await prisma.kitPrices.findFirst({
+          where: {
+            organizationId,
+          },
+          select: {
+            amount: true,
+          },
+        })
+      : null;
+    const gameCost =
+      holes === "9 holes"
+        ? await prisma.holesPrices.findFirst({
+            where: {
+              organizationId,
+              numberOfHoles: "Nine",
+            },
+            select: { amount: true },
+          })
+        : await prisma.holesPrices.findFirst({
+            where: {
+              organizationId,
+              numberOfHoles: "Eighteen",
+            },
+            select: { amount: true },
+          });
+    const amount = (kitCost?.amount ?? 0) + (gameCost?.amount ?? 0);
+    res.status(201).json({...booking, amount});
   } catch (error) {
     if (error instanceof z.ZodError) {
-      console.log(error.errors.at(0)?.message)
+      console.log(error.errors.at(0)?.message);
       // If the error is a Zod validation error, send a bad request response
       return res.status(400).json(error.errors.at(0)?.message);
     }
 
     // Handle other types of errors
-    console.log(error)
+    console.log(error);
     res.status(500).send(error);
   }
 };
@@ -190,8 +215,6 @@ export const updateTee = async (req: Request, res: Response) => {
   }
 };
 
-
-
 // Express route handler
 export const createPayment = async (req: Request, res: Response) => {
   try {
@@ -208,7 +231,6 @@ export const createPayment = async (req: Request, res: Response) => {
         // Optional fields are included conditionally
         ...(parsedData.teeId && { teeId: parsedData.teeId }),
       },
- 
     });
 
     // Send back the created payment data
@@ -219,8 +241,8 @@ export const createPayment = async (req: Request, res: Response) => {
       res.status(400).json({ errors: error.issues });
     } else {
       // Handle other types of errors
-      console.error('Unexpected Error:', error);
-      res.status(500).send('An unexpected error occurred');
+      console.error("Unexpected Error:", error);
+      res.status(500).send("An unexpected error occurred");
     }
   }
 };
