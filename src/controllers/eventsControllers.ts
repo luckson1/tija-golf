@@ -118,7 +118,8 @@ export const getAllEvents = async (req: Request, res: Response) => {
     const events = await prisma.listedEvent.findMany({
       where: {
         startDate: {
-          gt: new Date(), // Only get events where the start date is greater than the current date and time
+          gt: new Date(),
+          // Only get events where the start date is greater than the current date and time
         },
       },
       include: {
@@ -128,6 +129,9 @@ export const getAllEvents = async (req: Request, res: Response) => {
             price: "asc",
           },
         },
+      },
+      orderBy: {
+        startDate: "desc",
       },
     });
 
