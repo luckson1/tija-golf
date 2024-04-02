@@ -18,7 +18,7 @@ function combineDateAndTime(dateStr: string, timeStr: string): Date {
   if (hours === 12) {
     hours = 0;
   }
-  if (modifier.toUpperCase() === "PM") {
+  if (modifier.toUpperCase() === "pm") {
     hours += 12;
   }
 
@@ -114,7 +114,7 @@ export const createTee = async (req: Request, res: Response) => {
             select: { amount: true },
           });
     const amount = (kitCost?.amount ?? 0) + (gameCost?.amount ?? 0);
-    res.status(201).json({...booking, amount});
+    res.status(201).json({ ...booking, amount });
   } catch (error) {
     if (error instanceof z.ZodError) {
       console.log(error.errors.at(0)?.message);
