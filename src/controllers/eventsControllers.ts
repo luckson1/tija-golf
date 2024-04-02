@@ -27,7 +27,7 @@ function combineDateAndTime(dateStr: string, timeStr: string): Date {
   return date;
 }
 
-const timeRegex = /^(0?[1-9]|1[0-2]):[0-5][0-9] [AP]M$/;
+const timeRegex = /^(0?[1-9]|1[0-2]):[0-5][0-9] [ap]m$/;
 
 type EventData = z.infer<typeof EventSchema>;
 const EventSchema = z.object({
