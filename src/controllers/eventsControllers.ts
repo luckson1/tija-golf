@@ -15,7 +15,7 @@ function combineDateAndTime(dateStr: string, timeStr: string): Date {
   if (hours === 12) {
     hours = 0;
   }
-  if (modifier.toUpperCase() === "PM") {
+  if (modifier === "pm") {
     hours += 12;
   }
 
