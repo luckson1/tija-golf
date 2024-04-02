@@ -5,7 +5,7 @@ import { getUser } from "../utils";
 import { parseISO, setHours, setMinutes, startOfDay, addHours } from "date-fns";
 
 const prisma = new PrismaClient();
-const timeRegex = /^(0?[1-9]|1[0-2]):[0-5][0-9] [AP]M$/;
+const timeRegex = /^(0?[1-9]|1[0-2]):[0-5][0-9] [ap]m$/;
 function combineDateAndTime(dateStr: string, timeStr: string): Date {
   let date = parseISO(dateStr); // Parse the date string
   date = startOfDay(date); // Reset time to 00:00:00
