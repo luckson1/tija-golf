@@ -5,7 +5,7 @@ import { getUser } from "../utils";
 import { parseISO, setHours, setMinutes, startOfDay, addHours } from "date-fns";
 
 const prisma = new PrismaClient();
-const timeRegex = /^(0?[1-9]|1[0-2]):[0-5][0-9] [AP]M$/;
+const timeRegex = /^(0?[1-9]|1[0-2]):[0-5][0-9] [ap]m$/;
 function combineDateAndTime(dateStr: string, timeStr: string): Date {
   let date = parseISO(dateStr); // Parse the date string
   date = startOfDay(date); // Reset time to 00:00:00
@@ -18,7 +18,7 @@ function combineDateAndTime(dateStr: string, timeStr: string): Date {
   if (hours === 12) {
     hours = 0;
   }
-  if (modifier.toUpperCase() === "PM") {
+  if (modifier.toUpperCase() === "pm") {
     hours += 12;
   }
 
@@ -114,7 +114,7 @@ export const createTee = async (req: Request, res: Response) => {
             select: { amount: true },
           });
     const amount = (kitCost?.amount ?? 0) + (gameCost?.amount ?? 0);
-    res.status(201).json({...booking, amount});
+    res.status(201).json({ ...booking, amount });
   } catch (error) {
     if (error instanceof z.ZodError) {
       console.log(error.errors.at(0)?.message);
