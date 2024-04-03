@@ -56,50 +56,67 @@ export const createEvent = async (req: Request, res: Response) => {
     console.log(packageId);
     const startDate = combineDateAndTime(date, startTime);
 
-    // Create the event in the database
-    const newEvent = await prisma.event.create({
-      data: {
-        startDate,
-        holes,
-        kit,
-        listedEventId,
-        packageId,
-      },
-    });
+    // Use a transaction to perform the following operations atomically
+    const result = await prisma.$transaction(async (prisma) => {
+      // Create the event in the database
+      const newEvent = await prisma.event.create({
+        data: {
+          startDate,
+          holes,
+          kit,
+          listedEventId,
+          packageId,
+        },
+      });
 
-    const booking = await prisma.booking.create({
-      data: {
-        usersId,
-        eventId: newEvent.id,
-      },
-      select: {
-        bookingRef: true,
-        event: {
-          include: {
-            package: {
-              select: {
-                amount: true,
-                name: true,
+      // Create the booking for the event
+      const booking = await prisma.booking.create({
+        data: {
+          usersId,
+          eventId: newEvent.id,
+        },
+        include: {
+          event: {
+            include: {
+              package: {
+                select: {
+                  amount: true,
+                  name: true,
+                },
               },
             },
           },
         },
-      },
+      });
+      await prisma.booking.update({
+        where: { id: booking.id },
+        data: {
+          slug: `E-${booking?.bookingRef}`,
+        },
+      });
+
+      // Calculate the kit cost if applicable
+      const kitCost =
+        kit === "Yes"
+          ? await prisma.kitPrices.findFirst({
+              where: {
+                listedEventId,
+              },
+              select: {
+                amount: true,
+              },
+            })
+          : null;
+
+      // Calculate the total amount
+      const amount = kitCost
+        ? Number(booking.event?.package.amount) + kitCost.amount
+        : Number(booking.event?.package.amount);
+
+      return { booking, amount };
     });
-    const kitCost = kit
-      ? await prisma.kitPrices.findFirst({
-          where: {
-            listedEventId,
-          },
-          select: {
-            amount: true,
-          },
-        })
-      : null;
-    const amount = kitCost
-      ? Number(booking.event?.package.amount) + kitCost.amount
-      : Number(booking.event?.package.amount);
-    res.status(201).json({ ...booking, amount });
+
+    res.status(201).json(result);
   } catch (error) {
     if (error instanceof z.ZodError) {
       // If the error is a Zod validation error, send a bad request response
