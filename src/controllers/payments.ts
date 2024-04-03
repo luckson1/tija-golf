@@ -57,7 +57,7 @@ const callbackMetadataItemSchema = z.object({
 const stkCallbackSchema = z.object({
   MerchantRequestID: z.string(),
   CheckoutRequestID: z.string(),
-  ResultCode: z.string(),
+  ResultCode: z.number(),
   ResultDesc: z.string(),
   CallbackMetadata: z.object({
     Item: z.array(callbackMetadataItemSchema),
@@ -218,15 +218,29 @@ export const mpesaWebHookReq = async (req: Request, res: Response) => {
     // Validate the input using Zod
     const payload = webhookDataSchema.parse(req.body);
 
-    return prisma.payment.create({
-      data: {
-        amount: Number(
-          payload.Body.stkCallback.CallbackMetadata?.Item[0].Value
-        ),
-        checkoutRequestID: payload.Body.stkCallback.CheckoutRequestID,
-        description: payload.Body.stkCallback.ResultDesc,
-      },
-    });
+    if (payload.Body.stkCallback.ResultCode === 0) {
+      return prisma.payment.create({
+        data: {
+          amount: Number(
+            payload.Body.stkCallback.CallbackMetadata?.Item[0].Value
+          ),
+          status: "Completed",
+          checkoutRequestID: payload.Body.stkCallback.CheckoutRequestID,
+          description: payload.Body.stkCallback.ResultDesc,
+        },
+      });
+    } else {
+      return prisma.payment.create({
+        data: {
+          amount: Number(
+            payload.Body.stkCallback.CallbackMetadata?.Item[0].Value
+          ),
+          status: "Failed",
+          checkoutRequestID: payload.Body.stkCallback.CheckoutRequestID,
+          description: payload.Body.stkCallback.ResultDesc,
+        },
+      });
+    }
   } catch (error) {
     if (error instanceof z.ZodError) {
       console.log("validation");
