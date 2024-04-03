@@ -35,12 +35,12 @@ enum HolesNumber {
 }
 
 model HolesPrices {
-  id             String       @id @default(cuid())
+  id             String        @id @default(cuid())
   amount         Float
   numberOfHoles  HolesNumber
   organization   Organization? @relation(fields: [organizationId], references: [id])
   organizationId String?
-  ListedEvent    ListedEvent? @relation(fields: [listedEventId], references: [id])
+  ListedEvent    ListedEvent?  @relation(fields: [listedEventId], references: [id])
   listedEventId  String?
 
   @@schema("auth")
@@ -70,6 +70,7 @@ model Booking {
   id           String        @unique @default(cuid())
   eventId      String?
   classId      String?
+  slug         String?
   tournamentId String?
   bookingDate  DateTime      @default(now())
   usersId      String
@@ -83,6 +84,33 @@ model Booking {
   payments     Payment?
 
   @@id([id, usersId])
+  @@schema("auth")
+}
+
+model Cart {
+  id        String         @id @default(cuid())
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  usersId   String
+  items     ShoppingItem[]
+  slug      String?
+  cartRef   Int            @default(autoincrement())
+  total     Float          @default(0)
+
+  // ... other fields
+  @@schema("auth")
+}
+
+model ShoppingItem {
+  id        String @id @default(cuid())
+  cartId    String
+  cart      Cart   @relation(fields: [cartId], references: [id])
+  productId String // WooCommerce product ID
+  name      String // Product name from WooCommerce
+  price     Float // Product price from WooCommerce
+  quantity  Int // Quantity of the product
+
+  // ... other fields that might be relevant, such as product image URL, etc.
   @@schema("auth")
 }
 
@@ -226,7 +254,7 @@ model Profile {
 
 model Payment {
   id                String        @id @default(cuid())
-  bookingId         String        @unique
+  bookingId         String?       @unique
   amount            Float
   status            PaymentStatus @default(Pending)
   paymentDate       DateTime      @default(now())
@@ -234,16 +262,17 @@ model Payment {
   eventId           String?
   classId           String?
   tournamentId      String?
-  organizationId    String
-  usersId           String
+  organizationId    String?
+  usersId           String?
   teeId             String?
-  checkoutRequestID Int?
+  checkoutRequestID String?
+  description       String?
   listedEventId     String?
-  booking           Booking       @relation(fields: [bookingId], references: [id])
+  booking           Booking?      @relation(fields: [bookingId], references: [id])
   Class             Class?        @relation(fields: [classId], references: [id])
   Event             Event?        @relation(fields: [eventId], references: [id])
   ListedEvent       ListedEvent?  @relation(fields: [listedEventId], references: [id])
-  organisation      Organization  @relation(fields: [organizationId], references: [id])
+  organisation      Organization? @relation(fields: [organizationId], references: [id])
   Tee               Tee?          @relation(fields: [teeId], references: [id])
   Tournament        Tournament?   @relation(fields: [tournamentId], references: [id])
 

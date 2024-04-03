@@ -49,7 +49,30 @@ const prisma = new PrismaClient();
 //   paymentWebhookUrl: z.string(),
 //   extraData: z.record(z.any()).optional(), // JSON is represented as a record of any type
 // });
+const callbackMetadataItemSchema = z.object({
+  Name: z.string(),
+  Value: z.union([z.number(), z.string()]), // Since Value can be a string or a number
+});
 
+const stkCallbackSchema = z.object({
+  MerchantRequestID: z.string(),
+  CheckoutRequestID: z.string(),
+  ResultCode: z.string(),
+  ResultDesc: z.string(),
+  CallbackMetadata: z.object({
+    Item: z.array(callbackMetadataItemSchema),
+  }), // Not optional, as it's part of the successful transaction data
+});
+
+const bodySchema = z.object({
+  stkCallback: stkCallbackSchema,
+});
+
+const webhookDataSchema = z.object({
+  Body: bodySchema,
+});
+
+type WebhookData = z.infer<typeof webhookDataSchema>;
 const webhookRequestSchema = z.object({
   request_amount: z.number(),
   account_number: z.string(),
@@ -193,7 +216,17 @@ export const mpesaWebHookReq = async (req: Request, res: Response) => {
   try {
     console.log("payment got here");
     // Validate the input using Zod
-    console.log("request", req.body);
+    const payload = webhookDataSchema.parse(req.body);
+
+    return prisma.payment.create({
+      data: {
+        amount: Number(
+          payload.Body.stkCallback.CallbackMetadata?.Item[0].Value
+        ),
+        checkoutRequestID: payload.Body.stkCallback.CheckoutRequestID,
+        description: payload.Body.stkCallback.ResultDesc,
+      },
+    });
   } catch (error) {
     if (error instanceof z.ZodError) {
       console.log("validation");
