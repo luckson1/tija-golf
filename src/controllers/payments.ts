@@ -51,11 +51,9 @@ const prisma = new PrismaClient();
 // });
 
 const webhookRequestSchema = z.object({
-
   request_amount: z.number(),
-  original_request_amount: z.number(),
-
   account_number: z.string(),
+  original_request_amount: z.number(),
 
   amount_paid: z.number(),
   service_charge_amount: z.number(),
@@ -111,10 +109,9 @@ export const encriptPayment = async (req: Request, res: Response) => {
     // Validate the input using Zod
 
     const payloadObj = apiSchema.parse(req.body);
-    const toEncrypt= {... payloadObj,   due_date: undefined  }
+    const toEncrypt = { ...payloadObj, due_date: undefined };
     const payloadStr = JSON.stringify(toEncrypt);
-   
-    console.log("IVKey:", IVKey, "secretKey:", secretKey);
+
     var result = encryption?.encrypt(payloadStr);
     res.status(201).json(result);
   } catch (error) {
@@ -129,16 +126,15 @@ export const encriptPayment = async (req: Request, res: Response) => {
 };
 export const webHookReq = async (req: Request, res: Response) => {
   try {
-    console.log("payment got here")
+    console.log("payment got here");
     // Validate the input using Zod
-    console.log("request", req)
+    console.log("request", req);
     const payloadObj = webhookRequestSchema.parse(req.body);
     const booking = await prisma.booking.update({
       where: {
+        bookingRef: Number(payloadObj.account_number),
+      },
 
-    bookingRef:    Number(payloadObj.account_number)
- },
- 
       data: {
         status:
           payloadObj.request_status_code === "180"
@@ -156,13 +152,11 @@ export const webHookReq = async (req: Request, res: Response) => {
             : payloadObj.request_status_code === "188"
             ? "Received"
             : "Failed",
-            
       },
-      
     });
-    const payment=await prisma.payment.update({
+    const payment = await prisma.payment.update({
       where: {
-        bookingId: booking.id
+        bookingId: booking.id,
       },
       data: {
         status:
@@ -181,55 +175,65 @@ export const webHookReq = async (req: Request, res: Response) => {
             : payloadObj.request_status_code === "188"
             ? "Received"
             : "Failed",
-      }
-    })
+      },
+    });
     res.status(201).json(payment);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      console.log( "validation")
+      console.log("validation");
       // If the error is a Zod validation error, send a bad request response
       return res.status(400).json(error.errors);
     }
-    console.log( "others")
+    console.log("others");
+    // Handle other types of errors
+    res.status(500).send(error);
+  }
+};
+export const mpesaWebHookReq = async (req: Request, res: Response) => {
+  try {
+    console.log("payment got here");
+    // Validate the input using Zod
+    console.log("request", req.body);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      console.log("validation");
+      // If the error is a Zod validation error, send a bad request response
+      return res.status(400).json(error.errors);
+    }
+    console.log("others");
     // Handle other types of errors
     res.status(500).send(error);
   }
 };
 export const simulation = async (req: Request, res: Response) => {
   try {
-    
-const idSchema=z.object({bookingRef:z.number()})
-    const{ bookingRef} = idSchema.parse(req.body);
+    const idSchema = z.object({ bookingRef: z.number() });
+    const { bookingRef } = idSchema.parse(req.body);
     const booking = await prisma.booking.update({
       where: {
+        bookingRef,
+      },
 
-    bookingRef 
- },
- 
       data: {
-        status:
-        "Completed"
-            
+        status: "Completed",
       },
-      
     });
-    const payment=await prisma.payment.update({
+    const payment = await prisma.payment.update({
       where: {
-        bookingId: booking.id
+        bookingId: booking.id,
       },
       data: {
-        status:
-        "Completed"
-      }
-    })
+        status: "Completed",
+      },
+    });
     res.status(201).json(payment);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      console.log( "validation")
+      console.log("validation");
       // If the error is a Zod validation error, send a bad request response
       return res.status(400).json(error.errors);
     }
-    console.log( "others")
+    console.log("others");
     // Handle other types of errors
     res.status(500).send(error);
   }
