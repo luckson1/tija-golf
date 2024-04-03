@@ -54,7 +54,6 @@ const CreatePaymentSchema = z.object({
 });
 
 // Use this schema to validate data when creating a payment
-
 export const createTee = async (req: Request, res: Response) => {
   try {
     const token = req.headers.authorization;
@@ -68,53 +67,69 @@ export const createTee = async (req: Request, res: Response) => {
 
     console.log(parsedData.date);
     const { holes, kit, organizationId } = parsedData;
-    // Create the Tee in the database
-    const newTee = await prisma.tee.create({
-      data: {
-        holes,
-        kit,
-        organizationId,
-        startDate,
-      },
+
+    // Start a transaction
+    const result = await prisma.$transaction(async (prisma) => {
+      // Create the Tee in the database
+      const newTee = await prisma.tee.create({
+        data: {
+          holes,
+          kit,
+          organizationId,
+          startDate,
+        },
+      });
+
+      const booking = await prisma.booking.create({
+        data: {
+          usersId,
+          teeId: newTee.id,
+        },
+        include: {
+          tee: true,
+        },
+      });
+      await prisma.booking.update({
+        where: { id: booking.id },
+        data: {
+          slug: `T-${booking?.bookingRef}`,
+        },
+      });
+      const kitCost =
+        kit === "Yes"
+          ? await prisma.kitPrices.findFirst({
+              where: {
+                organizationId,
+              },
+              select: {
+                amount: true,
+              },
+            })
+          : null;
+
+      const gameCost =
+        holes === "9 holes"
+          ? await prisma.holesPrices.findFirst({
+              where: {
+                organizationId,
+                numberOfHoles: "Nine",
+              },
+              select: { amount: true },
+            })
+          : await prisma.holesPrices.findFirst({
+              where: {
+                organizationId,
+                numberOfHoles: "Eighteen",
+              },
+              select: { amount: true },
+            });
+
+      const amount = (kitCost?.amount ?? 0) + (gameCost?.amount ?? 0);
+
+      return { booking, amount };
     });
 
-    const booking = await prisma.booking.create({
-      data: {
-        usersId,
-        teeId: newTee.id,
-      },
-      include: {
-        tee: true,
-      },
-    });
-    const kitCost = kit
-      ? await prisma.kitPrices.findFirst({
-          where: {
-            organizationId,
-          },
-          select: {
-            amount: true,
-          },
-        })
-      : null;
-    const gameCost =
-      holes === "9 holes"
-        ? await prisma.holesPrices.findFirst({
-            where: {
-              organizationId,
-              numberOfHoles: "Nine",
-            },
-            select: { amount: true },
-          })
-        : await prisma.holesPrices.findFirst({
-            where: {
-              organizationId,
-              numberOfHoles: "Eighteen",
-            },
-            select: { amount: true },
-          });
-    const amount = (kitCost?.amount ?? 0) + (gameCost?.amount ?? 0);
-    res.status(201).json({ ...booking, amount });
+    res.status(201).json(result);
   } catch (error) {
     if (error instanceof z.ZodError) {
       console.log(error.errors.at(0)?.message);
