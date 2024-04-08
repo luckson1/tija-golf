@@ -105,7 +105,7 @@ model ShoppingItem {
   id        String @id @default(cuid())
   cartId    String
   cart      Cart   @relation(fields: [cartId], references: [id])
-  productId String // WooCommerce product ID
+  productId Int // WooCommerce product ID
   name      String // Product name from WooCommerce
   price     Float // Product price from WooCommerce
   quantity  Int // Quantity of the product
