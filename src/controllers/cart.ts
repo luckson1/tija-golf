@@ -5,7 +5,7 @@ export const CartCreateSchema = z.object({
     z.object({
       productId: z.string(),
       name: z.string(),
-      price: z.number(),
+      price: z.string(),
       quantity: z.number().int().nonnegative(),
       src: z.string(),
     })
@@ -34,11 +34,10 @@ export const createCart = async (req: Request, res: Response) => {
 
   try {
     const { items } = CartCreateSchema.parse(req?.body);
-
-    const total = items.reduce(
-      (sum, item) => sum + item.price * item.quantity,
-      0
-    );
+    const total = items.reduce((sum, item) => {
+      const price = parseFloat(item.price);
+      return sum + (isNaN(price) ? 0 : price) * item.quantity;
+    }, 0);
     console.log(total, items);
     const result = await prisma.$transaction(async (prisma) => {
       const cart = await prisma.cart.create({
@@ -49,7 +48,7 @@ export const createCart = async (req: Request, res: Response) => {
             create: items.map((item: any) => ({
               productId: item.productId,
               name: item.name,
-              price: item.price,
+              price: isNaN(parseFloat(item.price)) ? 0 : parseFloat(item.price),
               quantity: item.quantity,
               src: item.src,
             })),
@@ -94,10 +93,10 @@ export const updateCart = async (req: Request, res: Response) => {
   try {
     const { items } = CartCreateSchema.parse(req.body);
     const { id } = CartIdSchema.parse(req.params);
-    const total = items.reduce(
-      (sum, item) => sum + item.price * item.quantity,
-      0
-    );
+    const total = items.reduce((sum, item) => {
+      const price = parseFloat(item.price);
+      return sum + (isNaN(price) ? 0 : price) * item.quantity;
+    }, 0);
     const cart = await prisma.$transaction(async (prisma) => {
       // First, delete any existing items related to the cart
       await prisma.shoppingItem.deleteMany({
@@ -117,7 +116,7 @@ export const updateCart = async (req: Request, res: Response) => {
               productId: item.productId,
               quantity: item.quantity,
               name: item.name,
-              price: item.price,
+              price: isNaN(parseFloat(item.price)) ? 0 : parseFloat(item.price),
               cartId: id, // Ensure you set the correct relation field for cartId
               src: item.src,
             })),
