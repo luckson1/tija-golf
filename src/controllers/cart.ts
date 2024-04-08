@@ -95,7 +95,7 @@ export const updateCart = async (req: Request, res: Response) => {
   if (!token) return res.status(403).send("Forbidden");
   const usersId = await getUser(token);
   if (!usersId) return res.status(401).send("Unauthorised");
-  console.log("body", req.body);
+  console.log("params", req.params);
   try {
     const { items } = CartCreateSchema.parse(req.body);
     const { id } = CartIdSchema.parse(req.params);
