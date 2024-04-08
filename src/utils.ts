@@ -1,10 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-console.log(
-  "url",
-  process.env.APPSETTING_AZURE_SUPABASE_URL,
-  "key",
-  process.env.APPSETTING_AZURE_SUPABASE_SERVICE_ROLE_KEY
-);
+
 export const supabaseClient =
   process.env.APPSETTING_AZURE_SUPABASE_URL &&
   process.env.APPSETTING_AZURE_SUPABASE_SERVICE_ROLE_KEY

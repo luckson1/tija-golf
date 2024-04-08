@@ -76,6 +76,7 @@ export const getCart = async (req: Request, res: Response) => {
     const cart = await prisma.cart.findUnique({ where: { id } });
     res.status(200).json(cart);
   } catch (error: any) {
+    console.log(error);
     res.status(400).json({ error: error.message });
   }
 };
