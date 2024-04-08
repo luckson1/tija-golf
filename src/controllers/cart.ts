@@ -1,16 +1,15 @@
 import { z } from "zod";
 
 export const CartCreateSchema = z.object({
-  userId: z.string(),
   items: z.array(
     z.object({
       productId: z.string(),
       name: z.string(),
       price: z.number(),
       quantity: z.number().int().nonnegative(),
+      src: z.string().optional(),
     })
   ),
-  total: z.number().nonnegative(),
 });
 
 export const CartUpdateSchema = CartCreateSchema.partial();
@@ -32,15 +31,24 @@ export const createCart = async (req: Request, res: Response) => {
   const usersId = await getUser(token);
   if (!usersId) return res.status(401).send("Unauthorised");
   try {
-    const { items, total } = CartCreateSchema.parse(req.body);
+    const { items } = CartCreateSchema.parse(req.body);
 
+    const total = items.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0
+    );
     const result = await prisma.$transaction(async (prisma) => {
       const cart = await prisma.cart.create({
         data: {
           usersId,
           total,
           items: {
-            create: items,
+            create: items.map((item) => ({
+              productId: item.productId,
+              name: item.name,
+              price: item.price,
+              quantity: item.quantity,
+            })),
           },
         },
       });
@@ -78,32 +86,37 @@ export const updateCart = async (req: Request, res: Response) => {
   const usersId = await getUser(token);
   if (!usersId) return res.status(401).send("Unauthorised");
   try {
-    const { items, total } = CartCreateSchema.parse(req.body);
+    const { items } = CartCreateSchema.parse(req.body);
     const { id } = CartIdSchema.parse(req.params);
-
-    // First, delete any existing items related to the cart
-    await prisma.shoppingItem.deleteMany({
-      where: {
-        cartId: id,
-      },
-    });
-
-    // Then, update the cart with the new total and create new items
-    const cart = await prisma.cart.update({
-      where: { id },
-      data: {
-        total,
-        // Use the 'create' operation within 'items' to add new items
-        items: {
-          create: items.map((item) => ({
-            productId: item.productId,
-            quantity: item.quantity,
-            name: item.name,
-            price: item.price,
-            cartId: id, // Ensure you set the correct relation field for cartId
-          })),
+    const total = items.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0
+    );
+    const cart = await prisma.$transaction(async (prisma) => {
+      // First, delete any existing items related to the cart
+      await prisma.shoppingItem.deleteMany({
+        where: {
+          cartId: id,
         },
-      },
+      });
+
+      // Then, update the cart with the new total and create new items
+      return prisma.cart.update({
+        where: { id },
+        data: {
+          total,
+          // Use the 'create' operation within 'items' to add new items
+          items: {
+            create: items.map((item) => ({
+              productId: item.productId,
+              quantity: item.quantity,
+              name: item.name,
+              price: item.price,
+              cartId: id, // Ensure you set the correct relation field for cartId
+            })),
+          },
+        },
+      });
     });
 
     res.status(200).json(cart);
