@@ -30,7 +30,6 @@ export const createCart = async (req: Request, res: Response) => {
   if (!token) return res.status(403).send("Forbidden");
   const usersId = await getUser(token);
   if (!usersId) return res.status(401).send("Unauthorised");
-  console.log("body", req.body);
 
   try {
     const { items } = CartCreateSchema.parse(req?.body);
@@ -96,6 +95,7 @@ export const updateCart = async (req: Request, res: Response) => {
   if (!token) return res.status(403).send("Forbidden");
   const usersId = await getUser(token);
   if (!usersId) return res.status(401).send("Unauthorised");
+  console.log("body", req.body);
   try {
     const { items } = CartCreateSchema.parse(req.body);
     const { id } = CartIdSchema.parse(req.params);
@@ -134,6 +134,7 @@ export const updateCart = async (req: Request, res: Response) => {
 
     res.status(200).json(cart);
   } catch (error: any) {
+    console.log("error", error);
     res.status(400).json({ error: error.message });
   }
 };
