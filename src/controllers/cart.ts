@@ -37,6 +37,7 @@ export const createCart = async (req: Request, res: Response) => {
       (sum, item) => sum + item.price * item.quantity,
       0
     );
+    console.log(total, items);
     const result = await prisma.$transaction(async (prisma) => {
       const cart = await prisma.cart.create({
         data: {
