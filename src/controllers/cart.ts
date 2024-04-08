@@ -30,21 +30,22 @@ export const createCart = async (req: Request, res: Response) => {
   if (!token) return res.status(403).send("Forbidden");
   const usersId = await getUser(token);
   if (!usersId) return res.status(401).send("Unauthorised");
-  const { items } = CartCreateSchema.parse(req.body);
 
-  const total = items.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  );
-  console.log(total, items);
   try {
+    const { items } = req?.body;
+
+    const total = items.reduce(
+      (sum: any, item: any) => sum + item.price * item.quantity,
+      0
+    );
+    console.log(total, items);
     const result = await prisma.$transaction(async (prisma) => {
       const cart = await prisma.cart.create({
         data: {
           usersId,
           total,
           items: {
-            create: items.map((item) => ({
+            create: items.map((item: any) => ({
               productId: item.productId,
               name: item.name,
               price: item.price,
