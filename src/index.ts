@@ -35,7 +35,6 @@ app.use("/api/profile", profileRoute);
 app.use("/api/organization", orgRoute);
 app.use("/api/payments", paymentRoute);
 app.use("/api/attachments", attachmentRoute);
-
 app.use("/api/cart", cartRoute);
 
 app.listen(PORT, () => {

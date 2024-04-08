@@ -30,12 +30,13 @@ export const createCart = async (req: Request, res: Response) => {
   if (!token) return res.status(403).send("Forbidden");
   const usersId = await getUser(token);
   if (!usersId) return res.status(401).send("Unauthorised");
+  console.log("body", req.body);
 
   try {
-    const { items } = req?.body;
+    const { items } = CartCreateSchema.parse(req?.body);
 
     const total = items.reduce(
-      (sum: any, item: any) => sum + item.price * item.quantity,
+      (sum, item) => sum + item.price * item.quantity,
       0
     );
     console.log(total, items);
