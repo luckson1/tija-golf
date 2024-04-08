@@ -221,7 +221,9 @@ export const mpesaWebHookReq = async (req: Request, res: Response) => {
     const payload = webhookDataSchema.parse(body);
     const status: ("Completed" | "Failed")[] = ["Completed", "Failed"];
     const paymentData = {
-      amount: Number(payload.Body.stkCallback.CallbackMetadata?.Item[0].Value),
+      amount: Number(
+        payload.Body.stkCallback.CallbackMetadata?.Item[0]?.Value ?? 0
+      ),
       status: payload.Body.stkCallback.ResultCode === 0 ? status[0] : status[1],
       checkoutRequestID: payload.Body.stkCallback.CheckoutRequestID,
       description: payload.Body.stkCallback.ResultDesc,
