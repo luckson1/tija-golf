@@ -51,17 +51,18 @@ const prisma = new PrismaClient();
 // });
 const callbackMetadataItemSchema = z.object({
   Name: z.string(),
-  Value: z.union([z.number(), z.string()]), // Since Value can be a string or a number
+  Value: z.union([z.number(), z.string()]).optional().nullable(), // Make Value optional
 });
-
 const stkCallbackSchema = z.object({
   MerchantRequestID: z.string(),
   CheckoutRequestID: z.string(),
   ResultCode: z.number(),
   ResultDesc: z.string(),
-  CallbackMetadata: z.object({
-    Item: z.array(callbackMetadataItemSchema),
-  }), // Not optional, as it's part of the successful transaction data
+  CallbackMetadata: z
+    .object({
+      Item: z.array(callbackMetadataItemSchema),
+    })
+    .optional(), // Not optional, as it's part of the successful transaction data
 });
 
 const bodySchema = z.object({
