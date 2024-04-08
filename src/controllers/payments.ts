@@ -214,33 +214,23 @@ export const webHookReq = async (req: Request, res: Response) => {
 };
 export const mpesaWebHookReq = async (req: Request, res: Response) => {
   try {
-    console.log("payment got here");
+    const body = req.body;
     // Validate the input using Zod
-    const payload = webhookDataSchema.parse(req.body);
+    const payload = webhookDataSchema.parse(body);
+    const status: ("Completed" | "Failed")[] = ["Completed", "Failed"];
+    const paymentData = {
+      amount: Number(payload.Body.stkCallback.CallbackMetadata?.Item[0].Value),
+      status: payload.Body.stkCallback.ResultCode === 0 ? status[0] : status[1],
+      checkoutRequestID: payload.Body.stkCallback.CheckoutRequestID,
+      description: payload.Body.stkCallback.ResultDesc,
+    };
 
-    if (payload.Body.stkCallback.ResultCode === 0) {
-      return prisma.payment.create({
-        data: {
-          amount: Number(
-            payload.Body.stkCallback.CallbackMetadata?.Item[0].Value
-          ),
-          status: "Completed",
-          checkoutRequestID: payload.Body.stkCallback.CheckoutRequestID,
-          description: payload.Body.stkCallback.ResultDesc,
-        },
-      });
-    } else {
-      return prisma.payment.create({
-        data: {
-          amount: Number(
-            payload.Body.stkCallback.CallbackMetadata?.Item[0].Value
-          ),
-          status: "Failed",
-          checkoutRequestID: payload.Body.stkCallback.CheckoutRequestID,
-          description: payload.Body.stkCallback.ResultDesc,
-        },
-      });
-    }
+    const result = await prisma.$transaction(async (prisma) => {
+      await prisma.webhookJson.create({ data: { body } });
+      return prisma.payment.create({ data: paymentData });
+    });
+
+    return res.status(201).json(result);
   } catch (error) {
     if (error instanceof z.ZodError) {
       console.log("validation");
