@@ -215,6 +215,7 @@ export const webHookReq = async (req: Request, res: Response) => {
 export const mpesaWebHookReq = async (req: Request, res: Response) => {
   try {
     const body = req.body;
+    await prisma.webhookJson.create({ data: { body } });
     // Validate the input using Zod
     const payload = webhookDataSchema.parse(body);
     const status: ("Completed" | "Failed")[] = ["Completed", "Failed"];
@@ -226,7 +227,6 @@ export const mpesaWebHookReq = async (req: Request, res: Response) => {
     };
 
     const result = await prisma.$transaction(async (prisma) => {
-      await prisma.webhookJson.create({ data: { body } });
       return prisma.payment.create({ data: paymentData });
     });
 
