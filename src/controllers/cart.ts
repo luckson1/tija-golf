@@ -7,7 +7,7 @@ export const CartCreateSchema = z.object({
       name: z.string(),
       price: z.number(),
       quantity: z.number().int().nonnegative(),
-      src: z.string().optional(),
+      src: z.string(),
     })
   ),
 });
@@ -48,6 +48,7 @@ export const createCart = async (req: Request, res: Response) => {
               name: item.name,
               price: item.price,
               quantity: item.quantity,
+              src: item.src,
             })),
           },
         },
@@ -113,6 +114,7 @@ export const updateCart = async (req: Request, res: Response) => {
               name: item.name,
               price: item.price,
               cartId: id, // Ensure you set the correct relation field for cartId
+              src: item.src,
             })),
           },
         },
