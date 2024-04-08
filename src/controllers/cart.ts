@@ -61,6 +61,9 @@ export const createCart = async (req: Request, res: Response) => {
         data: {
           slug: `C-${cart.cartRef}`,
         },
+        include: {
+          items: true,
+        },
       });
 
       return updatedCart;
@@ -76,7 +79,10 @@ export const createCart = async (req: Request, res: Response) => {
 export const getCart = async (req: Request, res: Response) => {
   try {
     const { id } = CartIdSchema.parse(req.params);
-    const cart = await prisma.cart.findUnique({ where: { id } });
+    const cart = await prisma.cart.findUnique({
+      where: { id },
+      include: { items: true },
+    });
     res.status(200).json(cart);
   } catch (error: any) {
     console.log(error);
@@ -122,6 +128,7 @@ export const updateCart = async (req: Request, res: Response) => {
             })),
           },
         },
+        include: { items: true },
       });
     });
 
