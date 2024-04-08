@@ -70,7 +70,7 @@ model Booking {
   id           String        @unique @default(cuid())
   eventId      String?
   classId      String?
-  slug         String?
+  slug         String?       @unique
   tournamentId String?
   bookingDate  DateTime      @default(now())
   usersId      String
@@ -93,7 +93,7 @@ model Cart {
   updatedAt DateTime       @updatedAt
   usersId   String
   items     ShoppingItem[]
-  slug      String?
+  slug      String?        @unique
   cartRef   Int            @default(autoincrement())
   total     Float          @default(0)
 
