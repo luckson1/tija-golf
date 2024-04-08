@@ -10,7 +10,6 @@ export const CartCreateSchema = z.object({
       quantity: z.number().int().nonnegative(),
     })
   ),
-  total: z.number().nonnegative(),
 });
 
 export const CartUpdateSchema = CartCreateSchema.partial();
@@ -32,8 +31,11 @@ export const createCart = async (req: Request, res: Response) => {
   const usersId = await getUser(token);
   if (!usersId) return res.status(401).send("Unauthorised");
   try {
-    const { items, total } = CartCreateSchema.parse(req.body);
-
+    const { items } = CartCreateSchema.parse(req.body);
+    const total = items.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0
+    );
     const result = await prisma.$transaction(async (prisma) => {
       const cart = await prisma.cart.create({
         data: {
@@ -78,9 +80,12 @@ export const updateCart = async (req: Request, res: Response) => {
   const usersId = await getUser(token);
   if (!usersId) return res.status(401).send("Unauthorised");
   try {
-    const { items, total } = CartCreateSchema.parse(req.body);
+    const { items } = CartCreateSchema.parse(req.body);
     const { id } = CartIdSchema.parse(req.params);
-
+    const total = items.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0
+    );
     // First, delete any existing items related to the cart
     await prisma.shoppingItem.deleteMany({
       where: {
