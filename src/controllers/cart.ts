@@ -3,7 +3,7 @@ import { z } from "zod";
 export const CartCreateSchema = z.object({
   items: z.array(
     z.object({
-      productId: z.string(),
+      productId: z.number(),
       name: z.string(),
       price: z.string(),
       quantity: z.number().int().nonnegative(),
