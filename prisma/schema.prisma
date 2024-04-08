@@ -109,6 +109,7 @@ model ShoppingItem {
   name      String // Product name from WooCommerce
   price     Float // Product price from WooCommerce
   quantity  Int // Quantity of the product
+  src       String
 
   // ... other fields that might be relevant, such as product image URL, etc.
   @@schema("auth")
