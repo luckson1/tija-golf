@@ -122,8 +122,7 @@ export const updateCart = async (req: Request, res: Response) => {
               productId: item.productId,
               quantity: item.quantity,
               name: item.name,
-              price: isNaN(parseFloat(item.price)) ? 0 : parseFloat(item.price),
-              cartId: id, // Ensure you set the correct relation field for cartId
+              price: isNaN(parseFloat(item.price)) ? 0 : parseFloat(item.price), // Ensure you set the correct relation field for cartId
               src: item.src,
             })),
           },
