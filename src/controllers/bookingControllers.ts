@@ -306,7 +306,7 @@ export async function getTeeBookings(req: Request, res: Response) {
         };
       })
     );
-
+    console.log(bookingsWithAmount?.at(0)?.totalAmount);
     res.json(bookingsWithAmount);
   } catch (error) {
     res.status(500).send(error);
