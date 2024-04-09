@@ -239,11 +239,11 @@ export const mpesaWebHookReq = async (req: Request, res: Response) => {
     return res.status(201).json(result);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      console.log("validation");
+      console.log("validation", error.errors);
       // If the error is a Zod validation error, send a bad request response
       return res.status(400).json(error.errors);
     }
-    console.log("others");
+    console.log("others", error);
     // Handle other types of errors
     res.status(500).send(error);
   }
