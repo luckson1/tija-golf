@@ -51,8 +51,7 @@ export const getAllBookings = async (req: Request, res: Response) => {
       },
       include: {
         event: {
-          select: {
-            startDate: true,
+          include: {
             ListedEvent: {
               select: {
                 name: true,
