@@ -10,7 +10,7 @@ const paymentRoute = express.Router();
 
 paymentRoute.post("/encrypt", encriptPayment);
 paymentRoute.post("/webhook", webHookReq);
-paymentRoute.post("/m-pesa-webhook", mpesaWebHookReq);
+paymentRoute.post("/webhook/mpesa/:invoiceNumber", mpesaWebHookReq);
 paymentRoute.post("/simulate", simulation);
 
 export default paymentRoute;

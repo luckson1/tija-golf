@@ -215,12 +215,15 @@ export const webHookReq = async (req: Request, res: Response) => {
 };
 export const mpesaWebHookReq = async (req: Request, res: Response) => {
   try {
+    const invoiceNumber = req.params.invoiceNumber;
+    console.log(req.params); // Accessing invoiceNumber from the request parameters
     const body = req.body;
-    await prisma.webhookJson.create({ data: { body } });
+    await prisma.webhookJson.create({ data: { body } }); // Storing invoiceNumber along with the body
     // Validate the input using Zod
     const payload = webhookDataSchema.parse(body);
     const status: ("Completed" | "Failed")[] = ["Completed", "Failed"];
     const paymentData = {
+      invoiceNumber, // Including invoiceNumber in the payment data
       amount: Number(
         payload.Body.stkCallback.CallbackMetadata?.Item[0]?.Value ?? 0
       ),
