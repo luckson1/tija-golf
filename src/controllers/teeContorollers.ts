@@ -125,7 +125,7 @@ export const createTee = async (req: Request, res: Response) => {
             });
 
       const amount = (kitCost?.amount ?? 0) + (gameCost?.amount ?? 0);
-      console.log(amount);
+
       return { updatedBooking, amount };
     });
 
