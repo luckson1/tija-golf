@@ -39,18 +39,17 @@ export const createBooking = async (req: Request, res: Response) => {
 
 export const getAllBookings = async (req: Request, res: Response) => {
   const token = req.headers.authorization;
-    if (!token) return res.status(403).send("Forbidden");
-    const usersId = await getUser(token);
-    if (!usersId) return res.status(401).send("Unauthorised");
+  if (!token) return res.status(403).send("Forbidden");
+  const usersId = await getUser(token);
+  if (!usersId) return res.status(401).send("Unauthorised");
 
   try {
     const bookings = await prisma.booking.findMany({
       where: {
         status: "Completed",
-        usersId
+        usersId,
       },
-      select: {
-        id: true,
+      include: {
         event: {
           select: {
             startDate: true,
@@ -78,7 +77,9 @@ export const getAllBookings = async (req: Request, res: Response) => {
     });
     const bookedEvents = bookings.flatMap((b) =>
       b.event
-        ? {id: b.id,
+        ? {
+            id: b.id,
+            slug: b.slug,
             name: b.event?.ListedEvent.name,
             location: b.event?.ListedEvent.location,
             date: b.event?.startDate,
@@ -88,7 +89,9 @@ export const getAllBookings = async (req: Request, res: Response) => {
     );
     const bookedTees = bookings.flatMap((b) =>
       b.tee
-        ? {id:b.id,
+        ? {
+            id: b.id,
+            slug: b.slug,
             name: "Tee",
             location: b.tee?.organisation.name,
             date: b.tee?.startDate,
@@ -102,7 +105,7 @@ export const getAllBookings = async (req: Request, res: Response) => {
       location: string;
       date: Date;
       image: string;
-      id:string
+      id: string;
     };
     const processedEvents = combinedEvents.reduce<CombinedEvent[]>(
       (acc, item) => {
@@ -263,6 +266,7 @@ export async function getTeeBookings(req: Request, res: Response) {
         status: true,
         id: true,
         bookingRef: true,
+        slug: true,
         tee: {
           include: {
             organisation: true,
@@ -300,6 +304,7 @@ export async function getEventBookings(req: Request, res: Response) {
       select: {
         status: true,
         id: true,
+        slug: true,
         bookingRef: true,
         event: {
           select: {
