@@ -85,14 +85,14 @@ export const createTee = async (req: Request, res: Response) => {
           usersId,
           teeId: newTee.id,
         },
-        include: {
-          tee: true,
-        },
       });
       const updatedBooking = await prisma.booking.update({
         where: { id: booking.id },
         data: {
           slug: `T-${booking?.bookingRef}`,
+        },
+        include: {
+          tee: true,
         },
       });
       const kitCost =
