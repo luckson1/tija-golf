@@ -229,7 +229,6 @@ export const mpesaWebHookReq = async (req: Request, res: Response) => {
       ),
       status: payload.Body.stkCallback.ResultCode === 0 ? status[0] : status[1],
       checkoutRequestID: payload.Body.stkCallback.CheckoutRequestID,
-      description: payload.Body.stkCallback.ResultDesc,
     };
 
     const result = await prisma.$transaction(async (prisma) => {
