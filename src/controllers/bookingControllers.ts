@@ -260,12 +260,7 @@ export async function getTeeBookings(req: Request, res: Response) {
           not: null,
         },
       },
-      select: {
-        status: true,
-        id: true,
-        bookingRef: true,
-        slug: true,
-
+      include: {
         tee: {
           include: {
             organisation: true,
@@ -332,27 +327,11 @@ export async function getEventBookings(req: Request, res: Response) {
           not: null,
         },
       },
-      select: {
-        status: true,
-        id: true,
-        slug: true,
-        bookingRef: true,
+      include: {
         event: {
-          select: {
-            id: true,
-            listedEventId: true,
-            startDate: true,
-            holes: true,
-            kit: true,
+          include: {
             package: true,
-            ListedEvent: {
-              select: {
-                name: true,
-                location: true,
-                image: true,
-                type: true,
-              },
-            },
+            ListedEvent: true,
           },
         },
       },
