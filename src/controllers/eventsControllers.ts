@@ -112,7 +112,7 @@ export const createEvent = async (req: Request, res: Response) => {
       const amount = kitCost
         ? Number(updatedBooking.event?.package.amount) + kitCost.amount
         : Number(updatedBooking.event?.package.amount);
-
+      console.log(amount);
       return { updatedBooking, amount };
     });
 
