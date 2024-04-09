@@ -253,7 +253,7 @@ export async function getTeeBookings(req: Request, res: Response) {
     if (!token) return res.status(403).send("Forbidden");
     const usersId = await getUser(token);
     if (!usersId) return res.status(401).send("Unauthorised");
-    // Fetch upcoming bookings for the user, including the event, class, or tournament details
+
     const bookings = await prisma.booking.findMany({
       where: {
         usersId: usersId,
@@ -261,12 +261,12 @@ export async function getTeeBookings(req: Request, res: Response) {
           not: null,
         },
       },
-
       select: {
         status: true,
         id: true,
         bookingRef: true,
         slug: true,
+
         tee: {
           include: {
             organisation: true,
@@ -275,12 +275,45 @@ export async function getTeeBookings(req: Request, res: Response) {
       },
       orderBy: {
         tee: {
-          startDate: "asc", // Order by tee startDate in ascending order
+          startDate: "asc",
         },
       },
     });
 
-    res.json(bookings);
+    // Calculate the total amount for each tee booking
+    const bookingsWithAmount = await Promise.all(
+      bookings.map(async (booking) => {
+        let totalAmount = 0;
+        if (booking?.tee?.kit === "Yes") {
+          const kitCost = await prisma.kitPrices.findFirst({
+            where: {
+              organizationId: booking.tee.organisation.id,
+            },
+            select: {
+              amount: true,
+            },
+          });
+          totalAmount += kitCost ? kitCost.amount : 0;
+        }
+
+        const gameCost = await prisma.holesPrices.findFirst({
+          where: {
+            organizationId: booking?.tee?.organisation.id,
+            numberOfHoles:
+              booking?.tee?.holes === "9 holes" ? "Nine" : "Eighteen",
+          },
+          select: { amount: true },
+        });
+        totalAmount += gameCost ? gameCost.amount : 0;
+
+        return {
+          ...booking,
+          totalAmount,
+        };
+      })
+    );
+
+    res.json(bookingsWithAmount);
   } catch (error) {
     res.status(500).send(error);
   }
@@ -292,7 +325,7 @@ export async function getEventBookings(req: Request, res: Response) {
     if (!token) return res.status(403).send("Forbidden");
     const usersId = await getUser(token);
     if (!usersId) return res.status(401).send("Unauthorised");
-    // Fetch upcoming bookings for the user, including the event, class, or tournament details
+
     const bookings = await prisma.booking.findMany({
       where: {
         usersId: usersId,
@@ -300,7 +333,6 @@ export async function getEventBookings(req: Request, res: Response) {
           not: null,
         },
       },
-
       select: {
         status: true,
         id: true,
@@ -309,16 +341,11 @@ export async function getEventBookings(req: Request, res: Response) {
         event: {
           select: {
             id: true,
+            listedEventId: true,
             startDate: true,
             holes: true,
             kit: true,
-
-            package: {
-              select: {
-                amount: true,
-                name: true,
-              },
-            },
+            package: true,
             ListedEvent: {
               select: {
                 name: true,
@@ -332,12 +359,34 @@ export async function getEventBookings(req: Request, res: Response) {
       },
       orderBy: {
         event: {
-          startDate: "asc", // Order by tee startDate in ascending order
+          startDate: "asc",
         },
       },
     });
 
-    res.json(bookings);
+    // Calculate the total amount for each booking
+    const bookingsWithAmount = await Promise.all(
+      bookings.map(async (booking) => {
+        let totalAmount = booking?.event?.package.price ?? 0;
+        if (booking?.event?.kit === "Yes") {
+          const kitCost = await prisma.kitPrices.findFirst({
+            where: {
+              listedEventId: booking.event?.listedEventId,
+            },
+            select: {
+              amount: true,
+            },
+          });
+          totalAmount += kitCost ? kitCost.amount : 0;
+        }
+        return {
+          ...booking,
+          totalAmount,
+        };
+      })
+    );
+
+    res.json(bookingsWithAmount);
   } catch (error) {
     res.status(500).send(error);
   }
