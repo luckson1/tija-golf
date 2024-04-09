@@ -75,6 +75,12 @@ export const createEvent = async (req: Request, res: Response) => {
           usersId,
           eventId: newEvent.id,
         },
+      });
+      const updatedBooking = await prisma.booking.update({
+        where: { id: booking.id },
+        data: {
+          slug: `E-${booking?.bookingRef}`,
+        },
         include: {
           event: {
             include: {
@@ -86,12 +92,6 @@ export const createEvent = async (req: Request, res: Response) => {
               },
             },
           },
-        },
-      });
-      const updatedBooking = await prisma.booking.update({
-        where: { id: booking.id },
-        data: {
-          slug: `E-${booking?.bookingRef}`,
         },
       });
 
@@ -110,8 +110,8 @@ export const createEvent = async (req: Request, res: Response) => {
 
       // Calculate the total amount
       const amount = kitCost
-        ? Number(booking.event?.package.amount) + kitCost.amount
-        : Number(booking.event?.package.amount);
+        ? Number(updatedBooking.event?.package.amount) + kitCost.amount
+        : Number(updatedBooking.event?.package.amount);
 
       return { updatedBooking, amount };
     });
