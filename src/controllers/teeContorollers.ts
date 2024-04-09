@@ -89,7 +89,7 @@ export const createTee = async (req: Request, res: Response) => {
           tee: true,
         },
       });
-      await prisma.booking.update({
+      const updatedBooking = await prisma.booking.update({
         where: { id: booking.id },
         data: {
           slug: `T-${booking?.bookingRef}`,
@@ -125,8 +125,8 @@ export const createTee = async (req: Request, res: Response) => {
             });
 
       const amount = (kitCost?.amount ?? 0) + (gameCost?.amount ?? 0);
-
-      return { booking, amount };
+      console.log(amount);
+      return { updatedBooking, amount };
     });
 
     res.status(201).json(result);

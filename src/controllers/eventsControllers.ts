@@ -88,7 +88,7 @@ export const createEvent = async (req: Request, res: Response) => {
           },
         },
       });
-      await prisma.booking.update({
+      const updatedBooking = await prisma.booking.update({
         where: { id: booking.id },
         data: {
           slug: `E-${booking?.bookingRef}`,
@@ -113,7 +113,7 @@ export const createEvent = async (req: Request, res: Response) => {
         ? Number(booking.event?.package.amount) + kitCost.amount
         : Number(booking.event?.package.amount);
 
-      return { booking, amount };
+      return { updatedBooking, amount };
     });
 
     res.status(201).json(result);
