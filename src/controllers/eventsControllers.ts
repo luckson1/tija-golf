@@ -259,7 +259,7 @@ export const updateEvent = async (req: Request, res: Response) => {
       // If the error is a Zod validation error, send a bad request response
       return res.status(400).json(error.errors);
     }
-
+    console.log(error);
     // Handle other types of errors
     res.status(500).send(error);
   }
