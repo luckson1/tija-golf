@@ -53,7 +53,7 @@ export const createEvent = async (req: Request, res: Response) => {
 
     const { holes, kit, date, startTime, listedEventId, packageId } =
       EventSchema.parse(req.body);
-    console.log(packageId);
+
     const startDate = combineDateAndTime(date, startTime);
 
     // Use a transaction to perform the following operations atomically
@@ -205,17 +205,55 @@ export const updateEvent = async (req: Request, res: Response) => {
     const { id } = req.params;
     const parsedId = z.string().parse(id); // Get the event ID from the route parameter
 
-    // Validate and parse the request data
-    const updateData = eventUpdateSchema.parse(req.body);
+    const { holes, kit, date, startTime, listedEventId, packageId } =
+      EventSchema.parse(req.body);
 
-    // Update the event in the database
-    const updatedevent = await prisma.event.update({
-      where: { id: parsedId },
-      data: updateData,
+    const startDate = combineDateAndTime(date, startTime);
+
+    // Update the event in the database using a transaction
+    const result = await prisma.$transaction(async (prisma) => {
+      // Update the event
+      const updatedEvent = await prisma.event.update({
+        where: { id: parsedId },
+        data: {
+          startDate,
+          holes,
+          kit,
+          listedEventId,
+          packageId,
+        },
+        include: {
+          package: true,
+        },
+      });
+
+      // If kit is provided and is "Yes", calculate the new kit cost
+      let kitCost = null;
+      if (kit && kit === "Yes") {
+        kitCost = await prisma.kitPrices.findFirst({
+          where: {
+            listedEventId: updatedEvent.listedEventId,
+          },
+          select: {
+            amount: true,
+          },
+        });
+      }
+
+      // Calculate the total amount if kit cost is applicable
+      let amount;
+      if (kitCost) {
+        amount = Number(updatedEvent.package.amount) + kitCost.amount;
+      } else {
+        amount = Number(updatedEvent.package.amount);
+      }
+
+      // Return the updated event and the new amount
+      return { updatedEvent, amount };
     });
 
-    // Send the updated event as a response
-    res.json(updatedevent);
+    // Send the updated event and amount as a response
+    res.json(result);
   } catch (error) {
     if (error instanceof z.ZodError) {
       // If the error is a Zod validation error, send a bad request response

@@ -194,31 +194,60 @@ export const getTee = async (req: Request, res: Response) => {
   }
 };
 
-// Assuming you have a similar Zod schema for Tee updates
-const TeeUpdateSchema = z.object({
-  name: z.string().min(1).optional(),
-  description: z.string(),
-  organizationId: z.string(),
-  startDate: z.string().datetime(),
-  endDate: z.date(),
-});
-
 export const updateTee = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const parsedId = z.string().parse(id); // Get the Tee ID from the route parameter
 
     // Validate and parse the request data
-    const updateData = TeeUpdateSchema.parse(req.body);
+    const updateData = TeeSchema.parse(req.body);
+
+    // If date and startTime are provided, combine them into a startDate
+    let startDate;
+    if (updateData.date && updateData.startTime) {
+      startDate = combineDateAndTime(updateData.date, updateData.startTime);
+    }
 
     // Update the Tee in the database
     const updatedTee = await prisma.tee.update({
       where: { id: parsedId },
-      data: updateData,
+      data: {
+        ...updateData,
+        ...(startDate && { startDate }), // Conditionally include startDate if it's calculated
+      },
     });
+    const kitCost =
+      updateData.kit === "Yes"
+        ? await prisma.kitPrices.findFirst({
+            where: {
+              organizationId: updateData.organizationId,
+            },
+            select: {
+              amount: true,
+            },
+          })
+        : null;
 
+    const gameCost =
+      updateData.holes === "9 holes"
+        ? await prisma.holesPrices.findFirst({
+            where: {
+              organizationId: updateData.organizationId,
+              numberOfHoles: "Nine",
+            },
+            select: { amount: true },
+          })
+        : await prisma.holesPrices.findFirst({
+            where: {
+              organizationId: updateData.organizationId,
+              numberOfHoles: "Eighteen",
+            },
+            select: { amount: true },
+          });
+
+    const amount = (kitCost?.amount ?? 0) + (gameCost?.amount ?? 0);
     // Send the updated Tee as a response
-    res.json(updatedTee);
+    res.json({ updatedTee, amount });
   } catch (error) {
     if (error instanceof z.ZodError) {
       // If the error is a Zod validation error, send a bad request response
