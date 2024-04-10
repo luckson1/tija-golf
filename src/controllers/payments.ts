@@ -235,7 +235,11 @@ export const mpesaWebHookReq = async (req: Request, res: Response) => {
 
     const result = await prisma.$transaction(async (prisma) => {
       // Create payment record
-      const payment = await prisma.payment.create({ data: paymentData });
+      const payment = await prisma.payment.upsert({
+        where: { invoiceNumber },
+        update: paymentData,
+        create: paymentData,
+      });
 
       // Update booking or cart based on invoiceNumber prefix
       if (invoiceNumber.startsWith("E") || invoiceNumber.startsWith("T")) {
