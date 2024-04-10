@@ -207,12 +207,14 @@ export const updateTee = async (req: Request, res: Response) => {
     if (updateData.date && updateData.startTime) {
       startDate = combineDateAndTime(updateData.date, updateData.startTime);
     }
-
+    const { holes, kit, organizationId } = updateData;
     // Update the Tee in the database
     const updatedTee = await prisma.tee.update({
       where: { id: parsedId },
       data: {
-        ...updateData,
+        holes,
+        kit,
+        organizationId,
         ...(startDate && { startDate }), // Conditionally include startDate if it's calculated
       },
     });
