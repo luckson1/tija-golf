@@ -96,6 +96,7 @@ model Cart {
   slug      String?        @unique
   cartRef   Int            @default(autoincrement())
   total     Float          @default(0)
+  status    BookingStatus  @default(Pending)
 
   // ... other fields
   @@schema("auth")
@@ -267,7 +268,7 @@ model Payment {
   usersId           String?
   teeId             String?
   checkoutRequestID String?
-  invoiceNumber     String?
+  invoiceNumber     String?       @unique
   listedEventId     String?
   booking           Booking?      @relation(fields: [bookingId], references: [id])
   Class             Class?        @relation(fields: [classId], references: [id])
