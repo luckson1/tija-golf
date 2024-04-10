@@ -276,7 +276,7 @@ export const getPaymentStatus = async (req: Request, res: Response) => {
 
     // If payment doesn't exist, return a 404
     if (!payment) {
-      return res.status(404).json({ message: "Payment not found" });
+      return null;
     }
 
     // Respond with the payment status
