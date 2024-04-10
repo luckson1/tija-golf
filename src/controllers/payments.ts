@@ -278,9 +278,9 @@ export const getPaymentStatus = async (req: Request, res: Response) => {
       where: { invoiceNumber },
     });
 
-    // If payment doesn't exist, return a 404
+    // If payment doesn't exist, return pending
     if (!payment) {
-      return null;
+      return res.status(200).json({ status: "Pending" });
     }
 
     // Respond with the payment status
