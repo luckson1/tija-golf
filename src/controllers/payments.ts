@@ -277,12 +277,12 @@ export const getPaymentStatus = async (req: Request, res: Response) => {
     const payment = await prisma.payment.findUnique({
       where: { invoiceNumber },
     });
-
+    console.log("payment", payment);
     // If payment doesn't exist, return pending
     if (!payment) {
       return res.status(200).json({ status: "Pending" });
     }
-
+    console.log(payment.status);
     // Respond with the payment status
     return res.status(200).json({ status: payment.status });
   } catch (error) {
