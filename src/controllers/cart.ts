@@ -37,7 +37,7 @@ export const createCart = async (req: Request, res: Response) => {
       const price = parseFloat(item.price.toString());
       return sum + (isNaN(price) ? 0 : price) * item.quantity;
     }, 0);
-    console.log(total, items);
+
     const result = await prisma.$transaction(async (prisma) => {
       const cart = await prisma.cart.create({
         data: {
@@ -82,7 +82,7 @@ export const getCart = async (req: Request, res: Response) => {
       where: { id },
       include: { items: true },
     });
-    res.status(200).json(cart);
+    res.status(200).json(cart?.status);
   } catch (error: any) {
     console.log(error);
     res.status(400).json({ error: error.message });
