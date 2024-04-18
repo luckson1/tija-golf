@@ -216,7 +216,7 @@ export const webHookReq = async (req: Request, res: Response) => {
 export const mpesaWebHookReq = async (req: Request, res: Response) => {
   try {
     const invoiceNumber = req.params.invoiceNumber;
-
+    console.log(invoiceNumber);
     const body = req.body;
     await prisma.webhookJson.create({ data: { body } }); // Storing invoiceNumber along with the body
     // Validate the input using Zod
