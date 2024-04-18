@@ -5,7 +5,7 @@ export const CartCreateSchema = z.object({
     z.object({
       productId: z.number(),
       name: z.string(),
-      price: z.string(),
+      price: z.union([z.number(), z.string()]),
       quantity: z.number().int().nonnegative(),
       src: z.string(),
     })
@@ -34,7 +34,7 @@ export const createCart = async (req: Request, res: Response) => {
   try {
     const { items } = CartCreateSchema.parse(req?.body);
     const total = items.reduce((sum, item) => {
-      const price = parseFloat(item.price);
+      const price = parseFloat(item.price.toString());
       return sum + (isNaN(price) ? 0 : price) * item.quantity;
     }, 0);
     console.log(total, items);
@@ -100,7 +100,7 @@ export const updateCart = async (req: Request, res: Response) => {
     const { items } = CartCreateSchema.parse(req.body);
     const { id } = CartIdSchema.parse(req.params);
     const total = items.reduce((sum, item) => {
-      const price = parseFloat(item.price);
+      const price = parseFloat(item.price.toString());
       return sum + (isNaN(price) ? 0 : price) * item.quantity;
     }, 0);
     const cart = await prisma.$transaction(async (prisma) => {
@@ -122,7 +122,9 @@ export const updateCart = async (req: Request, res: Response) => {
               productId: item.productId,
               quantity: item.quantity,
               name: item.name,
-              price: isNaN(parseFloat(item.price)) ? 0 : parseFloat(item.price), // Ensure you set the correct relation field for cartId
+              price: isNaN(parseFloat(item.price.toString()))
+                ? 0
+                : parseFloat(item.price.toString()), // Ensure you set the correct relation field for cartId
               src: item.src,
             })),
           },
