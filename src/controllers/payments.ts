@@ -319,6 +319,7 @@ export const updatePaymentStatusFromWebhook = async (
   try {
     // Assuming the body of the request is the WebhookResponse
     const webhookResponse: WebhookResponse = req.body;
+    console.log(webhookResponse);
     const invoiceNumber = req.params.invoiceNumber;
     // Extract necessary data from the webhook response
 
@@ -340,11 +341,16 @@ export const updatePaymentStatusFromWebhook = async (
 
     // Update payment record in the database
     await prisma.$transaction(async (prisma) => {
-      const updatedPayment = await prisma.payment.update({
+      const updatedPayment = await prisma.payment.upsert({
         where: { invoiceNumber },
-        data: {
+        update: {
           status: paymentStatus,
           amount,
+        },
+        create: {
+          invoiceNumber: invoiceNumber,
+          status: paymentStatus,
+          amount: amount,
         },
       });
 
@@ -363,7 +369,9 @@ export const updatePaymentStatusFromWebhook = async (
       return updatedPayment;
     });
 
-    return res.status(200).json({ message: "Payment status updated successfully" });
+    return res
+      .status(200)
+      .json({ message: "Payment status updated successfully" });
   } catch (error) {
     if (error instanceof z.ZodError) {
       // If the error is a Zod validation error, send a bad request response
