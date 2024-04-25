@@ -23,7 +23,27 @@ const apiSchema = z.object({
   language_code: z.enum(["fr", "en", "ar", "pt"]),
   charge_beneficiaries: z.array(z.unknown()).optional(), // Replace z.unknown() with the appropriate schema for the objects in the array
 });
-
+interface WebhookResponse {
+  Result: {
+    ConversationID: string;
+    OriginatorConversationID: string;
+    ReferenceData: {
+      ReferenceItem: {
+        Key: string;
+      };
+    };
+    ResultCode: number;
+    ResultDesc: string;
+    ResultParameters: {
+      ResultParameter: Array<{
+        Key: string;
+        Value?: string;
+      }>;
+    };
+    ResultType: number;
+    TransactionID: string;
+  };
+}
 type Payment = z.infer<typeof apiSchema>;
 
 const prisma = new PrismaClient();
@@ -216,7 +236,7 @@ export const webHookReq = async (req: Request, res: Response) => {
 export const mpesaWebHookReq = async (req: Request, res: Response) => {
   try {
     const invoiceNumber = req.params.invoiceNumber;
-    console.log(invoiceNumber);
+
     const body = req.body;
     await prisma.webhookJson.create({ data: { body } }); // Storing invoiceNumber along with the body
     // Validate the input using Zod
@@ -225,7 +245,7 @@ export const mpesaWebHookReq = async (req: Request, res: Response) => {
     const paymentStatus =
       payload.Body.stkCallback.ResultCode === 0 ? status[0] : status[1];
     const paymentData = {
-      invoiceNumber, // Including invoiceNumber in the payment data
+      invoiceNumber,
       amount: Number(
         payload.Body.stkCallback.CallbackMetadata?.Item[0]?.Value ?? 0
       ),
@@ -289,5 +309,69 @@ export const getPaymentStatus = async (req: Request, res: Response) => {
     // Log the error and return a 500 status code
     console.error("Error fetching payment status:", error);
     return res.status(500).json({ message: "Error fetching payment status" });
+  }
+};
+
+export const updatePaymentStatusFromWebhook = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    // Assuming the body of the request is the WebhookResponse
+    const webhookResponse: WebhookResponse = req.body;
+    const invoiceNumber = req.params.invoiceNumber;
+    // Extract necessary data from the webhook response
+
+    const resultCode = webhookResponse.Result.ResultCode;
+    const resultParameters =
+      webhookResponse.Result.ResultParameters.ResultParameter;
+
+    // Determine payment status based on resultCode
+    const paymentStatus = resultCode === 0 ? "Completed" : "Failed";
+
+    // Find amount and invoiceNumber from ResultParameters
+    let amount = 0;
+
+    resultParameters.forEach((param) => {
+      if (param.Key === "Amount" && param.Value) {
+        amount = Number(param.Value);
+      }
+    });
+
+    // Update payment record in the database
+    await prisma.$transaction(async (prisma) => {
+      const updatedPayment = await prisma.payment.update({
+        where: { invoiceNumber },
+        data: {
+          status: paymentStatus,
+          amount,
+        },
+      });
+
+      if (invoiceNumber.startsWith("E") || invoiceNumber.startsWith("T")) {
+        await prisma.booking.update({
+          where: { slug: invoiceNumber },
+          data: { status: paymentStatus },
+        });
+      } else if (invoiceNumber.startsWith("C")) {
+        await prisma.cart.update({
+          where: { slug: invoiceNumber },
+          data: { status: paymentStatus },
+        });
+      }
+
+      return updatedPayment;
+    });
+
+    return res.status(200).json({ message: "Payment status updated successfully" });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      // If the error is a Zod validation error, send a bad request response
+      console.log("Zod validation error", error.errors);
+      return res.status(400).json(error.errors);
+    }
+    // Log and handle other types of errors
+    console.error("Error updating payment status:", error);
+    return res.status(500).send(error);
   }
 };
