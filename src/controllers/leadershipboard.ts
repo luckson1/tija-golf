@@ -28,8 +28,6 @@ export const getLatestBoard = async (req: Request, res: Response) => {
     });
 
     if (!board || board.LeaderBoardPoint.length === 0) {
-      // Instead of sending an error, send a friendly message with a 200 OK status.
-      res.json({ message: "The leaderboard is currently empty." });
       return;
     }
 
