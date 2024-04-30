@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 
 export const getLatestBoard = async (req: Request, res: Response) => {
   try {
-    const board = await prisma.leaderBoard.findFirst({
+    const board = await prisma.leaderBoard.findMany({
       select: {
         LeaderBoardPoint: {
           select: {
@@ -27,11 +27,12 @@ export const getLatestBoard = async (req: Request, res: Response) => {
       },
     });
 
-    if (!board || board.LeaderBoardPoint.length === 0) {
-      return;
+    console.log(board);
+    if (!board || board?.at(0)?.LeaderBoardPoint?.length === 0) {
+      return [];
     }
 
-    const formattedBoard = board.LeaderBoardPoint.map((b) => ({
+    const formattedBoard = board?.at(0)?.LeaderBoardPoint.map((b) => ({
       id: b.id,
       points: b.points,
       user: b.profile?.name,
