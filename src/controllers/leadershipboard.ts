@@ -40,8 +40,10 @@ export const getLatestBoard = async (req: Request, res: Response) => {
     }));
 
     res.json(formattedBoard);
+    await prisma.$disconnect();
   } catch (error) {
     console.error("Error retrieving the leaderboard:", error);
     res.status(500).send("An error occurred while retrieving the leaderboard");
+    await prisma.$disconnect();
   }
 };
