@@ -310,6 +310,7 @@ model LeaderBoardPoint {
   board         LeaderBoard @relation(fields: [leaderBoardId], references: [id])
   profileId     String
 
+  @@index([id])
   @@schema("auth")
 }
 
@@ -318,6 +319,7 @@ model LeaderBoard {
   date             DateTime           @default(now())
   LeaderBoardPoint LeaderBoardPoint[]
 
+  @@index([id])
   @@schema("auth")
 }
 
