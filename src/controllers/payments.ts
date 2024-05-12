@@ -27,15 +27,15 @@ interface WebhookResponse {
   Result: {
     ConversationID: string;
     OriginatorConversationID: string;
-    ReferenceData: {
+    ReferenceData?: {
       ReferenceItem: {
         Key: string;
       };
     };
     ResultCode: number;
     ResultDesc: string;
-    ResultParameters: {
-      ResultParameter: Array<{
+    ResultParameters?: {
+      ResultParameter?: Array<{
         Key: string;
         Value?: string;
       }>;
@@ -325,7 +325,7 @@ export const updatePaymentStatusFromWebhook = async (
 
     const resultCode = webhookResponse.Result.ResultCode;
     const resultParameters =
-      webhookResponse.Result.ResultParameters.ResultParameter;
+      webhookResponse?.Result?.ResultParameters?.ResultParameter;
 
     // Determine payment status based on resultCode
     const paymentStatus = resultCode === 0 ? "Completed" : "Failed";
@@ -333,7 +333,7 @@ export const updatePaymentStatusFromWebhook = async (
     // Find amount and invoiceNumber from ResultParameters
     let amount = 0;
 
-    resultParameters.forEach((param) => {
+    resultParameters?.forEach((param) => {
       if (param.Key === "Amount" && param.Value) {
         amount = Number(param.Value);
       }
