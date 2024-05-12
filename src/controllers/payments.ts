@@ -334,6 +334,7 @@ export const updatePaymentStatusFromWebhook = async (
     let amount = 0;
 
     resultParameters?.forEach((param) => {
+      console.log(param.Key, param.Value);
       if (param.Key === "Amount" && param.Value) {
         amount = Number(param.Value);
       }
