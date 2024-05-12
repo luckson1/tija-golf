@@ -303,12 +303,15 @@ model Partner {
 }
 
 model LeaderBoardPoint {
-  id            String      @id @default(cuid())
+  id            String  @id @default(cuid())
   points        Int
   leaderBoardId String
-  profile       Profile     @relation(fields: [profileId], references: [id])
-  board         LeaderBoard @relation(fields: [leaderBoardId], references: [id])
-  profileId     String
+  profileId     String?
+  name          String
+
+  board LeaderBoard @relation(fields: [leaderBoardId], references: [id])
+
+  profile Profile? @relation(fields: [profileId], references: [id])
 
   @@index([id])
   @@schema("auth")
