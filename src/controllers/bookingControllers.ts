@@ -331,7 +331,11 @@ export async function getEventBookings(req: Request, res: Response) {
         event: {
           include: {
             package: true,
-            ListedEvent: true,
+            ListedEvent: {
+              include: {
+                Package: true,
+              },
+            },
           },
         },
       },
