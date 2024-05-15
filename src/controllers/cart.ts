@@ -88,7 +88,20 @@ export const getCart = async (req: Request, res: Response) => {
     res.status(400).json({ error: error.message });
   }
 };
-
+export const getAllCarts = async (req: Request, res: Response) => {
+  try {
+    const carts = await prisma.cart.findMany({
+      include: { items: true },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+    res.status(200).json(carts);
+  } catch (error: any) {
+    console.log("error", error);
+    res.status(400).json({ error: error.message });
+  }
+};
 export const updateCart = async (req: Request, res: Response) => {
   const token = req.headers.authorization;
 
