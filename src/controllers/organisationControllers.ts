@@ -68,15 +68,7 @@ export const getAllOrganisations = async (req: Request, res: Response) => {
     const usersId = await getUser(token);
 
     if (!usersId) return res.status(401).send("Unauthorized");
-    const organizations = await prisma.organization.findMany({
-      where: {
-        OrganizationMember: {
-          some: {
-            usersId,
-          },
-        },
-      },
-    });
+    const organizations = await prisma.organization.findMany();
     res.json(organizations);
   } catch (error) {
     res.status(500).send(error);
