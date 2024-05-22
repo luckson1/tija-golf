@@ -49,7 +49,11 @@ export const getAllAnnouncements = async (req: Request, res: Response) => {
     const userId = await getUser(token);
     if (!userId) return res.status(401).send("Unauthorized");
 
-    const announcements = await prisma.announcement.findMany();
+    const announcements = await prisma.announcement.findMany({
+      where: {
+        isActive: true,
+      },
+    });
     res.status(200).json(announcements);
   } catch (error: any) {
     console.log("error", error);
