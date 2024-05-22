@@ -11,13 +11,17 @@ import partnerRoute from "./routes/partners";
 import leadershipBoardRoute from "./routes/leadershipboard";
 import attachmentRoute from "./routes/attachments";
 import cartRoute from "./routes/cart";
+import announcementRoute from "./routes/announcements";
+import { setupSwagger } from "./swagger";
 const app = express();
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 4000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Setup Swagger
+setupSwagger(app);
 // Define your routes and handlers here
 app.get("/", (req, res) =>
   res.send(
@@ -36,6 +40,7 @@ app.use("/api/organization", orgRoute);
 app.use("/api/payments", paymentRoute);
 app.use("/api/attachments", attachmentRoute);
 app.use("/api/cart", cartRoute);
+app.use("/api/announcements", announcementRoute);
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);

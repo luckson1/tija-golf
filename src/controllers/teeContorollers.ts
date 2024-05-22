@@ -53,6 +53,83 @@ const CreatePaymentSchema = z.object({
   organizationId: z.string(),
 });
 
+/**
+ * @swagger
+ * /api/tee:
+ *   post:
+ *     summary: Create a new tee booking
+ *     tags: [Tee]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               holes:
+ *                 type: string
+ *                 enum: ["9 holes", "18 holes"]
+ *                 description: Number of holes
+ *               kit:
+ *                 type: string
+ *                 enum: ["Yes", "No"]
+ *                 description: Whether kit is included
+ *               organizationId:
+ *                 type: string
+ *                 description: The ID of the organization
+ *               date:
+ *                 type: string
+ *                 format: date
+ *                 description: The date of the tee booking
+ *               startTime:
+ *                 type: string
+ *                 description: The start time of the tee booking
+ *     responses:
+ *       201:
+ *         description: Tee booking created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 updatedBooking:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     slug:
+ *                       type: string
+ *                     tee:
+ *                       type: object
+ *                       properties:
+ *                         id:
+ *                           type: string
+ *                         startDate:
+ *                           type: string
+ *                           format: date-time
+ *                         organisation:
+ *                           type: object
+ *                           properties:
+ *                             id:
+ *                               type: string
+ *                             name:
+ *                               type: string
+ *                             image:
+ *                               type: string
+ *                 amount:
+ *                   type: number
+ *       400:
+ *         description: Bad request
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       500:
+ *         description: Internal server error
+ */
+
 // Use this schema to validate data when creating a payment
 export const createTee = async (req: Request, res: Response) => {
   try {
