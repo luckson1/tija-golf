@@ -560,6 +560,26 @@ export async function getTeeBookings(req: Request, res: Response) {
  *                             type: number
  *                           name:
  *                             type: string
+ *                       packageGroups:
+ *                         type: array
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             id:
+ *                               type: string
+ *                             name:
+ *                               type: string
+ *                             packages:
+ *                               type: array
+ *                               items:
+ *                                 type: object
+ *                                 properties:
+ *                                   id:
+ *                                     type: string
+ *                                   name:
+ *                                     type: string
+ *                                   price:
+ *                                     type: number
  *       401:
  *         description: Unauthorized
  *       403:
@@ -589,6 +609,11 @@ export async function getEventBookings(req: Request, res: Response) {
             ListedEvent: {
               include: {
                 Package: true,
+                PackageGroup: {
+                  include: {
+                    packages: true,
+                  },
+                },
               },
             },
           },
