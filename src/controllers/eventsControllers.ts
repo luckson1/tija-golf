@@ -43,6 +43,83 @@ const EventSchema = z.object({
 });
 const prisma = new PrismaClient();
 
+/**
+ * @swagger
+ * /api/events:
+ *   post:
+ *     summary: Book a new event
+ *     tags: [Events]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               holes:
+ *                 type: string
+ *                 enum: ["9 holes", "18 holes"]
+ *                 description: Number of holes
+ *               kit:
+ *                 type: string
+ *                 enum: ["Yes", "No"]
+ *                 description: Whether kit is included
+ *               listedEventId:
+ *                 type: string
+ *                 description: The ID of the listed event
+ *               date:
+ *                 type: string
+ *                 format: date
+ *                 description: The date of the event
+ *               startTime:
+ *                 type: string
+ *                 description: The start time of the event
+ *               packageId:
+ *                 type: string
+ *                 description: The ID of the package
+ *     responses:
+ *       201:
+ *         description: Event created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 updatedBooking:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     slug:
+ *                       type: string
+ *                     event:
+ *                       type: object
+ *                       properties:
+ *                         id:
+ *                           type: string
+ *                         startDate:
+ *                           type: string
+ *                           format: date-time
+ *                         package:
+ *                           type: object
+ *                           properties:
+ *                             amount:
+ *                               type: number
+ *                             name:
+ *                               type: string
+ *                 amount:
+ *                   type: number
+ *       400:
+ *         description: Bad request
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       500:
+ *         description: Internal server error
+ */
 export const createEvent = async (req: Request, res: Response) => {
   try {
     const token = req.headers.authorization;
@@ -53,7 +130,7 @@ export const createEvent = async (req: Request, res: Response) => {
 
     const { holes, kit, date, startTime, listedEventId, packageId } =
       EventSchema.parse(req.body);
-    console.log(packageId);
+
     const startDate = combineDateAndTime(date, startTime);
 
     // Use a transaction to perform the following operations atomically
@@ -75,6 +152,12 @@ export const createEvent = async (req: Request, res: Response) => {
           usersId,
           eventId: newEvent.id,
         },
+      });
+      const updatedBooking = await prisma.booking.update({
+        where: { id: booking.id },
+        data: {
+          slug: `E-${booking?.bookingRef}`,
+        },
         include: {
           event: {
             include: {
@@ -86,12 +169,6 @@ export const createEvent = async (req: Request, res: Response) => {
               },
             },
           },
-        },
-      });
-      await prisma.booking.update({
-        where: { id: booking.id },
-        data: {
-          slug: `E-${booking?.bookingRef}`,
         },
       });
 
@@ -110,10 +187,10 @@ export const createEvent = async (req: Request, res: Response) => {
 
       // Calculate the total amount
       const amount = kitCost
-        ? Number(booking.event?.package.amount) + kitCost.amount
-        : Number(booking.event?.package.amount);
-
-      return { booking, amount };
+        ? Number(updatedBooking.event?.package.amount) + kitCost.amount
+        : Number(updatedBooking.event?.package.amount);
+      console.log(amount);
+      return { updatedBooking, amount };
     });
 
     res.status(201).json(result);
@@ -129,6 +206,64 @@ export const createEvent = async (req: Request, res: Response) => {
   }
 };
 
+/**
+ * @swagger
+ * /api/events:
+ *   get:
+ *     summary: Retrieve a list of all upcoming events
+ *     tags: [Events]
+ *     responses:
+ *       200:
+ *         description: A list of upcoming events
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                   name:
+ *                     type: string
+ *                   location:
+ *                     type: string
+ *                   description:
+ *                     type: string
+ *                   image:
+ *                     type: string
+ *                   kitPrice:
+ *                     type: number
+ *                   startDate:
+ *                     type: string
+ *                     format: date-time
+ *                   type:
+ *                     type: string
+ *                   PackageGroup:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         id:
+ *                           type: string
+ *                         name:
+ *                           type: string
+ *                         packages:
+ *                           type: array
+ *                           items:
+ *                             type: object
+ *                             properties:
+ *                               id:
+ *                                 type: string
+ *                               amount:
+ *                                 type: string
+ *                               price:
+ *                                 type: number
+ *                               name:
+ *                                 type: string
+ *       500:
+ *         description: Internal server error
+ */
 export const getAllEvents = async (req: Request, res: Response) => {
   try {
     // Fetch all event records from the database
@@ -140,10 +275,13 @@ export const getAllEvents = async (req: Request, res: Response) => {
         },
       },
       include: {
-        // Include related bookings
-        Package: {
-          orderBy: {
-            price: "asc",
+        PackageGroup: {
+          include: {
+            packages: {
+              orderBy: {
+                price: "asc",
+              },
+            },
           },
         },
       },
@@ -200,29 +338,317 @@ const eventUpdateSchema = z.object({
   endDate: z.date().optional(),
 });
 
+/**
+ * @swagger
+ * /api/events/{id}:
+ *   put:
+ *     summary: Update an existing event
+ *     tags: [Events]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The ID of the event to update
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               holes:
+ *                 type: string
+ *                 enum: ["9 holes", "18 holes"]
+ *                 description: Number of holes
+ *               kit:
+ *                 type: string
+ *                 enum: ["Yes", "No"]
+ *                 description: Whether kit is included
+ *               listedEventId:
+ *                 type: string
+ *                 description: The ID of the listed event
+ *               date:
+ *                 type: string
+ *                 format: date
+ *                 description: The date of the event
+ *               startTime:
+ *                 type: string
+ *                 description: The start time of the event
+ *               packageId:
+ *                 type: string
+ *                 description: The ID of the package
+ *     responses:
+ *       200:
+ *         description: Event updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 updatedEvent:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     startDate:
+ *                       type: string
+ *                       format: date-time
+ *                     holes:
+ *                       type: string
+ *                     kit:
+ *                       type: string
+ *                     listedEventId:
+ *                       type: string
+ *                     packageId:
+ *                       type: string
+ *                     package:
+ *                       type: object
+ *                       properties:
+ *                         amount:
+ *                           type: string
+ *                 amount:
+ *                   type: number
+ *       400:
+ *         description: Bad request
+ *       404:
+ *         description: Event not found
+ *       500:
+ *         description: Internal server error
+ */
+
 export const updateEvent = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const parsedId = z.string().parse(id); // Get the event ID from the route parameter
 
-    // Validate and parse the request data
-    const updateData = eventUpdateSchema.parse(req.body);
+    const { holes, kit, date, startTime, listedEventId, packageId } =
+      EventSchema.parse(req.body);
 
-    // Update the event in the database
-    const updatedevent = await prisma.event.update({
-      where: { id: parsedId },
-      data: updateData,
+    const startDate = combineDateAndTime(date, startTime);
+
+    // Update the event in the database using a transaction
+    const result = await prisma.$transaction(async (prisma) => {
+      // Update the event
+      const updatedEvent = await prisma.event.update({
+        where: { id: parsedId },
+        data: {
+          startDate,
+          holes,
+          kit,
+          listedEventId,
+          packageId,
+        },
+        include: {
+          package: true,
+        },
+      });
+
+      // If kit is provided and is "Yes", calculate the new kit cost
+      let kitCost = null;
+      if (kit && kit === "Yes") {
+        kitCost = await prisma.kitPrices.findFirst({
+          where: {
+            listedEventId: updatedEvent.listedEventId,
+          },
+          select: {
+            amount: true,
+          },
+        });
+      }
+
+      // Calculate the total amount if kit cost is applicable
+      let amount;
+      if (kitCost) {
+        amount = Number(updatedEvent.package.amount) + kitCost.amount;
+      } else {
+        amount = Number(updatedEvent.package.amount);
+      }
+
+      // Return the updated event and the new amount
+      return { updatedEvent, amount };
     });
 
-    // Send the updated event as a response
-    res.json(updatedevent);
+    // Send the updated event and amount as a response
+    res.json(result);
   } catch (error) {
     if (error instanceof z.ZodError) {
       // If the error is a Zod validation error, send a bad request response
       return res.status(400).json(error.errors);
     }
-
+    console.log(error);
     // Handle other types of errors
     res.status(500).send(error);
+  }
+};
+
+/**
+ * @swagger
+ * /api/events/list:
+ *   post:
+ *     summary: List a new event
+ *     tags: [Events]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: The name of the event
+ *               location:
+ *                 type: string
+ *                 description: The location of the event
+ *               description:
+ *                 type: string
+ *                 description: The description of the event
+ *               image:
+ *                 type: string
+ *                 description: The image URL of the event
+ *               startDate:
+ *                 type: string
+ *                 format: date-time
+ *                 description: The start date of the event
+ *               type:
+ *                 type: string
+ *                 description: The type of the event
+ *               holesPrices:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     numberOfHoles:
+ *                       type: string
+ *                       enum: ["Nine", "Eighteen"]
+ *                       description: The number of holes
+ *                     amount:
+ *                       type: number
+ *                       description: The price for the holes
+ *               kitPrice:
+ *                 type: object
+ *                 properties:
+ *                   amount:
+ *                     type: number
+ *                     description: The price for the kit
+ *     responses:
+ *       201:
+ *         description: Event listed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 event:
+ *                   $ref: '#/components/schemas/ListedEvent'
+ *       400:
+ *         description: Bad request
+ *       500:
+ *         description: Internal server error
+ */
+
+const ListEventSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  location: z.string().min(1, "Location is required"),
+  description: z.string(),
+  image: z.string().url().optional(),
+  startDate: z.string().datetime(),
+  type: z.string().min(1, "Type is required"),
+  holesPrices: z.array(
+    z.object({
+      numberOfHoles: z.enum(["Nine", "Eighteen"]),
+      amount: z.number().positive(),
+    })
+  ),
+  kitPrice: z.object({
+    amount: z.number().positive(),
+  }),
+});
+
+export const listEvent = async (req: Request, res: Response) => {
+  try {
+    // Validate the request body
+    const validatedData = ListEventSchema.parse(req.body);
+
+    const {
+      name,
+      location,
+      description,
+      image,
+      startDate,
+      type,
+      holesPrices,
+      kitPrice,
+    } = validatedData;
+
+    // Use a transaction for all the database ops below
+    const newEvent = await prisma.$transaction(async (prisma) => {
+      const createdEvent = await prisma.listedEvent.create({
+        data: {
+          name,
+          location,
+          description,
+          image,
+          startDate: new Date(startDate),
+          type,
+        },
+      });
+
+      // Create related HolesPrices
+      for (const holesPrice of holesPrices) {
+        await prisma.holesPrices.create({
+          data: {
+            listedEventId: createdEvent.id,
+            numberOfHoles: holesPrice.numberOfHoles,
+            amount: holesPrice.amount,
+          },
+        });
+      }
+
+      // Create related KitPrice
+      await prisma.kitPrices.create({
+        data: {
+          listedEventId: createdEvent.id,
+          amount: kitPrice.amount,
+        },
+      });
+
+      return createdEvent;
+    });
+
+    // Create related HolesPrices
+    for (const holesPrice of holesPrices) {
+      await prisma.holesPrices.create({
+        data: {
+          listedEventId: newEvent.id,
+          numberOfHoles: holesPrice.numberOfHoles,
+          amount: holesPrice.amount,
+        },
+      });
+    }
+
+    // Create related KitPrice
+    await prisma.kitPrices.create({
+      data: {
+        listedEventId: newEvent.id,
+        amount: kitPrice.amount,
+      },
+    });
+
+    // Return the new event
+    res.status(201).json({ event: newEvent });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      // If the error is a Zod validation error, send a bad request response
+      return res.status(400).json(error.errors);
+    }
+    console.error("Error listing event:", error);
+    res.status(500).send("An error occurred while listing the event");
+  } finally {
+    await prisma.$disconnect();
   }
 };

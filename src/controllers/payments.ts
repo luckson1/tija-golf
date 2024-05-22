@@ -23,7 +23,27 @@ const apiSchema = z.object({
   language_code: z.enum(["fr", "en", "ar", "pt"]),
   charge_beneficiaries: z.array(z.unknown()).optional(), // Replace z.unknown() with the appropriate schema for the objects in the array
 });
-
+interface WebhookResponse {
+  Result: {
+    ConversationID: string;
+    OriginatorConversationID: string;
+    ReferenceData?: {
+      ReferenceItem: {
+        Key: string;
+      };
+    };
+    ResultCode: number;
+    ResultDesc: string;
+    ResultParameters?: {
+      ResultParameter?: Array<{
+        Key: string;
+        Value?: string;
+      }>;
+    };
+    ResultType: number;
+    TransactionID: string;
+  };
+}
 type Payment = z.infer<typeof apiSchema>;
 
 const prisma = new PrismaClient();
@@ -215,66 +235,152 @@ export const webHookReq = async (req: Request, res: Response) => {
 };
 export const mpesaWebHookReq = async (req: Request, res: Response) => {
   try {
+    const invoiceNumber = req.params.invoiceNumber;
+
     const body = req.body;
-    await prisma.webhookJson.create({ data: { body } });
+    await prisma.webhookJson.create({ data: { body } }); // Storing invoiceNumber along with the body
     // Validate the input using Zod
     const payload = webhookDataSchema.parse(body);
     const status: ("Completed" | "Failed")[] = ["Completed", "Failed"];
+    const paymentStatus =
+      payload.Body.stkCallback.ResultCode === 0 ? status[0] : status[1];
     const paymentData = {
+      invoiceNumber,
       amount: Number(
         payload.Body.stkCallback.CallbackMetadata?.Item[0]?.Value ?? 0
       ),
-      status: payload.Body.stkCallback.ResultCode === 0 ? status[0] : status[1],
+      status: paymentStatus,
       checkoutRequestID: payload.Body.stkCallback.CheckoutRequestID,
-      description: payload.Body.stkCallback.ResultDesc,
     };
 
     const result = await prisma.$transaction(async (prisma) => {
-      return prisma.payment.create({ data: paymentData });
+      // Create payment record
+      const payment = await prisma.payment.upsert({
+        where: { invoiceNumber },
+        update: paymentData,
+        create: paymentData,
+      });
+
+      // Update booking or cart based on invoiceNumber prefix
+      if (invoiceNumber.startsWith("E") || invoiceNumber.startsWith("T")) {
+        await prisma.booking.update({
+          where: { slug: invoiceNumber },
+          data: { status: paymentStatus },
+        });
+      } else if (invoiceNumber.startsWith("C")) {
+        await prisma.cart.update({
+          where: { slug: invoiceNumber },
+          data: { status: paymentStatus },
+        });
+      }
+
+      return payment;
     });
 
     return res.status(201).json(result);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      console.log("validation");
+      console.log("validation", error.errors);
       // If the error is a Zod validation error, send a bad request response
       return res.status(400).json(error.errors);
     }
-    console.log("others");
+    console.log("others", error);
     // Handle other types of errors
     res.status(500).send(error);
   }
 };
-export const simulation = async (req: Request, res: Response) => {
-  try {
-    const idSchema = z.object({ bookingRef: z.number() });
-    const { bookingRef } = idSchema.parse(req.body);
-    const booking = await prisma.booking.update({
-      where: {
-        bookingRef,
-      },
+export const getPaymentStatus = async (req: Request, res: Response) => {
+  const { invoiceNumber } = req.params;
 
-      data: {
-        status: "Completed",
-      },
+  try {
+    // Retrieve the payment record from the database
+    const payment = await prisma.payment.findUnique({
+      where: { invoiceNumber },
     });
-    const payment = await prisma.payment.update({
-      where: {
-        bookingId: booking.id,
-      },
-      data: {
-        status: "Completed",
-      },
+    console.log("payment", payment);
+    // If payment doesn't exist, return pending
+    if (!payment) {
+      return res.status(200).json({ status: "Pending" });
+    }
+    console.log(payment.status);
+    // Respond with the payment status
+    return res.status(200).json({ status: payment.status });
+  } catch (error) {
+    // Log the error and return a 500 status code
+    console.error("Error fetching payment status:", error);
+    return res.status(500).json({ message: "Error fetching payment status" });
+  }
+};
+
+export const updatePaymentStatusFromWebhook = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    // Assuming the body of the request is the WebhookResponse
+    const webhookResponse: WebhookResponse = req.body;
+    console.log(webhookResponse);
+    const invoiceNumber = req.params.invoiceNumber;
+    // Extract necessary data from the webhook response
+
+    const resultCode = webhookResponse.Result.ResultCode;
+    const resultParameters =
+      webhookResponse?.Result?.ResultParameters?.ResultParameter;
+
+    // Determine payment status based on resultCode
+    const paymentStatus = resultCode === 0 ? "Completed" : "Failed";
+
+    // Find amount and invoiceNumber from ResultParameters
+    let amount = 0;
+
+    resultParameters?.forEach((param) => {
+      console.log(param.Key, param.Value);
+      if (param.Key === "Amount" && param.Value) {
+        amount = Number(param.Value);
+      }
     });
-    res.status(201).json(payment);
+
+    // Update payment record in the database
+    await prisma.$transaction(async (prisma) => {
+      const updatedPayment = await prisma.payment.upsert({
+        where: { invoiceNumber },
+        update: {
+          status: paymentStatus,
+          amount,
+        },
+        create: {
+          invoiceNumber: invoiceNumber,
+          status: paymentStatus,
+          amount: amount,
+        },
+      });
+
+      if (invoiceNumber.startsWith("E") || invoiceNumber.startsWith("T")) {
+        await prisma.booking.update({
+          where: { slug: invoiceNumber },
+          data: { status: paymentStatus },
+        });
+      } else if (invoiceNumber.startsWith("C")) {
+        await prisma.cart.update({
+          where: { slug: invoiceNumber },
+          data: { status: paymentStatus },
+        });
+      }
+
+      return updatedPayment;
+    });
+
+    return res
+      .status(200)
+      .json({ message: "Payment status updated successfully" });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      console.log("validation");
       // If the error is a Zod validation error, send a bad request response
+      console.log("Zod validation error", error.errors);
       return res.status(400).json(error.errors);
     }
-    console.log("others");
-    // Handle other types of errors
-    res.status(500).send(error);
+    // Log and handle other types of errors
+    console.error("Error updating payment status:", error);
+    return res.status(500).send(error);
   }
 };

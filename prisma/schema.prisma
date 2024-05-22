@@ -70,7 +70,7 @@ model Booking {
   id           String        @unique @default(cuid())
   eventId      String?
   classId      String?
-  slug         String?
+  slug         String?       @unique
   tournamentId String?
   bookingDate  DateTime      @default(now())
   usersId      String
@@ -93,9 +93,10 @@ model Cart {
   updatedAt DateTime       @updatedAt
   usersId   String
   items     ShoppingItem[]
-  slug      String?
+  slug      String?        @unique
   cartRef   Int            @default(autoincrement())
   total     Float          @default(0)
+  status    BookingStatus  @default(Pending)
 
   // ... other fields
   @@schema("auth")
@@ -105,7 +106,7 @@ model ShoppingItem {
   id        String @id @default(cuid())
   cartId    String
   cart      Cart   @relation(fields: [cartId], references: [id])
-  productId String // WooCommerce product ID
+  productId Int // WooCommerce product ID
   name      String // Product name from WooCommerce
   price     Float // Product price from WooCommerce
   quantity  Int // Quantity of the product
@@ -152,17 +153,42 @@ model ListedEvent {
   name             String
   location         String
   description      String
-  image            String
+  image            String?
   kitPrice         Int                @default(1500)
   startDate        DateTime           @default(now())
   type             String             @default("Tournament")
   Event            Event[]
   EventMember      EventMember[]
   LikedEventMember LikedEventMember[]
-  Package          Package[]
+  PackageGroup     PackageGroup[]
   Payment          Payment[]
   KitPrices        KitPrices[]
   HolesPrices      HolesPrices[]
+  Package          Package[]
+
+  @@schema("auth")
+}
+
+model PackageGroup {
+  id            String      @id @default(cuid())
+  name          String
+  listedEventId String
+  listedEvent   ListedEvent @relation(fields: [listedEventId], references: [id])
+  packages      Package[]
+
+  @@schema("auth")
+}
+
+model Package {
+  id             String        @id @default(cuid())
+  amount         String
+  price          Int           @default(0)
+  name           String
+  listedEventId  String
+  packageGroupId String?
+  packageGroup   PackageGroup? @relation(fields: [packageGroupId], references: [id])
+  event          ListedEvent   @relation(fields: [listedEventId], references: [id])
+  Event          Event[]
 
   @@schema("auth")
 }
@@ -179,18 +205,6 @@ model Event {
   ListedEvent    ListedEvent @relation(fields: [listedEventId], references: [id])
   package        Package     @relation(fields: [packageId], references: [id])
   payments       Payment[]
-
-  @@schema("auth")
-}
-
-model Package {
-  id            String      @id @default(cuid())
-  amount        String
-  price         Int         @default(0)
-  name          String
-  listedEventId String
-  Event         Event[]
-  event         ListedEvent @relation(fields: [listedEventId], references: [id])
 
   @@schema("auth")
 }
@@ -267,7 +281,7 @@ model Payment {
   usersId           String?
   teeId             String?
   checkoutRequestID String?
-  description       String?
+  invoiceNumber     String?       @unique
   listedEventId     String?
   booking           Booking?      @relation(fields: [bookingId], references: [id])
   Class             Class?        @relation(fields: [classId], references: [id])
@@ -276,6 +290,17 @@ model Payment {
   organisation      Organization? @relation(fields: [organizationId], references: [id])
   Tee               Tee?          @relation(fields: [teeId], references: [id])
   Tournament        Tournament?   @relation(fields: [tournamentId], references: [id])
+
+  @@schema("auth")
+}
+
+model Announcement {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isActive  Boolean  @default(true)
 
   @@schema("auth")
 }
@@ -302,13 +327,17 @@ model Partner {
 }
 
 model LeaderBoardPoint {
-  id            String      @id @default(cuid())
+  id            String  @id @default(cuid())
   points        Int
   leaderBoardId String
-  profile       Profile     @relation(fields: [profileId], references: [id])
-  board         LeaderBoard @relation(fields: [leaderBoardId], references: [id])
-  profileId     String
+  profileId     String?
+  name          String
 
+  board LeaderBoard @relation(fields: [leaderBoardId], references: [id])
+
+  profile Profile? @relation(fields: [profileId], references: [id])
+
+  @@index([id])
   @@schema("auth")
 }
 
@@ -317,6 +346,7 @@ model LeaderBoard {
   date             DateTime           @default(now())
   LeaderBoardPoint LeaderBoardPoint[]
 
+  @@index([id])
   @@schema("auth")
 }
 

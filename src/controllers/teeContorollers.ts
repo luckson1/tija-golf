@@ -53,6 +53,83 @@ const CreatePaymentSchema = z.object({
   organizationId: z.string(),
 });
 
+/**
+ * @swagger
+ * /api/tee:
+ *   post:
+ *     summary: Create a new tee booking
+ *     tags: [Tee]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               holes:
+ *                 type: string
+ *                 enum: ["9 holes", "18 holes"]
+ *                 description: Number of holes
+ *               kit:
+ *                 type: string
+ *                 enum: ["Yes", "No"]
+ *                 description: Whether kit is included
+ *               organizationId:
+ *                 type: string
+ *                 description: The ID of the organization
+ *               date:
+ *                 type: string
+ *                 format: date
+ *                 description: The date of the tee booking
+ *               startTime:
+ *                 type: string
+ *                 description: The start time of the tee booking
+ *     responses:
+ *       201:
+ *         description: Tee booking created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 updatedBooking:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     slug:
+ *                       type: string
+ *                     tee:
+ *                       type: object
+ *                       properties:
+ *                         id:
+ *                           type: string
+ *                         startDate:
+ *                           type: string
+ *                           format: date-time
+ *                         organisation:
+ *                           type: object
+ *                           properties:
+ *                             id:
+ *                               type: string
+ *                             name:
+ *                               type: string
+ *                             image:
+ *                               type: string
+ *                 amount:
+ *                   type: number
+ *       400:
+ *         description: Bad request
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       500:
+ *         description: Internal server error
+ */
+
 // Use this schema to validate data when creating a payment
 export const createTee = async (req: Request, res: Response) => {
   try {
@@ -85,14 +162,14 @@ export const createTee = async (req: Request, res: Response) => {
           usersId,
           teeId: newTee.id,
         },
-        include: {
-          tee: true,
-        },
       });
-      await prisma.booking.update({
+      const updatedBooking = await prisma.booking.update({
         where: { id: booking.id },
         data: {
           slug: `T-${booking?.bookingRef}`,
+        },
+        include: {
+          tee: true,
         },
       });
       const kitCost =
@@ -126,7 +203,7 @@ export const createTee = async (req: Request, res: Response) => {
 
       const amount = (kitCost?.amount ?? 0) + (gameCost?.amount ?? 0);
 
-      return { booking, amount };
+      return { updatedBooking, amount };
     });
 
     res.status(201).json(result);
@@ -194,37 +271,68 @@ export const getTee = async (req: Request, res: Response) => {
   }
 };
 
-// Assuming you have a similar Zod schema for Tee updates
-const TeeUpdateSchema = z.object({
-  name: z.string().min(1).optional(),
-  description: z.string(),
-  organizationId: z.string(),
-  startDate: z.string().datetime(),
-  endDate: z.date(),
-});
-
 export const updateTee = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const parsedId = z.string().parse(id); // Get the Tee ID from the route parameter
 
     // Validate and parse the request data
-    const updateData = TeeUpdateSchema.parse(req.body);
+    const updateData = TeeSchema.parse(req.body);
 
+    // If date and startTime are provided, combine them into a startDate
+    let startDate;
+    if (updateData.date && updateData.startTime) {
+      startDate = combineDateAndTime(updateData.date, updateData.startTime);
+    }
+    const { holes, kit, organizationId } = updateData;
     // Update the Tee in the database
     const updatedTee = await prisma.tee.update({
       where: { id: parsedId },
-      data: updateData,
+      data: {
+        holes,
+        kit,
+        organizationId,
+        ...(startDate && { startDate }), // Conditionally include startDate if it's calculated
+      },
     });
+    const kitCost =
+      updateData.kit === "Yes"
+        ? await prisma.kitPrices.findFirst({
+            where: {
+              organizationId: updateData.organizationId,
+            },
+            select: {
+              amount: true,
+            },
+          })
+        : null;
 
+    const gameCost =
+      updateData.holes === "9 holes"
+        ? await prisma.holesPrices.findFirst({
+            where: {
+              organizationId: updateData.organizationId,
+              numberOfHoles: "Nine",
+            },
+            select: { amount: true },
+          })
+        : await prisma.holesPrices.findFirst({
+            where: {
+              organizationId: updateData.organizationId,
+              numberOfHoles: "Eighteen",
+            },
+            select: { amount: true },
+          });
+
+    const amount = (kitCost?.amount ?? 0) + (gameCost?.amount ?? 0);
     // Send the updated Tee as a response
-    res.json(updatedTee);
+    res.json({ updatedTee, amount });
   } catch (error) {
     if (error instanceof z.ZodError) {
       // If the error is a Zod validation error, send a bad request response
       return res.status(400).json(error.errors);
     }
-
+    console.log(error);
     // Handle other types of errors
     res.status(500).send(error);
   }
