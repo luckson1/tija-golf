@@ -8,7 +8,7 @@ const prisma = new PrismaClient();
  * /api/organization:
  *   get:
  *     summary: Retrieve a list of all organisations
- *     tags: [Organisations]
+ *     tags: [Organization]
  *     responses:
  *       200:
  *         description: A list of all organisations
@@ -86,7 +86,7 @@ const organizationSchema = z.object({
  * /api/organization:
  *   post:
  *     summary: Create a new organization
- *     tags: [Organizations]
+ *     tags: [Organization]
  *     requestBody:
  *       required: true
  *       content:
