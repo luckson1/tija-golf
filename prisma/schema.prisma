@@ -153,9 +153,9 @@ model ListedEvent {
   name             String
   location         String
   description      String
-  image            String?
+  image            String?            @default("https://res.cloudinary.com/dhciks96e/image/upload/v1706864390/MicrosoftTeams-image_1_1_yzivon.png")
   kitPrice         Int                @default(1500)
-  startDate        DateTime           @default(now())
+  startDate        DateTime?
   type             String             @default("Tournament")
   Event            Event[]
   EventMember      EventMember[]
