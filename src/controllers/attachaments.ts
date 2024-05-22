@@ -32,7 +32,7 @@ export const uploadFileToAzure = async (filePath: string, fileName: string) => {
 };
 /**
  * @swagger
- * /attachments/upload:
+ * /api/attachments/upload:
  *   put:
  *     summary: Upload a file to Azure Storage
  *     tags: [Attachments]

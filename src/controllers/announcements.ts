@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 
 /**
  * @swagger
- * /announcements:
+ * /api/announcements:
  *   get:
  *     summary: Get all announcements
  *     tags: [Announcements]
@@ -63,7 +63,7 @@ export const getAllAnnouncements = async (req: Request, res: Response) => {
 
 /**
  * @swagger
- * /announcements/{id}:
+ * /api/announcements/{id}:
  *   get:
  *     summary: Get an announcement by ID
  *     tags: [Announcements]
@@ -128,7 +128,7 @@ export const getAnnouncementById = async (req: Request, res: Response) => {
 
 /**
  * @swagger
- * /announcements:
+ * /api/announcements:
  *   post:
  *     summary: Create a new announcement
  *     tags: [Announcements]
@@ -206,7 +206,7 @@ export const createAnnouncement = async (req: Request, res: Response) => {
 
 /**
  * @swagger
- * /announcements/{id}:
+ * /api/announcements/{id}:
  *   put:
  *     summary: Update an announcement by ID
  *     tags: [Announcements]
@@ -301,7 +301,7 @@ export const updateAnnouncement = async (req: Request, res: Response) => {
 
 /**
  * @swagger
- * /announcements/{id}:
+ * /api/announcements/{id}:
  *   delete:
  *     summary: Delete an announcement by ID
  *     tags: [Announcements]
