@@ -6,6 +6,6 @@ import {
 
 const orgRoute = express.Router();
 orgRoute.post("/", createOrganization);
-orgRoute.get("/", getAllOrganisations);
+orgRoute.get("/all", getAllOrganisations);
 
 export default orgRoute;
