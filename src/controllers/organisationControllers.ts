@@ -26,7 +26,7 @@ const organizationSchema = z.object({
 
 /**
  * @swagger
- * /api/organization:
+ * /api/organization/all:
  *   get:
  *     summary: Retrieve a list of all organisations
  *     tags: [Organization]
