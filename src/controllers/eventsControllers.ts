@@ -311,8 +311,9 @@ export const getAllEvents = async (req: Request, res: Response) => {
     });
 
     // Send the retrieved events as a response
-    res.json(event);
+    res.json(events);
   } catch (error) {
+    console.log(error);
     // Handle potential errors
     res.status(500).send(error);
   }
