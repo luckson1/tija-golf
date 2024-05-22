@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { z } from "zod";
-import { Request, Response } from "express";
+import { Request, Response } from "express"; // Assuming you have a getUser function to validate tokens
+import { getUser } from "../utils";
 
 const prisma = new PrismaClient();
 
@@ -10,6 +11,8 @@ const prisma = new PrismaClient();
  *   get:
  *     summary: Get all announcements
  *     tags: [Announcements]
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: A list of all announcements
@@ -41,6 +44,11 @@ const prisma = new PrismaClient();
  */
 export const getAllAnnouncements = async (req: Request, res: Response) => {
   try {
+    const token = req.headers.authorization;
+    if (!token) return res.status(403).send("Forbidden");
+    const userId = await getUser(token);
+    if (!userId) return res.status(401).send("Unauthorized");
+
     const announcements = await prisma.announcement.findMany();
     res.status(200).json(announcements);
   } catch (error: any) {
@@ -55,6 +63,8 @@ export const getAllAnnouncements = async (req: Request, res: Response) => {
  *   get:
  *     summary: Get an announcement by ID
  *     tags: [Announcements]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -94,6 +104,11 @@ export const getAllAnnouncements = async (req: Request, res: Response) => {
 export const getAnnouncementById = async (req: Request, res: Response) => {
   const { id } = req.params;
   try {
+    const token = req.headers.authorization;
+    if (!token) return res.status(403).send("Forbidden");
+    const userId = await getUser(token);
+    if (!userId) return res.status(401).send("Unauthorized");
+
     const announcement = await prisma.announcement.findUnique({
       where: { id },
     });
@@ -113,6 +128,8 @@ export const getAnnouncementById = async (req: Request, res: Response) => {
  *   post:
  *     summary: Create a new announcement
  *     tags: [Announcements]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -159,6 +176,11 @@ const AnnouncementSchema = z.object({
 
 export const createAnnouncement = async (req: Request, res: Response) => {
   try {
+    const token = req.headers.authorization;
+    if (!token) return res.status(403).send("Forbidden");
+    const userId = await getUser(token);
+    if (!userId) return res.status(401).send("Unauthorized");
+
     const { title, content } = AnnouncementSchema.parse(req.body);
 
     const newAnnouncement = await prisma.announcement.create({
@@ -184,6 +206,8 @@ export const createAnnouncement = async (req: Request, res: Response) => {
  *   put:
  *     summary: Update an announcement by ID
  *     tags: [Announcements]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -243,6 +267,11 @@ export const updateAnnouncement = async (req: Request, res: Response) => {
   const { id } = req.params;
 
   try {
+    const token = req.headers.authorization;
+    if (!token) return res.status(403).send("Forbidden");
+    const userId = await getUser(token);
+    if (!userId) return res.status(401).send("Unauthorized");
+
     const { title, content, isActive } = UpdateAnnouncementSchema.parse(
       req.body
     );
@@ -272,6 +301,8 @@ export const updateAnnouncement = async (req: Request, res: Response) => {
  *   delete:
  *     summary: Delete an announcement by ID
  *     tags: [Announcements]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -292,6 +323,11 @@ export const updateAnnouncement = async (req: Request, res: Response) => {
 export const deleteAnnouncement = async (req: Request, res: Response) => {
   const { id } = req.params;
   try {
+    const token = req.headers.authorization;
+    if (!token) return res.status(403).send("Forbidden");
+    const userId = await getUser(token);
+    if (!userId) return res.status(401).send("Unauthorized");
+
     await prisma.announcement.delete({
       where: { id },
     });

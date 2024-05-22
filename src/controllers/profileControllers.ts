@@ -50,6 +50,8 @@ export type ProfileInput = z.infer<typeof profileSchema>;
  *   post:
  *     summary: Create a new profile
  *     tags: [Profile]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -75,6 +77,8 @@ export type ProfileInput = z.infer<typeof profileSchema>;
  *   put:
  *     summary: Edit an existing profile
  *     tags: [Profile]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -103,6 +107,8 @@ export type ProfileInput = z.infer<typeof profileSchema>;
  *   get:
  *     summary: Fetch the profile of the authenticated user
  *     tags: [Profile]
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: The profile of the authenticated user
@@ -132,10 +138,10 @@ const prisma = new PrismaClient();
 export const createProfile = async (req: Request, res: Response) => {
   try {
     const token = req.headers.authorization;
-
     if (!token) return res.status(403).send("Forbidden");
     const usersId = await getUser(token);
-    if (!usersId) return res.status(401).send("Unauthorised");
+    if (!usersId) return res.status(401).send("Unauthorized");
+
     const validBody = profileSchema.parse(req.body);
     const data = { ...validBody, usersId };
     const profile = await prisma.profile.create({ data });
@@ -143,10 +149,9 @@ export const createProfile = async (req: Request, res: Response) => {
     res.status(200).json(profile);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      // If the error is a Zod validation error, send a bad request response
       return res
         .status(400)
-        .json({ message: "validation errors", errors: error.errors });
+        .json({ message: "Validation errors", errors: error.errors });
     }
     res.status(500).json({ message: "Error creating profile", error });
   }
@@ -157,7 +162,7 @@ export const fetchProfile = async (req: Request, res: Response) => {
     const token = req.headers.authorization;
     if (!token) return res.status(403).send("Forbidden");
     const usersId = await getUser(token);
-    if (!usersId) return res.status(401).send("Unauthorised");
+    if (!usersId) return res.status(401).send("Unauthorized");
 
     const profile = await prisma.profile.findUnique({
       where: {
@@ -167,19 +172,17 @@ export const fetchProfile = async (req: Request, res: Response) => {
 
     res.status(200).json(profile);
   } catch (error) {
-    res.status(500).json({ message: "Error creating profile", error });
+    res.status(500).json({ message: "Error fetching profile", error });
   }
 };
-
-// ... existing createProfile function ...
 
 export const editProfile = async (req: Request, res: Response) => {
   try {
     const token = req.headers.authorization;
-
     if (!token) return res.status(403).send("Forbidden");
     const usersId = await getUser(token);
-    if (!usersId) return res.status(401).send("Unauthorised");
+    if (!usersId) return res.status(401).send("Unauthorized");
+
     const validBody = profileSchema.parse(req.body);
     const data = { ...validBody, usersId };
 
@@ -191,7 +194,6 @@ export const editProfile = async (req: Request, res: Response) => {
     res.status(200).json(profile);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      // If the error is a Zod validation error, send a bad request response
       return res.status(400).json(error.errors);
     }
     res.status(500).json({ message: "Error updating profile", error });

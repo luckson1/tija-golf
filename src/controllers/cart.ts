@@ -109,13 +109,12 @@ const prisma = new PrismaClient();
  */
 
 export const createCart = async (req: Request, res: Response) => {
-  const token = req.headers.authorization;
-
-  if (!token) return res.status(403).send("Forbidden");
-  const usersId = await getUser(token);
-  if (!usersId) return res.status(401).send("Unauthorised");
-
   try {
+    const token = req.headers.authorization;
+    if (!token) return res.status(403).send("Forbidden");
+    const usersId = await getUser(token);
+    if (!usersId) return res.status(401).send("Unauthorized");
+
     const { items } = CartCreateSchema.parse(req?.body);
     const total = items.reduce((sum, item) => {
       const price = parseFloat(item.price.toString());
@@ -165,6 +164,8 @@ export const createCart = async (req: Request, res: Response) => {
  *   get:
  *     summary: Retrieve a cart by its ID
  *     tags: [Cart]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -226,6 +227,11 @@ export const createCart = async (req: Request, res: Response) => {
 
 export const getCart = async (req: Request, res: Response) => {
   try {
+    const token = req.headers.authorization;
+    if (!token) return res.status(403).send("Forbidden");
+    const usersId = await getUser(token);
+    if (!usersId) return res.status(401).send("Unauthorized");
+
     const { id } = CartIdSchema.parse(req.params);
     const cart = await prisma.cart.findUnique({
       where: { id },
@@ -244,6 +250,8 @@ export const getCart = async (req: Request, res: Response) => {
  *   get:
  *     summary: Retrieve a list of all carts
  *     tags: [Cart]
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: A list of all carts
@@ -298,6 +306,11 @@ export const getCart = async (req: Request, res: Response) => {
 
 export const getAllCarts = async (req: Request, res: Response) => {
   try {
+    const token = req.headers.authorization;
+    if (!token) return res.status(403).send("Forbidden");
+    const usersId = await getUser(token);
+    if (!usersId) return res.status(401).send("Unauthorized");
+
     const carts = await prisma.cart.findMany({
       include: { items: true },
       orderBy: {
@@ -310,14 +323,14 @@ export const getAllCarts = async (req: Request, res: Response) => {
     res.status(400).json({ error: error.message });
   }
 };
-export const updateCart = async (req: Request, res: Response) => {
-  const token = req.headers.authorization;
 
-  if (!token) return res.status(403).send("Forbidden");
-  const usersId = await getUser(token);
-  if (!usersId) return res.status(401).send("Unauthorised");
-  console.log("params", req.params);
+export const updateCart = async (req: Request, res: Response) => {
   try {
+    const token = req.headers.authorization;
+    if (!token) return res.status(403).send("Forbidden");
+    const usersId = await getUser(token);
+    if (!usersId) return res.status(401).send("Unauthorized");
+
     const { items } = CartCreateSchema.parse(req.body);
     const { id } = CartIdSchema.parse(req.params);
     const total = items.reduce((sum, item) => {
@@ -363,6 +376,11 @@ export const updateCart = async (req: Request, res: Response) => {
 
 export const deleteCart = async (req: Request, res: Response) => {
   try {
+    const token = req.headers.authorization;
+    if (!token) return res.status(403).send("Forbidden");
+    const usersId = await getUser(token);
+    if (!usersId) return res.status(401).send("Unauthorized");
+
     const { id } = CartIdSchema.parse(req.params);
     await prisma.cart.delete({ where: { id } });
     res.status(204).send();

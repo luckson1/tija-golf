@@ -12,6 +12,9 @@ import leadershipBoardRoute from "./routes/leadershipboard";
 import attachmentRoute from "./routes/attachments";
 import cartRoute from "./routes/cart";
 import announcementRoute from "./routes/announcements";
+import packagesRoute from "./routes/packages";
+import packageGroupsRoute from "./routes/package-groups";
+
 import { setupSwagger } from "./swagger";
 const app = express();
 
@@ -41,6 +44,8 @@ app.use("/api/payments", paymentRoute);
 app.use("/api/attachments", attachmentRoute);
 app.use("/api/cart", cartRoute);
 app.use("/api/announcements", announcementRoute);
+app.use("/api/packages", packagesRoute);
+app.use("/api/packageGroups", packageGroupsRoute);
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);

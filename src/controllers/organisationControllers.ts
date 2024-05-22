@@ -1,14 +1,37 @@
 import { PrismaClient } from "@prisma/client";
 import { Request, Response } from "express";
 import { getUser } from "../utils";
+import { z } from "zod";
 
 const prisma = new PrismaClient();
+
+const organizationSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  image: z.string().url("Image must be a valid URL"),
+  location: z.string().min(1, "Location is required"),
+  kitPrice: z.number().int().min(0, "Kit price must be a non-negative integer"),
+  teePrice: z.number().min(0, "Tee price must be a non-negative number"),
+  holesPrices: z.array(
+    z.object({
+      amount: z.number().min(0, "Amount must be a non-negative number"),
+      numberOfHoles: z.enum(["Nine", "Eighteen"]),
+    })
+  ),
+  kitsPrices: z.array(
+    z.object({
+      amount: z.number().min(0, "Amount must be a non-negative number"),
+    })
+  ),
+});
+
 /**
  * @swagger
  * /api/organization:
  *   get:
  *     summary: Retrieve a list of all organisations
  *     tags: [Organization]
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: A list of all organisations
@@ -44,7 +67,7 @@ export const getAllOrganisations = async (req: Request, res: Response) => {
     if (!token) return res.status(403).send("Forbidden");
     const usersId = await getUser(token);
 
-    if (!usersId) return res.status(401).send("Unauthorised");
+    if (!usersId) return res.status(401).send("Unauthorized");
     const organizations = await prisma.organization.findMany({
       where: {
         OrganizationMember: {
@@ -60,33 +83,14 @@ export const getAllOrganisations = async (req: Request, res: Response) => {
   }
 };
 
-import { z } from "zod";
-
-const organizationSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  image: z.string().url("Image must be a valid URL"),
-  location: z.string().min(1, "Location is required"),
-  kitPrice: z.number().int().min(0, "Kit price must be a non-negative integer"),
-  teePrice: z.number().min(0, "Tee price must be a non-negative number"),
-  holesPrices: z.array(
-    z.object({
-      amount: z.number().min(0, "Amount must be a non-negative number"),
-      numberOfHoles: z.enum(["Nine", "Eighteen"]),
-    })
-  ),
-  kitsPrices: z.array(
-    z.object({
-      amount: z.number().min(0, "Amount must be a non-negative number"),
-    })
-  ),
-});
-
 /**
  * @swagger
  * /api/organization:
  *   post:
  *     summary: Create a new organization
  *     tags: [Organization]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -181,6 +185,11 @@ const organizationSchema = z.object({
  */
 export const createOrganization = async (req: Request, res: Response) => {
   try {
+    const token = req.headers.authorization;
+    if (!token) return res.status(403).send("Forbidden");
+    const userId = await getUser(token);
+    if (!userId) return res.status(401).send("Unauthorized");
+
     // Validate the input using Zod
     const data = organizationSchema.parse(req.body);
 
