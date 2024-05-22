@@ -153,17 +153,42 @@ model ListedEvent {
   name             String
   location         String
   description      String
-  image            String
+  image            String?
   kitPrice         Int                @default(1500)
   startDate        DateTime           @default(now())
   type             String             @default("Tournament")
   Event            Event[]
   EventMember      EventMember[]
   LikedEventMember LikedEventMember[]
-  Package          Package[]
+  PackageGroup     PackageGroup[]
   Payment          Payment[]
   KitPrices        KitPrices[]
   HolesPrices      HolesPrices[]
+  Package          Package[]
+
+  @@schema("auth")
+}
+
+model PackageGroup {
+  id            String      @id @default(cuid())
+  name          String
+  listedEventId String
+  listedEvent   ListedEvent @relation(fields: [listedEventId], references: [id])
+  packages      Package[]
+
+  @@schema("auth")
+}
+
+model Package {
+  id             String        @id @default(cuid())
+  amount         String
+  price          Int           @default(0)
+  name           String
+  listedEventId  String
+  packageGroupId String?
+  packageGroup   PackageGroup? @relation(fields: [packageGroupId], references: [id])
+  event          ListedEvent   @relation(fields: [listedEventId], references: [id])
+  Event          Event[]
 
   @@schema("auth")
 }
@@ -180,18 +205,6 @@ model Event {
   ListedEvent    ListedEvent @relation(fields: [listedEventId], references: [id])
   package        Package     @relation(fields: [packageId], references: [id])
   payments       Payment[]
-
-  @@schema("auth")
-}
-
-model Package {
-  id            String      @id @default(cuid())
-  amount        String
-  price         Int         @default(0)
-  name          String
-  listedEventId String
-  Event         Event[]
-  event         ListedEvent @relation(fields: [listedEventId], references: [id])
 
   @@schema("auth")
 }
@@ -277,6 +290,17 @@ model Payment {
   organisation      Organization? @relation(fields: [organizationId], references: [id])
   Tee               Tee?          @relation(fields: [teeId], references: [id])
   Tournament        Tournament?   @relation(fields: [tournamentId], references: [id])
+
+  @@schema("auth")
+}
+
+model Announcement {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isActive  Boolean  @default(true)
 
   @@schema("auth")
 }

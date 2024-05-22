@@ -24,6 +24,90 @@ import { getUser } from "../utils";
 
 const prisma = new PrismaClient();
 
+/**
+ * @swagger
+ * /api/cart:
+ *   post:
+ *     summary: Create a new cart
+ *     tags: [Cart]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               items:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     productId:
+ *                       type: number
+ *                     name:
+ *                       type: string
+ *                     price:
+ *                       type: number
+ *                     quantity:
+ *                       type: number
+ *                     src:
+ *                       type: string
+ *     responses:
+ *       201:
+ *         description: Cart created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                 createdAt:
+ *                   type: string
+ *                   format: date-time
+ *                 updatedAt:
+ *                   type: string
+ *                   format: date-time
+ *                 usersId:
+ *                   type: string
+ *                 items:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                       productId:
+ *                         type: number
+ *                       name:
+ *                         type: string
+ *                       price:
+ *                         type: number
+ *                       quantity:
+ *                         type: number
+ *                       src:
+ *                         type: string
+ *                 slug:
+ *                   type: string
+ *                 cartRef:
+ *                   type: number
+ *                 total:
+ *                   type: number
+ *                 status:
+ *                   type: string
+ *                   enum: [Pending, Completed, Failed, Refunded, Partial, Expired, Received, Rejected, Accepted]
+ *       400:
+ *         description: Bad request
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       500:
+ *         description: Internal server error
+ */
+
 export const createCart = async (req: Request, res: Response) => {
   const token = req.headers.authorization;
 
@@ -75,6 +159,71 @@ export const createCart = async (req: Request, res: Response) => {
   }
 };
 
+/**
+ * @swagger
+ * /api/cart/{id}:
+ *   get:
+ *     summary: Retrieve a cart by its ID
+ *     tags: [Cart]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The ID of the cart
+ *     responses:
+ *       200:
+ *         description: The cart details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                 createdAt:
+ *                   type: string
+ *                   format: date-time
+ *                 updatedAt:
+ *                   type: string
+ *                   format: date-time
+ *                 usersId:
+ *                   type: string
+ *                 items:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                       productId:
+ *                         type: number
+ *                       name:
+ *                         type: string
+ *                       price:
+ *                         type: number
+ *                       quantity:
+ *                         type: number
+ *                       src:
+ *                         type: string
+ *                 slug:
+ *                   type: string
+ *                 cartRef:
+ *                   type: number
+ *                 total:
+ *                   type: number
+ *                 status:
+ *                   type: string
+ *                   enum: [Pending, Completed, Failed, Refunded, Partial, Expired, Received, Rejected, Accepted]
+ *       400:
+ *         description: Bad request
+ *       404:
+ *         description: Cart not found
+ *       500:
+ *         description: Internal server error
+ */
+
 export const getCart = async (req: Request, res: Response) => {
   try {
     const { id } = CartIdSchema.parse(req.params);
@@ -88,6 +237,65 @@ export const getCart = async (req: Request, res: Response) => {
     res.status(400).json({ error: error.message });
   }
 };
+
+/**
+ * @swagger
+ * /api/carts:
+ *   get:
+ *     summary: Retrieve a list of all carts
+ *     tags: [Cart]
+ *     responses:
+ *       200:
+ *         description: A list of all carts
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                   createdAt:
+ *                     type: string
+ *                     format: date-time
+ *                   updatedAt:
+ *                     type: string
+ *                     format: date-time
+ *                   usersId:
+ *                     type: string
+ *                   items:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         id:
+ *                           type: string
+ *                         productId:
+ *                           type: number
+ *                         name:
+ *                           type: string
+ *                         price:
+ *                           type: number
+ *                         quantity:
+ *                           type: number
+ *                         src:
+ *                           type: string
+ *                   slug:
+ *                     type: string
+ *                   cartRef:
+ *                     type: number
+ *                   total:
+ *                     type: number
+ *                   status:
+ *                     type: string
+ *                     enum: [Pending, Completed, Failed, Refunded, Partial, Expired, Received, Rejected, Accepted]
+ *       400:
+ *         description: Bad request
+ *       500:
+ *         description: Internal server error
+ */
+
 export const getAllCarts = async (req: Request, res: Response) => {
   try {
     const carts = await prisma.cart.findMany({

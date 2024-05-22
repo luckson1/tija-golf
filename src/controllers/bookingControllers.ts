@@ -15,6 +15,90 @@ const BookingSchema = z.object({
   bookingDate: z.date(),
 });
 type BookingData = z.infer<typeof BookingSchema>;
+
+/**
+ * @swagger
+ * /api/bookings:
+ *   post:
+ *     summary: Create a new booking
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               eventId:
+ *                 type: string
+ *                 description: The ID of the event
+ *               classId:
+ *                 type: string
+ *                 description: The ID of the class
+ *               slug:
+ *                 type: string
+ *                 description: The slug for the booking
+ *               tournamentId:
+ *                 type: string
+ *                 description: The ID of the tournament
+ *               bookingDate:
+ *                 type: string
+ *                 format: date-time
+ *                 description: The date of the booking
+ *               usersId:
+ *                 type: string
+ *                 description: The ID of the user
+ *               teeId:
+ *                 type: string
+ *                 description: The ID of the tee
+ *               status:
+ *                 type: string
+ *                 enum: [Pending, Completed, Failed, Refunded, Partial, Expired, Received, Rejected, Accepted]
+ *                 description: The status of the booking
+ *               bookingRef:
+ *                 type: integer
+ *                 description: The reference number for the booking
+ *     responses:
+ *       201:
+ *         description: Booking created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                 eventId:
+ *                   type: string
+ *                 classId:
+ *                   type: string
+ *                 slug:
+ *                   type: string
+ *                 tournamentId:
+ *                   type: string
+ *                 bookingDate:
+ *                   type: string
+ *                   format: date-time
+ *                 usersId:
+ *                   type: string
+ *                 teeId:
+ *                   type: string
+ *                 status:
+ *                   type: string
+ *                   enum: [Pending, Completed, Failed, Refunded, Partial, Expired, Received, Rejected, Accepted]
+ *                 bookingRef:
+ *                   type: integer
+ *       400:
+ *         description: Bad request
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       500:
+ *         description: Internal server error
+ */
 export const createBooking = async (req: Request, res: Response) => {
   try {
     const token = req.headers.authorization;
@@ -37,6 +121,44 @@ export const createBooking = async (req: Request, res: Response) => {
   }
 };
 
+/**
+ * @swagger
+ * /api/bookings:
+ *   get:
+ *     summary: Retrieve a list of all completed bookings for the authenticated user
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: A list of completed bookings
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                   slug:
+ *                     type: string
+ *                   name:
+ *                     type: string
+ *                   location:
+ *                     type: string
+ *                   date:
+ *                     type: string
+ *                     format: date-time
+ *                   image:
+ *                     type: string
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       500:
+ *         description: Internal server error
+ */
 export const getAllBookings = async (req: Request, res: Response) => {
   const token = req.headers.authorization;
   if (!token) return res.status(403).send("Forbidden");
@@ -103,7 +225,7 @@ export const getAllBookings = async (req: Request, res: Response) => {
       name: string;
       location: string;
       date: Date;
-      image: string;
+      image: string | null;
       id: string;
     };
     const processedEvents = combinedEvents.reduce<CombinedEvent[]>(
@@ -189,15 +311,9 @@ export async function getUpcomingActivities(req: Request, res: Response) {
               },
             },
           },
+
           {
-            class: {
-              startDate: {
-                gt: currentDate,
-              },
-            },
-          },
-          {
-            tournament: {
+            tee: {
               startDate: {
                 gt: currentDate,
               },
@@ -246,6 +362,73 @@ export async function getUpcomingActivities(req: Request, res: Response) {
     return activities;
   } catch (error) {}
 }
+
+/**
+ * @swagger
+ * /api/bookings/tee:
+ *   get:
+ *     summary: Retrieve a list of tee bookings for the authenticated user
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: A list of tee bookings
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                   eventId:
+ *                     type: string
+ *                   classId:
+ *                     type: string
+ *                   slug:
+ *                     type: string
+ *                   tournamentId:
+ *                     type: string
+ *                   bookingDate:
+ *                     type: string
+ *                     format: date-time
+ *                   usersId:
+ *                     type: string
+ *                   teeId:
+ *                     type: string
+ *                   status:
+ *                     type: string
+ *                     enum: [Pending, Completed, Failed, Refunded, Partial, Expired, Received, Rejected, Accepted]
+ *                   bookingRef:
+ *                     type: integer
+ *                   totalAmount:
+ *                     type: number
+ *                   tee:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                       startDate:
+ *                         type: string
+ *                         format: date-time
+ *                       organisation:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: string
+ *                           name:
+ *                             type: string
+ *                           image:
+ *                             type: string
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       500:
+ *         description: Internal server error
+ */
 export async function getTeeBookings(req: Request, res: Response) {
   try {
     const token = req.headers.authorization;
@@ -263,7 +446,14 @@ export async function getTeeBookings(req: Request, res: Response) {
       include: {
         tee: {
           include: {
-            organisation: true,
+            organisation: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+                location: true,
+              },
+            },
           },
         },
       },
@@ -312,6 +502,71 @@ export async function getTeeBookings(req: Request, res: Response) {
     res.status(500).send(error);
   }
 }
+
+/**
+ * @swagger
+ * /api/bookings/event:
+ *   get:
+ *     summary: Retrieve a list of event bookings for the authenticated user
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: A list of event bookings
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                   eventId:
+ *                     type: string
+ *                   classId:
+ *                     type: string
+ *                   slug:
+ *                     type: string
+ *                   tournamentId:
+ *                     type: string
+ *                   bookingDate:
+ *                     type: string
+ *                     format: date-time
+ *                   usersId:
+ *                     type: string
+ *                   teeId:
+ *                     type: string
+ *                   status:
+ *                     type: string
+ *                     enum: [Pending, Completed, Failed, Refunded, Partial, Expired, Received, Rejected, Accepted]
+ *                   bookingRef:
+ *                     type: integer
+ *                   totalAmount:
+ *                     type: number
+ *                   event:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                       startDate:
+ *                         type: string
+ *                         format: date-time
+ *                       package:
+ *                         type: object
+ *                         properties:
+ *                           price:
+ *                             type: number
+ *                           name:
+ *                             type: string
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       500:
+ *         description: Internal server error
+ */
 
 export async function getEventBookings(req: Request, res: Response) {
   try {
