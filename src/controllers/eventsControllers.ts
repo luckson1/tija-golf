@@ -235,13 +235,9 @@ export const createEvent = async (req: Request, res: Response) => {
  *                     type: string
  *                   image:
  *                     type: string
- *                   kitPrice:
- *                     type: number
  *                   startDate:
  *                     type: string
  *                     format: date-time
- *                   type:
- *                     type: string
  *                   PackageGroup:
  *                     type: array
  *                     items:
@@ -258,12 +254,21 @@ export const createEvent = async (req: Request, res: Response) => {
  *                             properties:
  *                               id:
  *                                 type: string
- *                               amount:
- *                                 type: string
  *                               price:
  *                                 type: number
  *                               name:
  *                                 type: string
+ *                   Package:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         id:
+ *                           type: string
+ *                         price:
+ *                           type: number
+ *                         name:
+ *                           type: string
  *       500:
  *         description: Internal server error
  */
