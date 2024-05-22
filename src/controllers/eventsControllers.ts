@@ -3,6 +3,7 @@ import { z } from "zod";
 import { Request, Response } from "express";
 import { addHours, parseISO, setHours, setMinutes, startOfDay } from "date-fns";
 import { getUser } from "../utils";
+
 function combineDateAndTime(dateStr: string, timeStr: string): Date {
   let date = parseISO(dateStr); // Parse the date string
   date = startOfDay(date); // Reset time to 00:00:00
@@ -125,7 +126,7 @@ export const createEvent = async (req: Request, res: Response) => {
     const token = req.headers.authorization;
     if (!token) return res.status(403).send("Forbidden");
     const usersId = await getUser(token);
-    if (!usersId) return res.status(401).send("Unauthorised");
+    if (!usersId) return res.status(401).send("Unauthorized");
     // Validate the input using Zod
 
     const { holes, kit, date, startTime, listedEventId, packageId } =
@@ -212,6 +213,8 @@ export const createEvent = async (req: Request, res: Response) => {
  *   get:
  *     summary: Retrieve a list of all upcoming events
  *     tags: [Events]
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: A list of upcoming events
@@ -266,6 +269,11 @@ export const createEvent = async (req: Request, res: Response) => {
  */
 export const getAllEvents = async (req: Request, res: Response) => {
   try {
+    const token = req.headers.authorization;
+    if (!token) return res.status(403).send("Forbidden");
+    const usersId = await getUser(token);
+    if (!usersId) return res.status(401).send("Unauthorized");
+
     // Fetch all event records from the database
     const events = await prisma.listedEvent.findMany({
       where: {
@@ -300,6 +308,11 @@ export const getAllEvents = async (req: Request, res: Response) => {
 
 export const getEvent = async (req: Request, res: Response) => {
   try {
+    const token = req.headers.authorization;
+    if (!token) return res.status(403).send("Forbidden");
+    const usersId = await getUser(token);
+    if (!usersId) return res.status(401).send("Unauthorized");
+
     // Extract the event ID from the request parameters
     const { id } = req.params;
     const parsedData = z.string().parse(id);
@@ -422,6 +435,11 @@ const eventUpdateSchema = z.object({
 
 export const updateEvent = async (req: Request, res: Response) => {
   try {
+    const token = req.headers.authorization;
+    if (!token) return res.status(403).send("Forbidden");
+    const usersId = await getUser(token);
+    if (!usersId) return res.status(401).send("Unauthorized");
+
     const { id } = req.params;
     const parsedId = z.string().parse(id); // Get the event ID from the route parameter
 
@@ -491,6 +509,8 @@ export const updateEvent = async (req: Request, res: Response) => {
  *   post:
  *     summary: List a new event
  *     tags: [Events]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -556,7 +576,7 @@ const ListEventSchema = z.object({
   location: z.string().min(1, "Location is required"),
   description: z.string(),
   image: z.string().url().optional(),
-  startDate: z.string().datetime(),
+  startDate: z.string().optional(),
   type: z.string().min(1, "Type is required"),
   holesPrices: z.array(
     z.object({
@@ -571,6 +591,11 @@ const ListEventSchema = z.object({
 
 export const listEvent = async (req: Request, res: Response) => {
   try {
+    const token = req.headers.authorization;
+    if (!token) return res.status(403).send("Forbidden");
+    const usersId = await getUser(token);
+    if (!usersId) return res.status(401).send("Unauthorized");
+
     // Validate the request body
     const validatedData = ListEventSchema.parse(req.body);
 
@@ -593,7 +618,7 @@ export const listEvent = async (req: Request, res: Response) => {
           location,
           description,
           image,
-          startDate: new Date(startDate),
+          startDate: startDate ? new Date(startDate) : undefined,
           type,
         },
       });
@@ -620,25 +645,6 @@ export const listEvent = async (req: Request, res: Response) => {
       return createdEvent;
     });
 
-    // Create related HolesPrices
-    for (const holesPrice of holesPrices) {
-      await prisma.holesPrices.create({
-        data: {
-          listedEventId: newEvent.id,
-          numberOfHoles: holesPrice.numberOfHoles,
-          amount: holesPrice.amount,
-        },
-      });
-    }
-
-    // Create related KitPrice
-    await prisma.kitPrices.create({
-      data: {
-        listedEventId: newEvent.id,
-        amount: kitPrice.amount,
-      },
-    });
-
     // Return the new event
     res.status(201).json({ event: newEvent });
   } catch (error) {
@@ -648,6 +654,184 @@ export const listEvent = async (req: Request, res: Response) => {
     }
     console.error("Error listing event:", error);
     res.status(500).send("An error occurred while listing the event");
+  } finally {
+    await prisma.$disconnect();
+  }
+};
+
+/**
+ * @swagger
+ * /api/events/edit/list:
+ *   put:
+ *     summary: Edit an existing event
+ *     tags: [Events]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: string
+ *                 description: The ID of the event to edit
+ *               name:
+ *                 type: string
+ *                 description: The name of the event
+ *               location:
+ *                 type: string
+ *                 description: The location of the event
+ *               description:
+ *                 type: string
+ *                 description: The description of the event
+ *               image:
+ *                 type: string
+ *                 description: The image URL of the event
+ *               startDate:
+ *                 type: string
+ *                 format: date-time
+ *                 description: The start date of the event
+ *               type:
+ *                 type: string
+ *                 description: The type of the event
+ *               holesPrices:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     numberOfHoles:
+ *                       type: string
+ *                       enum: ["Nine", "Eighteen"]
+ *                       description: The number of holes
+ *                     amount:
+ *                       type: number
+ *                       description: The price for the holes
+ *               kitPrice:
+ *                 type: object
+ *                 properties:
+ *                   amount:
+ *                     type: number
+ *                     description: The price for the kit
+ *     responses:
+ *       200:
+ *         description: Event edited successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 event:
+ *                   $ref: '#/components/schemas/ListedEvent'
+ *       400:
+ *         description: Bad request
+ *       404:
+ *         description: Event not found
+ *       500:
+ *         description: Internal server error
+ */
+
+const EditEventSchema = z.object({
+  id: z.string().min(1, "ID is required"),
+  name: z.string().min(1, "Name is required").optional(),
+  location: z.string().min(1, "Location is required").optional(),
+  description: z.string().optional(),
+  image: z.string().url().optional(),
+  startDate: z.string().optional(),
+  type: z.string().min(1, "Type is required").optional(),
+  holesPrices: z
+    .array(
+      z.object({
+        numberOfHoles: z.enum(["Nine", "Eighteen"]),
+        amount: z.number().positive(),
+      })
+    )
+    .optional(),
+  kitPrice: z
+    .object({
+      amount: z.number().positive(),
+    })
+    .optional(),
+});
+
+export const editListedEvent = async (req: Request, res: Response) => {
+  try {
+    const token = req.headers.authorization;
+    if (!token) return res.status(403).send("Forbidden");
+    const usersId = await getUser(token);
+    if (!usersId) return res.status(401).send("Unauthorized");
+
+    // Validate the request body
+    const validatedData = EditEventSchema.parse(req.body);
+
+    const {
+      id,
+      name,
+      location,
+      description,
+      image,
+      startDate,
+      type,
+      holesPrices,
+      kitPrice,
+    } = validatedData;
+
+    // Use a transaction for all the database ops below
+    const updatedEvent = await prisma.$transaction(async (prisma) => {
+      const event = await prisma.listedEvent.update({
+        where: { id },
+        data: {
+          name,
+          location,
+          description,
+          image,
+          startDate: startDate ? new Date(startDate) : undefined,
+          type,
+        },
+      });
+
+      if (holesPrices) {
+        // Delete existing HolesPrices
+        await prisma.holesPrices.deleteMany({
+          where: { listedEventId: id },
+        });
+
+        // Create new HolesPrices
+        for (const holesPrice of holesPrices) {
+          await prisma.holesPrices.create({
+            data: {
+              listedEventId: id,
+              numberOfHoles: holesPrice.numberOfHoles,
+              amount: holesPrice.amount,
+            },
+          });
+        }
+      }
+
+      if (kitPrice) {
+        // Update KitPrice
+        await prisma.kitPrices.updateMany({
+          where: { listedEventId: id },
+          data: {
+            amount: kitPrice.amount,
+          },
+        });
+      }
+
+      return event;
+    });
+
+    // Return the updated event
+    res.status(200).json({ event: updatedEvent });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      // If the error is a Zod validation error, send a bad request response
+      return res.status(400).json(error.errors);
+    }
+
+    console.error("Error editing event:", error);
+    res.status(500).send("An error occurred while editing the event");
   } finally {
     await prisma.$disconnect();
   }

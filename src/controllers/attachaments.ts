@@ -30,7 +30,45 @@ export const uploadFileToAzure = async (filePath: string, fileName: string) => {
     console.log("errror", error);
   }
 };
-
+/**
+ * @swagger
+ * /attachments/upload:
+ *   put:
+ *     summary: Upload a file to Azure Storage
+ *     tags: [Attachments]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *               id:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: File uploaded successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 url:
+ *                   type: string
+ *       400:
+ *         description: Bad request
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       500:
+ *         description: Internal server error
+ */
 export const upload = async (req: Request, res: Response) => {
   try {
     const token = req.headers.authorization;

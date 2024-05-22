@@ -1,6 +1,7 @@
 import express from "express";
 import {
   createEvent,
+  editListedEvent,
   getAllEvents,
   getEvent,
   listEvent,
@@ -14,5 +15,6 @@ eventRoute.get("/", getAllEvents);
 eventRoute.get("/:id", getEvent);
 eventRoute.put("/:id", updateEvent);
 eventRoute.post("/list", listEvent);
+eventRoute.put("/edit/list/:id", editListedEvent);
 
 export default eventRoute;
