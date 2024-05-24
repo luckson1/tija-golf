@@ -64,8 +64,53 @@ const membershipSchema = z.object({
  *     responses:
  *       201:
  *         description: Membership created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                 name:
+ *                   type: string
+ *                 description:
+ *                   type: string
+ *                 startDate:
+ *                   type: string
+ *                   format: date-time
+ *                 endDate:
+ *                   type: string
+ *                   format: date-time
+ *                 usersId:
+ *                   type: string
+ *                 profileId:
+ *                   type: string
+ *                 feeAmount:
+ *                   type: number
+ *                 dueDate:
+ *                   type: string
+ *                   format: date-time
+ *                 paymentStatus:
+ *                   type: string
+ *                   enum: [Pending, Completed, Failed, Refunded, Partial, Expired, Received, Rejected, Accepted]
+ *                 slug:
+ *                   type: string
+ *                 profile:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     name:
+ *                       type: string
  *       400:
  *         description: Bad request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
  */
 export const createMembership = async (req: Request, res: Response) => {
   try {
@@ -80,6 +125,9 @@ export const createMembership = async (req: Request, res: Response) => {
         where: { id: membership.id },
         data: {
           slug,
+        },
+        include: {
+          profile: true,
         },
       });
       res.status(201).json(updatedMembership);
@@ -105,14 +153,64 @@ export const createMembership = async (req: Request, res: Response) => {
  *     responses:
  *       200:
  *         description: Membership details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                 name:
+ *                   type: string
+ *                 description:
+ *                   type: string
+ *                 startDate:
+ *                   type: string
+ *                   format: date-time
+ *                 endDate:
+ *                   type: string
+ *                   format: date-time
+ *                 usersId:
+ *                   type: string
+ *                 profileId:
+ *                   type: string
+ *                 number:
+ *                   type: integer
+ *                 slug:
+ *                   type: string
+ *                 feeAmount:
+ *                   type: number
+ *                 dueDate:
+ *                   type: string
+ *                   format: date-time
+ *                 paymentStatus:
+ *                   type: string
+ *                   enum: [Pending, Completed, Failed, Refunded, Partial, Expired, Received, Rejected, Accepted]
+ *                 profile:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     name:
+ *                       type: string
  *       404:
  *         description: Membership not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
  */
 export const getMembership = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const membership = await prisma.membership.findUnique({
       where: { id },
+      include: {
+        profile: true,
+      },
     });
     if (!membership) {
       return res.status(404).json({ error: "Membership not found" });
