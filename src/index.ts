@@ -14,6 +14,7 @@ import cartRoute from "./routes/cart";
 import announcementRoute from "./routes/announcements";
 import packagesRoute from "./routes/packages";
 import packageGroupsRoute from "./routes/package-groups";
+import membershipRoute from "./routes/membership";
 
 import { setupSwagger } from "./swagger";
 const app = express();
@@ -46,6 +47,7 @@ app.use("/api/cart", cartRoute);
 app.use("/api/announcements", announcementRoute);
 app.use("/api/packages", packagesRoute);
 app.use("/api/packageGroups", packageGroupsRoute);
+app.use("/api/membership", membershipRoute);
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
