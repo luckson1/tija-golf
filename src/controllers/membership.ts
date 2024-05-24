@@ -118,7 +118,7 @@ export const createMembership = async (req: Request, res: Response) => {
 
     await prisma.$transaction(async (prisma) => {
       const membership = await prisma.membership.create({
-        data: parsedData,
+        data: { ...parsedData, feeAmount: 35000 },
       });
       const slug = `M-${membership.number}`;
       const updatedMembership = await prisma.membership.update({
