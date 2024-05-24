@@ -6,20 +6,7 @@ import { getUser } from "../utils";
 const prisma = new PrismaClient();
 
 const membershipSchema = z.object({
-  name: z.string(),
-  description: z.string().optional(),
   startDate: z.string().datetime(),
-  paymentStatus: z.enum([
-    "Pending",
-    "Completed",
-    "Failed",
-    "Refunded",
-    "Partial",
-    "Expired",
-    "Received",
-    "Rejected",
-    "Accepted",
-  ]),
 });
 
 /**
@@ -37,16 +24,11 @@ const membershipSchema = z.object({
  *           schema:
  *             type: object
  *             properties:
- *               name:
- *                 type: string
- *               description:
- *                 type: string
+ *
  *               startDate:
  *                 type: string
  *                 format: date-time
- *               paymentStatus:
- *                 type: string
- *                 enum: [Pending, Completed, Failed, Refunded, Partial, Expired, Received, Rejected, Accepted]
+ *
  *     responses:
  *       201:
  *         description: Membership created successfully
@@ -125,6 +107,8 @@ export const createMembership = async (req: Request, res: Response) => {
           feeAmount: 35000,
           endDate: oneYearFromToday.toISOString(),
           dueDate: oneYearFromToday.toISOString(),
+          name: "1-year Premium Club Membership",
+          description: "Premium membership with exclusive benefits",
         },
       });
       const slug = `M-${membership.number}`;
@@ -221,7 +205,7 @@ export const getMembership = async (req: Request, res: Response) => {
 
     const { id } = req.params;
     const membership = await prisma.membership.findUnique({
-      where: { id },
+      where: { profileId: id },
       include: {
         profile: true,
       },
