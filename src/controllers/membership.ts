@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import { z } from "zod";
+import { getUser } from "../utils";
 
 const prisma = new PrismaClient();
 
@@ -8,11 +9,6 @@ const membershipSchema = z.object({
   name: z.string(),
   description: z.string().optional(),
   startDate: z.string().datetime(),
-  endDate: z.string().datetime(),
-  usersId: z.string(),
-  profileId: z.string(),
-  feeAmount: z.number(),
-  dueDate: z.string().datetime(),
   paymentStatus: z.enum([
     "Pending",
     "Completed",
@@ -32,6 +28,8 @@ const membershipSchema = z.object({
  *   post:
  *     summary: Create a new membership
  *     tags: [Membership]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -44,18 +42,6 @@ const membershipSchema = z.object({
  *               description:
  *                 type: string
  *               startDate:
- *                 type: string
- *                 format: date-time
- *               endDate:
- *                 type: string
- *                 format: date-time
- *               usersId:
- *                 type: string
- *               profileId:
- *                 type: string
- *               feeAmount:
- *                 type: number
- *               dueDate:
  *                 type: string
  *                 format: date-time
  *               paymentStatus:
@@ -114,11 +100,32 @@ const membershipSchema = z.object({
  */
 export const createMembership = async (req: Request, res: Response) => {
   try {
+    const token = req.headers.authorization;
+    if (!token) return res.status(403).send("Forbidden");
+    const userId = await getUser(token);
+    if (!userId) return res.status(401).send("Unauthorized");
+
     const parsedData = membershipSchema.parse(req.body);
+
+    const profile = await prisma.profile.findUnique({
+      where: { id: userId },
+    });
+    if (!profile) return res.status(404).send("Profile not found");
+
+    const today = new Date();
+    const oneYearFromToday = new Date(today);
+    oneYearFromToday.setFullYear(today.getFullYear() + 1);
 
     await prisma.$transaction(async (prisma) => {
       const membership = await prisma.membership.create({
-        data: { ...parsedData, feeAmount: 35000 },
+        data: {
+          ...parsedData,
+          usersId: userId,
+          profileId: profile.id,
+          feeAmount: 35000,
+          endDate: oneYearFromToday.toISOString(),
+          dueDate: oneYearFromToday.toISOString(),
+        },
       });
       const slug = `M-${membership.number}`;
       const updatedMembership = await prisma.membership.update({
@@ -143,6 +150,8 @@ export const createMembership = async (req: Request, res: Response) => {
  *   get:
  *     summary: Get a membership by ID
  *     tags: [Membership]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -205,6 +214,11 @@ export const createMembership = async (req: Request, res: Response) => {
  */
 export const getMembership = async (req: Request, res: Response) => {
   try {
+    const token = req.headers.authorization;
+    if (!token) return res.status(403).send("Forbidden");
+    const userId = await getUser(token);
+    if (!userId) return res.status(401).send("Unauthorized");
+
     const { id } = req.params;
     const membership = await prisma.membership.findUnique({
       where: { id },
@@ -227,6 +241,8 @@ export const getMembership = async (req: Request, res: Response) => {
  *   put:
  *     summary: Update a membership by ID
  *     tags: [Membership]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -267,6 +283,11 @@ export const getMembership = async (req: Request, res: Response) => {
  */
 export const updateMembership = async (req: Request, res: Response) => {
   try {
+    const token = req.headers.authorization;
+    if (!token) return res.status(403).send("Forbidden");
+    const userId = await getUser(token);
+    if (!userId) return res.status(401).send("Unauthorized");
+
     const { id } = req.params;
     const parsedData = membershipSchema.parse(req.body);
     const membership = await prisma.membership.update({
@@ -285,6 +306,8 @@ export const updateMembership = async (req: Request, res: Response) => {
  *   delete:
  *     summary: Delete a membership by ID
  *     tags: [Membership]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -300,6 +323,11 @@ export const updateMembership = async (req: Request, res: Response) => {
  */
 export const deleteMembership = async (req: Request, res: Response) => {
   try {
+    const token = req.headers.authorization;
+    if (!token) return res.status(403).send("Forbidden");
+    const userId = await getUser(token);
+    if (!userId) return res.status(401).send("Unauthorized");
+
     const { id } = req.params;
     await prisma.membership.delete({
       where: { id },
