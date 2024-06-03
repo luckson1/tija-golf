@@ -3,6 +3,8 @@ import { Request, Response } from "express";
 import multer from "multer";
 import csv from "csv-parser";
 import fs from "fs";
+import { z } from 'zod';
+import { getUser } from "../utils";
 
 const prisma = new PrismaClient();
 
@@ -12,6 +14,8 @@ const prisma = new PrismaClient();
  *   get:
  *     summary: Retrieve the latest leaderboard
  *     tags: [Leaderboard]
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: The latest leaderboard
@@ -33,12 +37,19 @@ const prisma = new PrismaClient();
  *                   profileId:
  *                     type: string
  *                     nullable: true
+ *       401:
+ *         description: Unauthorized
  *       500:
  *         description: Internal server error
  */
 
 export const getLatestBoard = async (req: Request, res: Response) => {
   try {
+    const token = req.headers.authorization;
+    if (!token) return res.status(403).send("Forbidden");
+    const userId = await getUser(token);
+    if (!userId) return res.status(401).send("Unauthorized");
+
     const board = await prisma.leaderBoard.findMany({
       select: {
         LeaderBoardPoint: {
@@ -94,6 +105,8 @@ const upload = multer({ dest: "uploads/" });
  *   post:
  *     summary: Upload a CSV file to create a new leaderboard
  *     tags: [Leaderboard]
+ *     security:
+ *       - bearerAuth: []
  *     consumes:
  *       - multipart/form-data
  *     parameters:
@@ -104,11 +117,20 @@ const upload = multer({ dest: "uploads/" });
  *     responses:
  *       200:
  *         description: Leaderboard created successfully
+ *       400:
+ *         description: No file uploaded
+ *       401:
+ *         description: Unauthorized
  *       500:
  *         description: Internal server error
  */
 
 export const uploadLeaderboard = async (req: Request, res: Response) => {
+  const token = req.headers.authorization;
+  if (!token) return res.status(403).send("Forbidden");
+  const userId = await getUser(token);
+  if (!userId) return res.status(401).send("Unauthorized");
+
   const file = req.file;
   if (!file) {
     return res.status(400).send("No file uploaded");
@@ -156,6 +178,8 @@ export const uploadLeaderboard = async (req: Request, res: Response) => {
  *   put:
  *     summary: Edit a LeaderboardPoint
  *     tags: [LeaderboardPoint]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -199,13 +223,13 @@ export const uploadLeaderboard = async (req: Request, res: Response) => {
  *                   type: string
  *       400:
  *         description: Bad request
+ *       401:
+ *         description: Unauthorized
  *       404:
  *         description: LeaderboardPoint not found
  *       500:
  *         description: Internal server error
  */
-
-import { z } from 'zod';
 
 const EditLeaderboardPointSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -217,6 +241,11 @@ export const editLeaderboardPoint = async (req: Request, res: Response) => {
   const { id } = req.params;
 
   try {
+    const token = req.headers.authorization;
+    if (!token) return res.status(403).send("Forbidden");
+    const userId = await getUser(token);
+    if (!userId) return res.status(401).send("Unauthorized");
+
     const { name, points, profileId } = EditLeaderboardPointSchema.parse(req.body);
 
     const updatedLeaderboardPoint = await prisma.leaderBoardPoint.update({
@@ -243,6 +272,3 @@ export const editLeaderboardPoint = async (req: Request, res: Response) => {
     await prisma.$disconnect();
   }
 };
-
-
-

@@ -130,24 +130,19 @@ const CreatePaymentSchema = z.object({
  *         description: Internal server error
  */
 
-// Use this schema to validate data when creating a payment
 export const createTee = async (req: Request, res: Response) => {
   try {
     const token = req.headers.authorization;
     if (!token) return res.status(403).send("Forbidden");
     const usersId = await getUser(token);
-    if (!usersId) return res.status(401).send("Unauthorised");
-    // Validate the input using Zod
+    if (!usersId) return res.status(401).send("Unauthorized");
 
     const parsedData = TeeSchema.parse(req.body);
     const startDate = combineDateAndTime(parsedData.date, parsedData.startTime);
 
-    console.log(parsedData.date);
     const { holes, kit, organizationId } = parsedData;
 
-    // Start a transaction
     const result = await prisma.$transaction(async (prisma) => {
-      // Create the Tee in the database
       const newTee = await prisma.tee.create({
         data: {
           holes,
@@ -209,90 +204,90 @@ export const createTee = async (req: Request, res: Response) => {
     res.status(201).json(result);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      console.log(error.errors.at(0)?.message);
-      // If the error is a Zod validation error, send a bad request response
       return res.status(400).json(error.errors.at(0)?.message);
     }
-
-    // Handle other types of errors
-    console.log(error);
     res.status(500).send(error);
   }
 };
 
 export const getAllTees = async (req: Request, res: Response) => {
   try {
-    // Fetch all Tee records from the database
+    const token = req.headers.authorization;
+    if (!token) return res.status(403).send("Forbidden");
+    const usersId = await getUser(token);
+    if (!usersId) return res.status(401).send("Unauthorized");
+
     const Tees = await prisma.tee.findMany({
       include: {
-        organisation: true, // Include related organization data
-        bookings: true, // Include related bookings
-        payments: true, // Include related payments
+        organisation: true,
+        bookings: true,
+        payments: true,
       },
     });
 
-    // Send the retrieved Tees as a response
     res.json(Tees);
   } catch (error) {
-    // Handle potential errors
     res.status(500).send(error);
   }
 };
 
 export const getTee = async (req: Request, res: Response) => {
   try {
-    // Extract the Tee ID from the request parameters
+    const token = req.headers.authorization;
+    if (!token) return res.status(403).send("Forbidden");
+    const usersId = await getUser(token);
+    if (!usersId) return res.status(401).send("Unauthorized");
+
     const { id } = req.params;
     const parsedData = z.string().parse(id);
-    // Fetch the Tee record from the database
+
     const tee = await prisma.tee.findUnique({
       where: { id: parsedData },
       include: {
-        organisation: true, // Include related organization data
-        bookings: true, // Include related bookings
-        payments: true, // Include related payments
+        organisation: true,
+        bookings: true,
+        payments: true,
       },
     });
 
     if (tee) {
-      // Send the retrieved Tee as a response
       res.json(tee);
     } else {
-      // If no Tee is found, send a 404 response
       res.status(404).send("Tee not found");
     }
   } catch (error) {
     if (error instanceof z.ZodError) {
-      // If the error is a Zod validation error, send a bad request response
       return res.status(400).json(error.errors);
     }
-
     res.status(500).send(error);
   }
 };
 
 export const updateTee = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
-    const parsedId = z.string().parse(id); // Get the Tee ID from the route parameter
+    const token = req.headers.authorization;
+    if (!token) return res.status(403).send("Forbidden");
+    const usersId = await getUser(token);
+    if (!usersId) return res.status(401).send("Unauthorized");
 
-    // Validate and parse the request data
+    const { id } = req.params;
+    const parsedId = z.string().parse(id);
+
     const updateData = TeeSchema.parse(req.body);
 
-    // If date and startTime are provided, combine them into a startDate
     let startDate;
     if (updateData.date && updateData.startTime) {
       startDate = combineDateAndTime(updateData.date, updateData.startTime);
     }
     const { holes, kit, organizationId } = updateData;
-    // Update the Tee in the database
+
     const updatedTee = await prisma.tee.update({
       where: { id: parsedId },
       data: {
         holes,
         kit,
         organizationId,
-        ...(startDate && { startDate }), // Conditionally include startDate if it's calculated
+        ...(startDate && { startDate }),
       },
     });
     const kitCost =
@@ -325,46 +320,39 @@ export const updateTee = async (req: Request, res: Response) => {
           });
 
     const amount = (kitCost?.amount ?? 0) + (gameCost?.amount ?? 0);
-    // Send the updated Tee as a response
     res.json({ updatedTee, amount });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      // If the error is a Zod validation error, send a bad request response
       return res.status(400).json(error.errors);
     }
-    console.log(error);
-    // Handle other types of errors
     res.status(500).send(error);
   }
 };
 
-// Express route handler
 export const createPayment = async (req: Request, res: Response) => {
   try {
-    // Validate the request body using the Zod schema
+    const token = req.headers.authorization;
+    if (!token) return res.status(403).send("Forbidden");
+    const usersId = await getUser(token);
+    if (!usersId) return res.status(401).send("Unauthorized");
+
     const parsedData = CreatePaymentSchema.parse(req.body);
 
-    // Use the parsed data to create a new payment in the database
     const payment = await prisma.payment.create({
       data: {
         bookingId: parsedData.bookingId,
         usersId: parsedData.usersId,
         amount: parsedData.amount,
         organizationId: parsedData.organizationId,
-        // Optional fields are included conditionally
         ...(parsedData.teeId && { teeId: parsedData.teeId }),
       },
     });
 
-    // Send back the created payment data
     res.status(201).json(payment);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      // If the error is a Zod validation error, send a bad request response
       res.status(400).json({ errors: error.issues });
     } else {
-      // Handle other types of errors
-      console.error("Unexpected Error:", error);
       res.status(500).send("An unexpected error occurred");
     }
   }

@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { z } from "zod";
 import { Request, Response } from "express";
+import { getUser } from "../utils";
 const prisma = new PrismaClient();
 
 const partnerSchema = z.object({
@@ -19,6 +20,8 @@ const partnerSchema = z.object({
  *   post:
  *     summary: Create a new partner
  *     tags: [Partners]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -68,33 +71,26 @@ const partnerSchema = z.object({
  *                 website:
  *                   type: string
  *                   format: url
- *       400:
- *         description: Bad request
- *       500:
- *         description: Internal server error
  */
-
 export const createPartner = async (req: Request, res: Response) => {
   try {
-    // Validate the input using Zod
-    const data = partnerSchema.parse(req.body);
+    const token = req.headers.authorization;
+    if (!token) return res.status(403).send("Forbidden");
+    const usersId = await getUser(token);
+    if (!usersId) return res.status(401).send("Unauthorized");
 
-    // Create the partner in the database
-    const newpartner = await prisma.partner.create({
+    const partnerData = partnerSchema.parse(req.body);
+    const newPartner = await prisma.partner.create({
       data: {
-        ...data,
+        ...partnerData,
       },
     });
-
-    // Send the created partner as a response
-    res.status(201).json(newpartner);
+    res.status(201).json(newPartner);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      // If the error is a Zod validation error, send a bad request response
       return res.status(400).json(error.errors);
     }
-
-    // Handle other types of errors
+    console.log(error);
     res.status(500).send(error);
   }
 };
@@ -103,11 +99,13 @@ export const createPartner = async (req: Request, res: Response) => {
  * @swagger
  * /api/partners:
  *   get:
- *     summary: Retrieve a list of all partners
+ *     summary: Get all partners
  *     tags: [Partners]
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: A list of all partners
+ *         description: List of all partners
  *         content:
  *           application/json:
  *             schema:
@@ -133,20 +131,18 @@ export const createPartner = async (req: Request, res: Response) => {
  *                   website:
  *                     type: string
  *                     format: url
- *       500:
- *         description: Internal server error
  */
-
 export const getAllPartners = async (req: Request, res: Response) => {
   try {
-    // Fetch all partner records from the database
-    const partners = await prisma.partner.findMany();
+    const token = req.headers.authorization;
+    if (!token) return res.status(403).send("Forbidden");
+    const usersId = await getUser(token);
+    if (!usersId) return res.status(401).send("Unauthorized");
 
-    // Send the retrieved partners as a response
-    res.json(partners);
+    const partners = await prisma.partner.findMany();
+    res.status(200).json(partners);
   } catch (error) {
     console.log(error);
-    // Handle potential errors
     res.status(500).send(error);
   }
 };
@@ -155,8 +151,10 @@ export const getAllPartners = async (req: Request, res: Response) => {
  * @swagger
  * /api/partners/{id}:
  *   get:
- *     summary: Retrieve a partner by its ID
+ *     summary: Get a partner by ID
  *     tags: [Partners]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -166,7 +164,7 @@ export const getAllPartners = async (req: Request, res: Response) => {
  *         description: The ID of the partner
  *     responses:
  *       200:
- *         description: The partner details
+ *         description: Partner details
  *         content:
  *           application/json:
  *             schema:
@@ -190,37 +188,24 @@ export const getAllPartners = async (req: Request, res: Response) => {
  *                 website:
  *                   type: string
  *                   format: url
- *       400:
- *         description: Bad request
  *       404:
  *         description: Partner not found
- *       500:
- *         description: Internal server error
  */
-
 export const getPartner = async (req: Request, res: Response) => {
   try {
-    // Extract the partner ID from the request parameters
+    const token = req.headers.authorization;
+    if (!token) return res.status(403).send("Forbidden");
+    const usersId = await getUser(token);
+    if (!usersId) return res.status(401).send("Unauthorized");
+
     const { id } = req.params;
-    const parsedData = z.string().parse(id);
-    // Fetch the partner record from the database
     const partner = await prisma.partner.findUnique({
-      where: { id: parsedData },
+      where: { id },
     });
-
-    if (partner) {
-      // Send the retrieved partner as a response
-      res.json(partner);
-    } else {
-      // If no partner is found, send a 404 response
-      res.status(404).send("partner not found");
-    }
+    if (!partner) return res.status(404).send("Partner not found");
+    res.status(200).json(partner);
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      // If the error is a Zod validation error, send a bad request response
-      return res.status(400).json(error.errors);
-    }
-
+    console.log(error);
     res.status(500).send(error);
   }
 };
@@ -229,15 +214,17 @@ export const getPartner = async (req: Request, res: Response) => {
  * @swagger
  * /api/partners/{id}:
  *   put:
- *     summary: Update an existing partner
+ *     summary: Update a partner by ID
  *     tags: [Partners]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
  *         schema:
  *           type: string
  *         required: true
- *         description: The ID of the partner to update
+ *         description: The ID of the partner
  *     requestBody:
  *       required: true
  *       content:
@@ -287,38 +274,31 @@ export const getPartner = async (req: Request, res: Response) => {
  *                 website:
  *                   type: string
  *                   format: url
- *       400:
- *         description: Bad request
  *       404:
  *         description: Partner not found
- *       500:
- *         description: Internal server error
  */
-
 export const updatePartner = async (req: Request, res: Response) => {
   try {
+    const token = req.headers.authorization;
+    if (!token) return res.status(403).send("Forbidden");
+    const usersId = await getUser(token);
+    if (!usersId) return res.status(401).send("Unauthorized");
+
     const { id } = req.params;
-    const parsedId = z.string().parse(id); // Get the partner ID from the route parameter
-
-    // Validate and parse the request data
-    const updateData = partnerSchema.parse(req.body);
-
-    // Update the partner in the database
-    const updatedpartner = await prisma.partner.update({
-      where: { id: parsedId },
-      data: updateData,
+    const partnerData = partnerSchema.parse(req.body);
+    const updatedPartner = await prisma.partner.update({
+      where: { id },
+      data: {
+        ...partnerData,
+      },
     });
-
-    // Send the updated partner as a response
-    res.json(updatedpartner);
+    res.status(200).json(updatedPartner);
   } catch (error) {
-    console.log(error);
     if (error instanceof z.ZodError) {
-      // If the error is a Zod validation error, send a bad request response
       return res.status(400).json(error.errors);
     }
 
-    // Handle other types of errors
+    console.log(error);
     res.status(500).send(error);
   }
 };
