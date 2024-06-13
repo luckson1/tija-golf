@@ -1,0 +1,459 @@
+{
+  "organizations": [
+    {
+      "id": "clureirlg0002y56ai8avi428",
+      "name": "Kiambu Golf Club",
+      "image": "https://res.cloudinary.com/dhciks96e/image/upload/v1713482096/KIAMBU_GOLF_v6bbjv.jpg",
+      "location": "Kiambu - Kirigiti Road,Township",
+      "kitPrice": 1500,
+      "teePrice": 4500
+    },
+    {
+      "id": "clureirli0004y56alt8ul85w",
+      "name": "Windsor Golf Hotel and Country Club",
+      "image": "https://res.cloudinary.com/dhciks96e/image/upload/v1712607997/18th_Green_lcy2b9.jpg",
+      "location": "Kigwa Lane, Ridgeways off Kiambu Road",
+      "kitPrice": 1500,
+      "teePrice": 3000
+    },
+    {
+      "id": "clureirle0000y56ays09ua46",
+      "name": "Limuru Country Club",
+      "image": "https://res.cloudinary.com/dhciks96e/image/upload/v1709855076/limuru_hl5cot.jpg",
+      "location": "Kabuku-Tigoni Road",
+      "kitPrice": 1500,
+      "teePrice": 2000
+    },
+    {
+      "id": "clureirlf0001y56agtweh1wh",
+      "name": "Migaa Golf Club",
+      "image": "https://res.cloudinary.com/dhciks96e/image/upload/v1713482097/Golf-Course-Maintenance-at-Migaa-Golf-Estate-5_v7eg18.jpg",
+      "location": "Riabai Road, Kiambu, Kenya.",
+      "kitPrice": 1500,
+      "teePrice": 1000
+    },
+    {
+      "id": "clureirlh0003y56af4k7shum",
+      "name": "Golf Park",
+      "image": "https://res.cloudinary.com/dhciks96e/image/upload/v1709854953/Golf_park_xj50we.jpg",
+      "location": " Ngong Rd, Nairobi",
+      "kitPrice": 1500,
+      "teePrice": 2500
+    },
+    {
+      "id": "clureirlj0005y56a6877dw4n",
+      "name": "Kabete Vet Lab",
+      "image": "https://res.cloudinary.com/dhciks96e/image/upload/v1715501125/vet_mywq2s.jpg",
+      "location": "Off Kapenguria Rd, Loresho Ridge, Nairobi",
+      "kitPrice": 1500,
+      "teePrice": 2000
+    }
+  ],
+  "holesPrices": [
+    {
+      "id": "clus65xw6000ly56abc80ss0u",
+      "amount": 3000,
+      "numberOfHoles": "Nine",
+      "organizationId": "clureirli0004y56alt8ul85w",
+      "listedEventId": null
+    },
+    {
+      "id": "clus65xw4000hy56af992w8gi",
+      "amount": 2000,
+      "numberOfHoles": "Nine",
+      "organizationId": "clureirle0000y56ays09ua46",
+      "listedEventId": null
+    },
+    {
+      "id": "clus65xw7000ny56abt28g8iz",
+      "amount": 3500,
+      "numberOfHoles": "Eighteen",
+      "organizationId": "clureirle0000y56ays09ua46",
+      "listedEventId": null
+    },
+    {
+      "id": "clus65xw5000iy56a3zz781yp",
+      "amount": 1000,
+      "numberOfHoles": "Nine",
+      "organizationId": "clureirlf0001y56agtweh1wh",
+      "listedEventId": "clurf4zx50006y56ae2xxasaa"
+    },
+    {
+      "id": "clus65xw8000py56a3237kf91",
+      "amount": 1000,
+      "numberOfHoles": "Eighteen",
+      "organizationId": "clureirlf0001y56agtweh1wh",
+      "listedEventId": "clurf4zx50006y56ae2xxasaa"
+    },
+    {
+      "id": "clus65xw6000ky56afxeqt2db",
+      "amount": 2500,
+      "numberOfHoles": "Nine",
+      "organizationId": "clureirlh0003y56af4k7shum",
+      "listedEventId": null
+    },
+    {
+      "id": "clus65xw7000my56a1chhpuvt",
+      "amount": 2000,
+      "numberOfHoles": "Nine",
+      "organizationId": "clureirlj0005y56a6877dw4n",
+      "listedEventId": null
+    },
+    {
+      "id": "clus65xw8000qy56acak9o4l0",
+      "amount": 2500,
+      "numberOfHoles": "Eighteen",
+      "organizationId": "clureirlh0003y56af4k7shum",
+      "listedEventId": null
+    },
+    {
+      "id": "clus65xw8000ry56a37td7sq2",
+      "amount": 5000,
+      "numberOfHoles": "Eighteen",
+      "organizationId": "clureirli0004y56alt8ul85w",
+      "listedEventId": null
+    },
+    {
+      "id": "clus65xw9000sy56arqnllrhf",
+      "amount": 3000,
+      "numberOfHoles": "Eighteen",
+      "organizationId": "clureirlj0005y56a6877dw4n",
+      "listedEventId": null
+    },
+    {
+      "id": "clus65xw5000jy56anur80w7o",
+      "amount": 3000,
+      "numberOfHoles": "Nine",
+      "organizationId": "clureirlg0002y56ai8avi428",
+      "listedEventId": "clw3c4wz70000uxlpwya1kskf"
+    },
+    {
+      "id": "clus65xw7000oy56az555jaym",
+      "amount": 4500,
+      "numberOfHoles": "Eighteen",
+      "organizationId": "clureirlg0002y56ai8avi428",
+      "listedEventId": "clw3c4wz70000uxlpwya1kskf"
+    }
+  ],
+  "kitsPrices": [
+    {
+      "id": "clus5r4wi000dy56aaqp74926",
+      "amount": 1500,
+      "organizationId": "clureirlg0002y56ai8avi428",
+      "listedEventId": null
+    },
+    {
+      "id": "clus5r4wj000ey56arle27m6o",
+      "amount": 1500,
+      "organizationId": "clureirlh0003y56af4k7shum",
+      "listedEventId": null
+    },
+    {
+      "id": "clus5r4wj000fy56ado7t3885",
+      "amount": 1500,
+      "organizationId": "clureirlj0005y56a6877dw4n",
+      "listedEventId": null
+    },
+    {
+      "id": "clus5r4wj000gy56abg04844z",
+      "amount": 1500,
+      "organizationId": "clureirli0004y56alt8ul85w",
+      "listedEventId": null
+    },
+    {
+      "id": "clus5ngip000by56ax9quezoi",
+      "amount": 1500,
+      "organizationId": "clureirlf0001y56agtweh1wh",
+      "listedEventId": "clurf4zx50006y56ae2xxasaa"
+    },
+    {
+      "id": "clus5r4wi000cy56aiua0hpax",
+      "amount": 1500,
+      "organizationId": "clureirle0000y56ays09ua46",
+      "listedEventId": "clw3c4wz70000uxlpwya1kskf"
+    }
+  ],
+  "listedEvents": [
+    {
+      "id": "clurf4zx50006y56ae2xxasaa",
+      "name": "Golf and Chill",
+      "location": "Migaa Golf Club",
+      "description": "Golf and Chill: Tee off in style at our laid-back golf event. Whether you're a seasoned pro or just looking to unwind, join us for a relaxed day on the greens. Enjoy friendly competition, cool vibes, and a chance to chill with fellow golf enthusiasts. Let's swing into relaxation together!",
+      "image": "https://res.cloudinary.com/dhciks96e/image/upload/v1711667536/WhatsApp_Image_2024-03-28_at_14.54.52_ukj00y.jpg",
+      "kitPrice": 1500,
+      "startDate": "2024-05-08T20:41:43.489Z",
+      "type": "Tournament"
+    },
+    {
+      "id": "clurf4zx60007y56a0kbyez8p",
+      "name": "Meet & Greet",
+      "location": "Windsor Golf Hotel & Country Club",
+      "description": "Meet and Greet: Join us for a friendly gathering on the green. Connect with fellow golfers, network, and make new friends while enjoying a round of golf. It's the perfect opportunity to mingle, share stories, and tee up some memorable moments together.",
+      "image": "https://res.cloudinary.com/dhciks96e/image/upload/v1706864390/MicrosoftTeams-image_1_1_yzivon.png",
+      "kitPrice": 1500,
+      "startDate": "2024-05-08T20:41:43.489Z",
+      "type": "Networking"
+    },
+    {
+      "id": "clw3c4wz70000uxlpwya1kskf",
+      "name": "Entrepreneurs OPen",
+      "location": "Kigali Golf Resort and Villas",
+      "description": "Play golf and network with other entrepreneurs in the country of a thousand hills. Learn of opportunities across East Africa",
+      "image": "https://res.cloudinary.com/dhciks96e/image/upload/v1715505050/WhatsApp_Image_2024-05-12_at_11.44.32_1_mplnqo.jpg",
+      "kitPrice": 1500,
+      "startDate": "2024-10-19T20:41:43.489Z",
+      "type": "Tournament"
+    }
+  ],
+  "packageGroups": [
+    {
+      "id": "clwho8h550001mg5rnuzwflhg",
+      "name": "Default Group",
+      "listedEventId": "clurf4zx50006y56ae2xxasaa"
+    },
+    {
+      "id": "clwho8ifn0003mg5rkvm8tgk8",
+      "name": "Default Group",
+      "listedEventId": "clurf4zx60007y56a0kbyez8p"
+    },
+    {
+      "id": "clwhoitak0000xrfm7jl56vq8",
+      "name": "Hill View Hotel Kigali",
+      "listedEventId": "clw3c4wz70000uxlpwya1kskf"
+    },
+    {
+      "id": "clwhoky1g0001xrfm9nje7tob",
+      "name": "Onomo Hotel Kigali",
+      "listedEventId": "clw3c4wz70000uxlpwya1kskf"
+    },
+    {
+      "id": "clwho8jao0005mg5r1rssqmpq",
+      "name": "Urban By City Blue Hotel Kigali",
+      "listedEventId": "clw3c4wz70000uxlpwya1kskf"
+    }
+  ],
+  "packages": [
+    {
+      "id": "clurf84j80008y56ax4xokmfj",
+      "amount": "2500",
+      "price": 2500,
+      "name": "Game Only ",
+      "listedEventId": "clurf4zx50006y56ae2xxasaa",
+      "packageGroupId": "clwho8h550001mg5rnuzwflhg"
+    },
+    {
+      "id": "clurf84j9000ay56avrf9d97f",
+      "amount": "33000",
+      "price": 33000,
+      "name": "Yen Golf",
+      "listedEventId": "clurf4zx50006y56ae2xxasaa",
+      "packageGroupId": "clwho8h550001mg5rnuzwflhg"
+    },
+    {
+      "id": "clurf84j80009y56ato2kbubp",
+      "amount": "3500",
+      "price": 3500,
+      "name": "Game only ",
+      "listedEventId": "clurf4zx60007y56a0kbyez8p",
+      "packageGroupId": "clwho8ifn0003mg5rkvm8tgk8"
+    },
+    {
+      "id": "clw3cvguu0006uxlprefc5r3d",
+      "amount": "60435",
+      "price": 60435,
+      "name": "Urban Hotel Acc + Flight ",
+      "listedEventId": "clw3c4wz70000uxlpwya1kskf",
+      "packageGroupId": "clwho8jao0005mg5r1rssqmpq"
+    },
+    {
+      "id": "clw3cvgut0005uxlp3h1qrlhq",
+      "amount": "158313",
+      "price": 158313,
+      "name": "Urban Hotel Acc + Flight",
+      "listedEventId": "clw3c4wz70000uxlpwya1kskf",
+      "packageGroupId": "clwho8jao0005mg5r1rssqmpq"
+    },
+    {
+      "id": "clw3dager000buxlp4k4p034w",
+      "amount": "51895",
+      "price": 51895,
+      "name": "Urban Hotel Double Acc PPS + FLight",
+      "listedEventId": "clw3c4wz70000uxlpwya1kskf",
+      "packageGroupId": "clwho8jao0005mg5r1rssqmpq"
+    },
+    {
+      "id": "clw3dager000cuxlp0h4dt6cv",
+      "amount": "149773",
+      "price": 149773,
+      "name": "Urban Hotel Double PPS + Flight ",
+      "listedEventId": "clw3c4wz70000uxlpwya1kskf",
+      "packageGroupId": "clwho8jao0005mg5r1rssqmpq"
+    },
+    {
+      "id": "clw3cvgus0001uxlpui8si5cn",
+      "amount": "158313",
+      "price": 158313,
+      "name": "Hill View Hotel Acc + Flight",
+      "listedEventId": "clw3c4wz70000uxlpwya1kskf",
+      "packageGroupId": "clwhoitak0000xrfm7jl56vq8"
+    },
+    {
+      "id": "clw3cvgus0002uxlpkeq410og",
+      "amount": "60435",
+      "price": 60435,
+      "name": "Hill View Hotel Acc",
+      "listedEventId": "clw3c4wz70000uxlpwya1kskf",
+      "packageGroupId": "clwhoitak0000xrfm7jl56vq8"
+    },
+    {
+      "id": "clw3dagep0007uxlpro3h84ut",
+      "amount": "53866",
+      "price": 53866,
+      "name": "Hill View Hotel Double Acc PPS + Flight",
+      "listedEventId": "clw3c4wz70000uxlpwya1kskf",
+      "packageGroupId": "clwhoitak0000xrfm7jl56vq8"
+    },
+    {
+      "id": "clw3dageq0008uxlpehb0lap4",
+      "amount": "151744",
+      "price": 151744,
+      "name": "Hill View Hotel Double Acc PPS ",
+      "listedEventId": "clw3c4wz70000uxlpwya1kskf",
+      "packageGroupId": "clwhoitak0000xrfm7jl56vq8"
+    },
+    {
+      "id": "clw3cvgut0003uxlpz4qc3iya",
+      "amount": "166196",
+      "price": 166196,
+      "name": "Onomo Hotel Acc + Flight",
+      "listedEventId": "clw3c4wz70000uxlpwya1kskf",
+      "packageGroupId": "clwhoky1g0001xrfm9nje7tob"
+    },
+    {
+      "id": "clw3cvgut0004uxlpkjrwev71",
+      "amount": "68317",
+      "price": 68317,
+      "name": "Onomo Hotel Acc",
+      "listedEventId": "clw3c4wz70000uxlpwya1kskf",
+      "packageGroupId": "clwhoky1g0001xrfm9nje7tob"
+    },
+    {
+      "id": "clw3dageq0009uxlpeqzozzb3",
+      "amount": "55836",
+      "price": 55836,
+      "name": "Onomo Hotel Double Acc PPS + Flight",
+      "listedEventId": "clw3c4wz70000uxlpwya1kskf",
+      "packageGroupId": "clwhoky1g0001xrfm9nje7tob"
+    },
+    {
+      "id": "clw3dager000auxlp0v7mffq5",
+      "amount": "153715",
+      "price": 153715,
+      "name": "Onomo Hotel Double Acc PPS",
+      "listedEventId": "clw3c4wz70000uxlpwya1kskf",
+      "packageGroupId": "clwhoky1g0001xrfm9nje7tob"
+    }
+  ],
+  "partners": [
+    {
+      "id": "clw3dw586000duxlpkebtrpzg",
+      "name": "Wild at Heart",
+      "image": "https://thursd.com/storage/media/63705/Liberty-London-flower-shop-by-Nikki-Tibbles.jpg",
+      "email": "wild@wildatheart.co.ke",
+      "phone": "+254712275556",
+      "location": "Nairobi Westlands",
+      "website": "wildatheart.co.ke",
+      "description": "Wild at Heart is a charming flower shop that specializes in creating bespoke floral arrangements that capture the essence of nature's untamed beauty. With a focus on seasonal blooms and a flair for the dramatic, Wild at Heart offers everything from elegant bouquets to elaborate displays, all designed to bring a touch of wild elegance to any occasion. Whether you're seeking a simple bunch of fresh flowers or a stunning centerpiece, Wild at Heart is dedicated to crafting unique floral expressions that resonate deeply and leave a lasting impression."
+    },
+    {
+      "id": "clw3dw586000euxlp1py8j93t",
+      "name": "That Flower Shop",
+      "image": "https://thursd.com/storage/media/63707/Outside-of-that-flower-shop-by-Hattie-Fox.jpg",
+      "email": "support@thatflowershop.com",
+      "phone": "+25496937756",
+      "location": "Moi Avenue",
+      "website": "support@thatflowershop.com",
+      "description": "That Flower Shop is a delightful floral boutique known for its eclectic and vibrant arrangements that bring life and color to any space. This shop prides itself on sourcing unique and high-quality flowers, offering a wide range of options from traditional roses to exotic orchids. That Flower Shop caters to all occasions, providing personalized service to ensure that each bouquet or floral display reflects the customer's individual style and needs. Whether it's a small token of appreciation or a grand event decoration, That Flower Shop is dedicated to adding a floral touch that is as unique and memorable as its name."
+    }
+  ],
+  "leaderBoards": [
+    {
+      "id": "clw3et9un0001v9gant39f2hx",
+      "date": "2024-05-12T10:45:59.706Z"
+    }
+  ],
+  "leaderBoardPoints": [
+    {
+      "id": "clw3etaar0003v9gajb6eq35x",
+      "points": 72,
+      "leaderBoardId": "clw3et9un0001v9gant39f2hx",
+      "profileId": null,
+      "name": "Alice"
+    },
+    {
+      "id": "clw3etav20005v9ganegncdtp",
+      "points": 68,
+      "leaderBoardId": "clw3et9un0001v9gant39f2hx",
+      "profileId": null,
+      "name": "Bob"
+    },
+    {
+      "id": "clw3etb410007v9gan8a7okfm",
+      "points": 70,
+      "leaderBoardId": "clw3et9un0001v9gant39f2hx",
+      "profileId": null,
+      "name": "Charlie"
+    },
+    {
+      "id": "clw3etbbu0009v9gazhs0q42m",
+      "points": 74,
+      "leaderBoardId": "clw3et9un0001v9gant39f2hx",
+      "profileId": null,
+      "name": "David"
+    },
+    {
+      "id": "clw3etbl3000bv9gacxku5dnm",
+      "points": 69,
+      "leaderBoardId": "clw3et9un0001v9gant39f2hx",
+      "profileId": null,
+      "name": "Eva"
+    },
+    {
+      "id": "clw3etbsi000dv9gawj5r3hmj",
+      "points": 65,
+      "leaderBoardId": "clw3et9un0001v9gant39f2hx",
+      "profileId": null,
+      "name": "Fiona"
+    },
+    {
+      "id": "clw3etc02000fv9gag72spid0",
+      "points": 67,
+      "leaderBoardId": "clw3et9un0001v9gant39f2hx",
+      "profileId": null,
+      "name": "George"
+    },
+    {
+      "id": "clw3etc7q000hv9garwaf7h73",
+      "points": 71,
+      "leaderBoardId": "clw3et9un0001v9gant39f2hx",
+      "profileId": null,
+      "name": "Hannah"
+    },
+    {
+      "id": "clw3etcex000jv9gaae75c8st",
+      "points": 73,
+      "leaderBoardId": "clw3et9un0001v9gant39f2hx",
+      "profileId": null,
+      "name": "Ian"
+    },
+    {
+      "id": "clw3etcox000lv9gaggr2pfqo",
+      "points": 66,
+      "leaderBoardId": "clw3et9un0001v9gant39f2hx",
+      "profileId": null,
+      "name": "Julia"
+    }
+  ]
+}
+
+
