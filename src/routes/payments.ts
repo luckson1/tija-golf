@@ -1,21 +1,19 @@
 import express from "express";
 import {
-  encriptPayment,
-  getPaymentStatus,
+  checkPaymentStatus,
   mpesaWebHookReq,
+  sendPaymentRequest,
   updatePaymentStatusFromWebhook,
-  webHookReq,
 } from "../controllers/payments";
 
 const paymentRoute = express.Router();
 
-paymentRoute.post("/encrypt", encriptPayment);
-paymentRoute.post("/webhook", webHookReq);
 paymentRoute.post("/webhook/mpesa/:invoiceNumber", mpesaWebHookReq);
-paymentRoute.get("/status/:invoiceNumber", getPaymentStatus);
 paymentRoute.post(
   "/webhook/update/:invoiceNumber",
   updatePaymentStatusFromWebhook
 );
+paymentRoute.post("/sendPaymentRequest", sendPaymentRequest);
+paymentRoute.post("/checkPaymentStatus", checkPaymentStatus);
 
 export default paymentRoute;

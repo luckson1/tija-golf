@@ -187,7 +187,7 @@ model Membership {
   startDate   DateTime
   endDate     DateTime
   usersId     String
-  profileId   String @unique
+  profileId   String   @unique
   number      Int      @default(autoincrement())
   slug        String?
 
@@ -304,6 +304,7 @@ model Payment {
   usersId           String?
   teeId             String?
   checkoutRequestID String?
+  resultDescription String?
   invoiceNumber     String?       @unique
   listedEventId     String?
   booking           Booking?      @relation(fields: [bookingId], references: [id])
