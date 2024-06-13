@@ -360,6 +360,58 @@ export const sendPaymentRequest = async (req: Request, res: Response) => {
   }
 };
 
+export const checkpaymentStatus = async (invoiceNumber: string) => {
+  const timestamp = format(new Date(), "yyyyMMddHHmmss");
+  const payment = await prisma.payment.findUnique({
+    where: { invoiceNumber },
+    select: { checkoutRequestID: true },
+  });
+  const checkoutRequestID = payment?.checkoutRequestID;
+  if (!checkoutRequestID) return PaymentStatus.Pending;
+  const password = base64.encode(businessShortCode + passKey + timestamp);
+  const accessToken = await getBearerToken();
+
+  const response = await fetch(
+    "https://sandbox.safaricom.co.ke/mpesa/stkpushquery/v1/query",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({
+        BusinessShortCode: businessShortCode,
+        Password: password,
+        Timestamp: timestamp,
+        CheckoutRequestID: checkoutRequestID,
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    const errorMessage =
+      errorData.errorMessage || "Error occurred checking payment status";
+    console.error("Payment status check failed:", errorMessage);
+    throw new Error(errorMessage);
+  }
+  const results: PaymentStatusResponse = await response.json();
+  const status =
+    results.ResultCode === "0" || results.ResultCode === 0
+      ? PaymentStatus.Completed
+      : PaymentStatus.Failed;
+  await prisma.payment.update({
+    where: {
+      invoiceNumber,
+    },
+    data: {
+      status,
+      resultDescription: results.ResultDesc,
+    },
+  });
+  return status;
+};
+
 /**
  * @swagger
  * /api/payments/check:
@@ -392,7 +444,10 @@ export const sendPaymentRequest = async (req: Request, res: Response) => {
  *       500:
  *         description: Internal server error
  */
-export const checkPaymentStatus = async (req: Request, res: Response) => {
+export const checkPaymentStatusController = async (
+  req: Request,
+  res: Response
+) => {
   try {
     const token = req.headers.authorization;
     if (!token) return res.status(403).send("Forbidden");
@@ -406,55 +461,7 @@ export const checkPaymentStatus = async (req: Request, res: Response) => {
     }
 
     const { invoiceNumber } = parsedBody.data;
-    const timestamp = format(new Date(), "yyyyMMddHHmmss");
-    const payment = await prisma.payment.findUnique({
-      where: { invoiceNumber },
-      select: { checkoutRequestID: true },
-    });
-    const checkoutRequestID = payment?.checkoutRequestID;
-    if (!checkoutRequestID)
-      return res.status(200).json({ status: PaymentStatus.Pending });
-    const password = base64.encode(businessShortCode + passKey + timestamp);
-    const accessToken = await getBearerToken();
-
-    const response = await fetch(
-      "https://sandbox.safaricom.co.ke/mpesa/stkpushquery/v1/query",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({
-          BusinessShortCode: businessShortCode,
-          Password: password,
-          Timestamp: timestamp,
-          CheckoutRequestID: checkoutRequestID,
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      const errorMessage =
-        errorData.errorMessage || "Error occurred checking payment status";
-      console.error("Payment status check failed:", errorMessage);
-      throw new Error(errorMessage);
-    }
-    const results: PaymentStatusResponse = await response.json();
-    const status =
-      results.ResultCode === "0" || results.ResultCode === 0
-        ? PaymentStatus.Completed
-        : PaymentStatus.Failed;
-    await prisma.payment.update({
-      where: {
-        invoiceNumber,
-      },
-      data: {
-        status,
-        resultDescription: results.ResultDesc,
-      },
-    });
+    const status = await checkpaymentStatus(invoiceNumber);
     return res.status(200).json({ status });
   } catch (error) {
     console.error("Error checking payment status:", error);
