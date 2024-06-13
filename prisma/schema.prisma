@@ -305,6 +305,7 @@ model Payment {
   teeId             String?
   checkoutRequestID String?
   resultDescription String?
+  paymentCode       String?
   invoiceNumber     String?       @unique
   listedEventId     String?
   booking           Booking?      @relation(fields: [bookingId], references: [id])
