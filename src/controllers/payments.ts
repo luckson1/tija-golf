@@ -249,6 +249,11 @@ const checkPaymentStatusSchema = z.object({
   invoiceNumber: z.string(),
 });
 
+const provideCodeSchema = z.object({
+  paymentCode: z.string(),
+  invoiceNumber: z.string(),
+});
+
 /**
  * @swagger
  * /api/payments/send:
@@ -463,6 +468,31 @@ export const checkPaymentStatusController = async (
     const { invoiceNumber } = parsedBody.data;
     const status = await checkpaymentStatus(invoiceNumber);
     return res.status(200).json({ status });
+  } catch (error) {
+    console.error("Error checking payment status:", error);
+    return res.status(500).send(error);
+  }
+};
+
+export const provideCode = async (req: Request, res: Response) => {
+  try {
+    const token = req.headers.authorization;
+    if (!token) return res.status(403).send("Forbidden");
+    const userId = await getUser(token);
+    if (!userId) return res.status(401).send("Unauthorized");
+
+    // Validate request body
+    const parsedBody = provideCodeSchema.safeParse(req.body);
+    if (!parsedBody.success) {
+      return res.status(400).json(parsedBody.error.errors);
+    }
+
+    const { paymentCode, invoiceNumber } = parsedBody.data;
+    const status = await prisma.payment.update({
+      where: { invoiceNumber },
+      data: { paymentCode },
+    });
+    return res.status(200);
   } catch (error) {
     console.error("Error checking payment status:", error);
     return res.status(500).send(error);
