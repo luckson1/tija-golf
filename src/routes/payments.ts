@@ -2,6 +2,7 @@ import express from "express";
 import {
   checkPaymentStatusController,
   mpesaWebHookReq,
+  provideCode,
   sendPaymentRequest,
   updatePaymentStatusFromWebhook,
 } from "../controllers/payments";
@@ -15,5 +16,6 @@ paymentRoute.post(
 );
 paymentRoute.post("/sendPaymentRequest", sendPaymentRequest);
 paymentRoute.post("/checkPaymentStatus", checkPaymentStatusController);
+paymentRoute.post("/code", provideCode);
 
 export default paymentRoute;

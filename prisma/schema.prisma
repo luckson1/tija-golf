@@ -433,6 +433,7 @@ enum PaymentStatus {
   Received
   Rejected
   Accepted
+  In_Review
 
   @@schema("auth")
 }
