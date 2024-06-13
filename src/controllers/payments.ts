@@ -474,6 +474,37 @@ export const checkPaymentStatusController = async (
   }
 };
 
+/**
+ * @swagger
+ * /code:
+ *   post:
+ *     summary: Provide payment code for an invoice
+ *     tags: [Payments]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               paymentCode:
+ *                 type: string
+ *               invoiceNumber:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Payment code provided successfully
+ *       400:
+ *         description: Bad request
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       500:
+ *         description: Internal server error
+ */
 export const provideCode = async (req: Request, res: Response) => {
   try {
     const token = req.headers.authorization;
@@ -488,10 +519,11 @@ export const provideCode = async (req: Request, res: Response) => {
     }
 
     const { paymentCode, invoiceNumber } = parsedBody.data;
-    const status = await prisma.payment.update({
+    await prisma.payment.update({
       where: { invoiceNumber },
-      data: { paymentCode },
+      data: { paymentCode, status: "In_Review" },
     });
+
     return res.status(200);
   } catch (error) {
     console.error("Error checking payment status:", error);
