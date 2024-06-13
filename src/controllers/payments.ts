@@ -358,63 +358,99 @@ export const sendPaymentRequest = async (req: Request, res: Response) => {
       update: paymentData,
       create: paymentData,
     });
-    return res.status(200).json({ status: "Pending" });
+    const status = await checkpaymentStatus(
+      invoiceNumber,
+      results.CheckoutRequestID
+    );
+    return res.status(200).json({ status });
   } catch (error) {
     console.error("Error sending payment request:", error);
     return res.status(500).send(error);
   }
 };
 
-export const checkpaymentStatus = async (invoiceNumber: string) => {
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+export const checkpaymentStatus = async (
+  invoiceNumber: string,
+  id?: string
+) => {
   const timestamp = format(new Date(), "yyyyMMddHHmmss");
-  const payment = await prisma.payment.findUnique({
-    where: { invoiceNumber },
-    select: { checkoutRequestID: true },
-  });
-  const checkoutRequestID = payment?.checkoutRequestID;
-  if (!checkoutRequestID) return PaymentStatus.Pending;
+  let checkoutRequestID;
+  if (id) {
+    checkoutRequestID = id;
+  } else {
+    const payment = await prisma.payment.findUnique({
+      where: { invoiceNumber },
+      select: { checkoutRequestID: true },
+    });
+    checkoutRequestID = payment?.checkoutRequestID;
+  }
+
   const password = base64.encode(businessShortCode + passKey + timestamp);
   const accessToken = await getBearerToken();
 
-  const response = await fetch(
-    "https://sandbox.safaricom.co.ke/mpesa/stkpushquery/v1/query",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
-      body: JSON.stringify({
-        BusinessShortCode: businessShortCode,
-        Password: password,
-        Timestamp: timestamp,
-        CheckoutRequestID: checkoutRequestID,
-      }),
-    }
-  );
+  const fetchPaymentStatus = async () => {
+    const response = await fetch(
+      "https://sandbox.safaricom.co.ke/mpesa/stkpushquery/v1/query",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          BusinessShortCode: businessShortCode,
+          Password: password,
+          Timestamp: timestamp,
+          CheckoutRequestID: checkoutRequestID,
+        }),
+      }
+    );
 
-  if (!response.ok) {
-    const errorData = await response.json();
-    const errorMessage =
-      errorData.errorMessage || "Error occurred checking payment status";
-    console.error("Payment status check failed:", errorMessage);
-    throw new Error(errorMessage);
+    if (!response.ok) {
+      const errorData = await response.json();
+      const errorMessage =
+        errorData.errorMessage || "Error occurred checking payment status";
+      console.error("Payment status check failed:", errorMessage);
+      throw new Error(errorMessage);
+    }
+
+    return response.json();
+  };
+
+  let attempts = 0;
+  while (attempts < 3) {
+    try {
+      const results: PaymentStatusResponse = await fetchPaymentStatus();
+      const status =
+        results.ResultCode === "0" || results.ResultCode === 0
+          ? PaymentStatus.Completed
+          : PaymentStatus.Failed;
+      await prisma.payment.update({
+        where: {
+          invoiceNumber,
+        },
+        data: {
+          status,
+          resultDescription: results.ResultDesc,
+        },
+      });
+      return status;
+    } catch (error) {
+      attempts++;
+      if (attempts < 3) {
+        console.log(`Retrying... (${attempts}/3)`);
+        await delay(20000); // 20 seconds delay
+      } else {
+        console.error(
+          "Max retries reached. Error checking payment status:",
+          error
+        );
+        throw error;
+      }
+    }
   }
-  const results: PaymentStatusResponse = await response.json();
-  const status =
-    results.ResultCode === "0" || results.ResultCode === 0
-      ? PaymentStatus.Completed
-      : PaymentStatus.Failed;
-  await prisma.payment.update({
-    where: {
-      invoiceNumber,
-    },
-    data: {
-      status,
-      resultDescription: results.ResultDesc,
-    },
-  });
-  return status;
 };
 
 /**
