@@ -319,7 +319,11 @@ export const updatePaymentStatusFromWebhook = async (
   try {
     // Assuming the body of the request is the WebhookResponse
     const webhookResponse: WebhookResponse = req.body;
-    console.log(webhookResponse);
+await  prisma.webhookJson.create({
+  data: {
+    body:webhookResponse as any
+  }
+})
     const invoiceNumber = req.params.invoiceNumber;
     // Extract necessary data from the webhook response
 
