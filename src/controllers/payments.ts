@@ -309,7 +309,7 @@ export const sendPaymentRequest = async (req: Request, res: Response) => {
 
     const { amount, partyA, phoneNumber, transactionDesc, invoiceNumber } =
       parsedBody.data;
-
+    console.log(parsedBody.data);
     const timestamp = format(new Date(), "yyyyMMddHHmmss");
     const password = base64.encode(businessShortCode + passKey + timestamp);
     const accessToken = await getBearerToken();
@@ -343,7 +343,7 @@ export const sendPaymentRequest = async (req: Request, res: Response) => {
       const errorData = await response.json();
       const errorMessage =
         errorData.errorMessage || "Error occurred initializing payment";
-      console.error("Payment initialization failed:", errorMessage);
+      console.log("Payment initialization failed:", errorMessage);
       throw new Error(errorMessage);
     }
 
@@ -353,6 +353,7 @@ export const sendPaymentRequest = async (req: Request, res: Response) => {
       amount: Number(amount),
       checkoutRequestID: results.CheckoutRequestID,
     };
+    console.log(results);
     await prisma.payment.upsert({
       where: { invoiceNumber },
       update: paymentData,
