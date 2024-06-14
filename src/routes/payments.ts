@@ -14,8 +14,8 @@ paymentRoute.post(
   "/webhook/update/:invoiceNumber",
   updatePaymentStatusFromWebhook
 );
-paymentRoute.post("/sendPaymentRequest", sendPaymentRequest);
-paymentRoute.post("/checkPaymentStatus", checkPaymentStatusController);
+paymentRoute.post("/send", sendPaymentRequest);
+paymentRoute.post("/check", checkPaymentStatusController);
 paymentRoute.post("/code", provideCode);
 
 export default paymentRoute;
