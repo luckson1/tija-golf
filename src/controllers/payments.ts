@@ -377,6 +377,7 @@ export const checkpaymentStatus = async (
 ) => {
   const timestamp = format(new Date(), "yyyyMMddHHmmss");
   let checkoutRequestID: string | null | undefined;
+
   if (id) {
     checkoutRequestID = id;
   } else {
@@ -436,6 +437,7 @@ export const checkpaymentStatus = async (
           resultDescription: results.ResultDesc,
         },
       });
+
       return status;
     } catch (error) {
       attempts++;
