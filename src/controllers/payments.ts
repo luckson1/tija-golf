@@ -309,7 +309,7 @@ export const sendPaymentRequest = async (req: Request, res: Response) => {
 
     const { amount, partyA, phoneNumber, transactionDesc, invoiceNumber } =
       parsedBody.data;
-    console.log(parsedBody.data);
+
     const timestamp = format(new Date(), "yyyyMMddHHmmss");
     const password = base64.encode(businessShortCode + passKey + timestamp);
     const accessToken = await getBearerToken();
@@ -353,17 +353,34 @@ export const sendPaymentRequest = async (req: Request, res: Response) => {
       amount: Number(amount),
       checkoutRequestID: results.CheckoutRequestID,
     };
-    console.log(results);
+
     await prisma.payment.upsert({
       where: { invoiceNumber },
       update: paymentData,
       create: paymentData,
     });
+
     await delay(20000);
     const status = await checkpaymentStatus(
       invoiceNumber,
       results.CheckoutRequestID
     );
+
+    await prisma.payment.update({
+      where: { invoiceNumber },
+      data: { status },
+    });
+    if (invoiceNumber.startsWith("C")) {
+      await prisma.cart.update({
+        where: { slug: invoiceNumber },
+        data: { status },
+      });
+    } else {
+      await prisma.booking.update({
+        where: { slug: invoiceNumber },
+        data: { status },
+      });
+    }
     return res.status(200).json({ status });
   } catch (error) {
     console.error("Error sending payment request:", error);
@@ -563,7 +580,17 @@ export const provideCode = async (req: Request, res: Response) => {
       where: { invoiceNumber },
       data: { paymentCode, status: "In_Review" },
     });
-
+    if (invoiceNumber.startsWith("C")) {
+      await prisma.cart.update({
+        where: { slug: invoiceNumber },
+        data: { status: "In_Review" },
+      });
+    } else {
+      await prisma.booking.update({
+        where: { slug: invoiceNumber },
+        data: { status: "In_Review" },
+      });
+    }
     return res.status(200);
   } catch (error) {
     console.error("Error checking payment status:", error);
