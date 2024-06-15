@@ -97,7 +97,7 @@ model Cart {
   slug      String?        @unique
   cartRef   Int            @default(autoincrement())
   total     Float          @default(0)
-  status    BookingStatus  @default(Pending)
+  status    PaymentStatus  @default(Pending)
 
   // ... other fields
   @@schema("auth")
