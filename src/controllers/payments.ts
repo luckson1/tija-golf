@@ -395,8 +395,9 @@ export const checkpaymentStatus = async (
 
   const password = base64.encode(businessShortCode + passKey + timestamp);
   const accessToken = await getBearerToken();
-  console.log(checkoutRequestID);
+
   const fetchPaymentStatus = async () => {
+    console.log(checkoutRequestID);
     const response = await fetch(
       "https://sandbox.safaricom.co.ke/mpesa/stkpushquery/v1/query",
       {
@@ -458,7 +459,7 @@ export const checkpaymentStatus = async (
       attempts++;
       if (attempts < 4) {
         console.log(`Retrying... (${attempts}/4)`);
-        await delay(20000 / attempts); //
+        await delay(16000 / attempts); //
       } else {
         console.error(
           "Max retries reached. Error checking payment status:",
