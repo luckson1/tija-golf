@@ -361,7 +361,7 @@ export const sendPaymentRequest = async (req: Request, res: Response) => {
     });
 
     await delay(30000);
-    console.log(results.CheckoutRequestID);
+
     const status = await checkpaymentStatus(
       invoiceNumber,
       results.CheckoutRequestID
@@ -395,7 +395,7 @@ export const checkpaymentStatus = async (
 
   const password = base64.encode(businessShortCode + passKey + timestamp);
   const accessToken = await getBearerToken();
-
+  console.log(checkoutRequestID);
   const fetchPaymentStatus = async () => {
     const response = await fetch(
       "https://sandbox.safaricom.co.ke/mpesa/stkpushquery/v1/query",
