@@ -526,7 +526,7 @@ export const checkPaymentStatusController = async (
 
 /**
  * @swagger
- * /code:
+ * /api/payments/code:
  *   post:
  *     summary: Provide payment code for an invoice
  *     tags: [Payments]
