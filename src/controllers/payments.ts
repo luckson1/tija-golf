@@ -360,7 +360,7 @@ export const sendPaymentRequest = async (req: Request, res: Response) => {
       create: paymentData,
     });
 
-    await delay(20000);
+    await delay(30000);
     console.log(results.CheckoutRequestID);
     const status = await checkpaymentStatus(
       invoiceNumber,
@@ -460,9 +460,9 @@ export const checkpaymentStatus = async (
       return status;
     } catch (error) {
       attempts++;
-      if (attempts < 3) {
+      if (attempts < 4) {
         console.log(`Retrying... (${attempts}/4)`);
-        await delay(30000 / attempts); //
+        await delay(20000 / attempts); //
       } else {
         console.error(
           "Max retries reached. Error checking payment status:",
