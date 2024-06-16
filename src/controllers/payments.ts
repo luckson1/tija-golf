@@ -569,6 +569,7 @@ export const provideCode = async (req: Request, res: Response) => {
     }
 
     const { paymentCode, invoiceNumber } = parsedBody.data;
+    console.log(paymentCode);
     const status = "In_Review";
     await prisma.$transaction([
       prisma.payment.update({
