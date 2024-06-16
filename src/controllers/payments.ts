@@ -577,6 +577,7 @@ export const provideCode = async (req: Request, res: Response) => {
         },
         data: {
           status,
+          paymentCode,
         },
       }),
       invoiceNumber.startsWith("C")
