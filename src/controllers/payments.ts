@@ -476,21 +476,19 @@ export const checkpaymentStatus = async (
 
 /**
  * @swagger
- * /api/payments/check:
+ * /api/payments/check/{invoiceNumber}:
  *   post:
  *     summary: Check payment status
  *     tags: [Payments]
  *     security:
  *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               invoiceNumber:
- *                 type: string
+ *     parameters:
+ *       - in: path
+ *         name: invoiceNumber
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The invoice number of the payment
  *     responses:
  *       200:
  *         description: Payment status checked successfully
@@ -516,13 +514,11 @@ export const checkPaymentStatusController = async (
     const userId = await getUser(token);
     if (!userId) return res.status(401).send("Unauthorized");
 
-    // Validate request body
-    const parsedBody = checkPaymentStatusSchema.safeParse(req.body);
-    if (!parsedBody.success) {
-      return res.status(400).json(parsedBody.error.errors);
+    // Get invoice number from request path parameters
+    const { invoiceNumber } = req.params;
+    if (!invoiceNumber) {
+      return res.status(400).send("Invoice number is required");
     }
-
-    const { invoiceNumber } = parsedBody.data;
     const status = await checkpaymentStatus(invoiceNumber);
     return res.status(200).json({ status });
   } catch (error) {
