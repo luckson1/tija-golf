@@ -569,21 +569,26 @@ export const provideCode = async (req: Request, res: Response) => {
     }
 
     const { paymentCode, invoiceNumber } = parsedBody.data;
-    await prisma.payment.update({
-      where: { invoiceNumber },
-      data: { paymentCode, status: "In_Review" },
-    });
-    if (invoiceNumber.startsWith("C")) {
-      await prisma.cart.update({
-        where: { slug: invoiceNumber },
-        data: { status: "In_Review" },
-      });
-    } else {
-      await prisma.booking.update({
-        where: { slug: invoiceNumber },
-        data: { status: "In_Review" },
-      });
-    }
+    const status = "In_Review";
+    await prisma.$transaction([
+      prisma.payment.update({
+        where: {
+          invoiceNumber,
+        },
+        data: {
+          status,
+        },
+      }),
+      invoiceNumber.startsWith("C")
+        ? prisma.cart.update({
+            where: { slug: invoiceNumber },
+            data: { status },
+          })
+        : prisma.booking.update({
+            where: { slug: invoiceNumber },
+            data: { status },
+          }),
+    ]);
     return res.status(200);
   } catch (error) {
     console.error("Error checking payment status:", error);
