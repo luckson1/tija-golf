@@ -366,21 +366,7 @@ export const sendPaymentRequest = async (req: Request, res: Response) => {
       invoiceNumber,
       results.CheckoutRequestID
     );
-    await prisma.$transaction([
-      prisma.payment.update({
-        where: { invoiceNumber },
-        data: { status },
-      }),
-      invoiceNumber.startsWith("C")
-        ? prisma.cart.update({
-            where: { slug: invoiceNumber },
-            data: { status },
-          })
-        : prisma.booking.update({
-            where: { slug: invoiceNumber },
-            data: { status },
-          }),
-    ]);
+
     return res.status(200).json({ status });
   } catch (error) {
     console.error("Error sending payment request:", error);
@@ -447,16 +433,26 @@ export const checkpaymentStatus = async (
         results.ResultCode === "0" || results.ResultCode === 0
           ? PaymentStatus.Completed
           : PaymentStatus.Failed;
-      await prisma.payment.update({
-        where: {
-          invoiceNumber,
-        },
-        data: {
-          status,
-          resultDescription: results.ResultDesc,
-        },
-      });
-
+      await prisma.$transaction([
+        prisma.payment.update({
+          where: {
+            invoiceNumber,
+          },
+          data: {
+            status,
+            resultDescription: results.ResultDesc,
+          },
+        }),
+        invoiceNumber.startsWith("C")
+          ? prisma.cart.update({
+              where: { slug: invoiceNumber },
+              data: { status },
+            })
+          : prisma.booking.update({
+              where: { slug: invoiceNumber },
+              data: { status },
+            }),
+      ]);
       return status;
     } catch (error) {
       attempts++;
