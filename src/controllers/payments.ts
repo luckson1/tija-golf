@@ -361,26 +361,26 @@ export const sendPaymentRequest = async (req: Request, res: Response) => {
     });
 
     await delay(20000);
+    console.log(results.CheckoutRequestID);
     const status = await checkpaymentStatus(
       invoiceNumber,
       results.CheckoutRequestID
     );
-
-    await prisma.payment.update({
-      where: { invoiceNumber },
-      data: { status },
-    });
-    if (invoiceNumber.startsWith("C")) {
-      await prisma.cart.update({
-        where: { slug: invoiceNumber },
+    await prisma.$transaction([
+      prisma.payment.update({
+        where: { invoiceNumber },
         data: { status },
-      });
-    } else {
-      await prisma.booking.update({
-        where: { slug: invoiceNumber },
-        data: { status },
-      });
-    }
+      }),
+      invoiceNumber.startsWith("C")
+        ? prisma.cart.update({
+            where: { slug: invoiceNumber },
+            data: { status },
+          })
+        : prisma.booking.update({
+            where: { slug: invoiceNumber },
+            data: { status },
+          }),
+    ]);
     return res.status(200).json({ status });
   } catch (error) {
     console.error("Error sending payment request:", error);
@@ -440,7 +440,7 @@ export const checkpaymentStatus = async (
   };
 
   let attempts = 0;
-  while (attempts < 3) {
+  while (attempts < 4) {
     try {
       const results: PaymentStatusResponse = await fetchPaymentStatus();
       const status =
@@ -461,8 +461,8 @@ export const checkpaymentStatus = async (
     } catch (error) {
       attempts++;
       if (attempts < 3) {
-        console.log(`Retrying... (${attempts}/3)`);
-        await delay(15000); // 20 seconds delay
+        console.log(`Retrying... (${attempts}/4)`);
+        await delay(30000 / attempts); //
       } else {
         console.error(
           "Max retries reached. Error checking payment status:",
