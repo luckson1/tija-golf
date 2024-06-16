@@ -309,7 +309,7 @@ export const sendPaymentRequest = async (req: Request, res: Response) => {
 
     const { amount, partyA, phoneNumber, transactionDesc, invoiceNumber } =
       parsedBody.data;
-
+    console.log(req.body);
     const timestamp = format(new Date(), "yyyyMMddHHmmss");
     const password = base64.encode(businessShortCode + passKey + timestamp);
     const accessToken = await getBearerToken();
