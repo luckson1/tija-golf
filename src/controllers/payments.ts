@@ -591,7 +591,7 @@ export const provideCode = async (req: Request, res: Response) => {
             data: { status },
           }),
     ]);
-    return res.status(200);
+    return res.status(200).json({ status });
   } catch (error) {
     console.error("Error checking payment status:", error);
     return res.status(500).send(error);
