@@ -223,7 +223,7 @@ const getBearerToken = async () => {
         },
       }
     );
-
+    console.log(JSON.stringify(response));
     if (response.status !== 200) {
       console.log(JSON.stringify(response));
     }
