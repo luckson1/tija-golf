@@ -225,7 +225,7 @@ const getBearerToken = async () => {
     );
 
     if (response.status !== 200) {
-      throw new Error("Something went wrong");
+      console.log(JSON.stringify(response));
     }
 
     const data = await response.json();
@@ -296,6 +296,11 @@ const provideCodeSchema = z.object({
  */
 export const sendPaymentRequest = async (req: Request, res: Response) => {
   try {
+    const token = req.headers.authorization;
+    if (!token) return res.status(403).send("Forbidden");
+    const userId = await getUser(token);
+    if (!userId) return res.status(401).send("Unauthorized");
+
     // Validate request body
     const parsedBody = sendPaymentRequestSchema.safeParse(req.body);
     if (!parsedBody.success) {
@@ -501,6 +506,11 @@ export const checkPaymentStatusController = async (
   res: Response
 ) => {
   try {
+    const token = req.headers.authorization;
+    if (!token) return res.status(403).send("Forbidden");
+    const userId = await getUser(token);
+    if (!userId) return res.status(401).send("Unauthorized");
+
     // Get invoice number from request path parameters
     const { invoiceNumber } = req.params;
     if (!invoiceNumber) {
@@ -547,6 +557,11 @@ export const checkPaymentStatusController = async (
  */
 export const provideCode = async (req: Request, res: Response) => {
   try {
+    const token = req.headers.authorization;
+    if (!token) return res.status(403).send("Forbidden");
+    const userId = await getUser(token);
+    if (!userId) return res.status(401).send("Unauthorized");
+
     // Validate request body
     const parsedBody = provideCodeSchema.safeParse(req.body);
     if (!parsedBody.success) {
