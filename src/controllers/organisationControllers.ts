@@ -54,6 +54,11 @@ const organizationSchema = z.object({
  *                     type: integer
  *                   teePrice:
  *                     type: number
+ *       openHours:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Array of open hours
  *       401:
  *         description: Unauthorized
  *       403:
