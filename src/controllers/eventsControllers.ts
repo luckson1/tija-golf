@@ -63,6 +63,11 @@ const prisma = new PrismaClient();
  *                 type: string
  *                 enum: ["9 holes", "18 holes"]
  *                 description: Number of holes
+ *               openHours:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Array of open hours
  *               kit:
  *                 type: string
  *                 enum: ["Yes", "No"]
