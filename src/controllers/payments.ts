@@ -211,10 +211,9 @@ export const updatePaymentStatusFromWebhook = async (
 
 const getBearerToken = async () => {
   try {
-    console.log(consumerKey, consumerSecret);
     const buffer = Buffer.from(`${consumerKey}:${consumerSecret}`);
     const auth = `Basic ${buffer.toString("base64")}`;
-
+    console.log("auth", auth);
     const response = await fetch(
       "https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials",
       {
