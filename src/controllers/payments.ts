@@ -223,7 +223,7 @@ const getBearerToken = async () => {
         },
       }
     );
-    console.log(JSON.stringify(response));
+
     if (response.status !== 200) {
       console.log(JSON.stringify(response));
     }
@@ -309,7 +309,7 @@ export const sendPaymentRequest = async (req: Request, res: Response) => {
 
     const { amount, partyA, phoneNumber, transactionDesc, invoiceNumber } =
       parsedBody.data;
-    console.log(req.body);
+
     const timestamp = format(new Date(), "yyyyMMddHHmmss");
     const password = base64.encode(businessShortCode + passKey + timestamp);
     const accessToken = await getBearerToken();
@@ -339,11 +339,14 @@ export const sendPaymentRequest = async (req: Request, res: Response) => {
       }
     );
 
-    if (!response.ok) {
+    if (response.status !== 200) {
       const errorData = await response.json();
       const errorMessage =
         errorData.errorMessage || "Error occurred initializing payment";
       console.log("Payment initialization failed:", errorMessage);
+
+      console.log(JSON.stringify(response));
+
       throw new Error(errorMessage);
     }
 
