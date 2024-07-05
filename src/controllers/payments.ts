@@ -224,7 +224,8 @@ const getBearerToken = async () => {
       }
     );
 
-    console.log(JSON.stringify(response));
+    const c = await response.json();
+    console.log(JSON.stringify(c));
 
     const { access_token } = await response.json();
     return access_token;
