@@ -224,10 +224,11 @@ const getBearerToken = async () => {
       }
     );
 
-    const c = await response.json();
-    console.log(JSON.stringify(c));
+    const responseText = await response.text();
+    console.log("Response Text:", responseText);
 
     const { access_token } = await response.json();
+    console.log(access_token);
     return access_token;
   } catch (error) {
     console.error("Error fetching bearer token:", error);
