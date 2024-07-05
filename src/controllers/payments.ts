@@ -211,6 +211,7 @@ export const updatePaymentStatusFromWebhook = async (
 
 const getBearerToken = async () => {
   try {
+    console.log(consumerKey, consumerSecret);
     const buffer = Buffer.from(`${consumerKey}:${consumerSecret}`);
     const auth = `Basic ${buffer.toString("base64")}`;
 
