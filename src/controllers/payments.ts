@@ -211,27 +211,23 @@ export const updatePaymentStatusFromWebhook = async (
 
 const getBearerToken = async () => {
   try {
-    console.log(consumerKey, consumerSecret);
-    const buffer = Buffer.from(`${consumerKey}:${consumerSecret}`);
-    const auth = `Basic ${buffer.toString("base64")}`;
+    const credentials = `${consumerKey}:${consumerSecret}`;
+    const encodedCredentials = Buffer.from(credentials).toString("base64");
+    const authHeader = `Basic ${encodedCredentials}`;
 
     const response = await fetch(
       "https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials",
       {
         method: "GET",
         headers: {
-          Authorization: auth,
+          Authorization: authHeader,
         },
       }
     );
 
-    console.log(JSON.stringify(response));
-    // if (response.status !== 200) {
-    //   console.log(JSON.stringify(response));
-    // }
+    console.log(response.text);
 
-    const data = await response.json();
-    return data.access_token;
+    return response.text;
   } catch (error) {
     console.error("Error fetching bearer token:", error);
     throw error;
