@@ -213,7 +213,7 @@ const getBearerToken = async () => {
   try {
     const buffer = Buffer.from(`${consumerKey}:${consumerSecret}`);
     const auth = `Basic ${buffer.toString("base64")}`;
-    console.log("auth", auth);
+
     const response = await fetch(
       "https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials",
       {
@@ -224,12 +224,10 @@ const getBearerToken = async () => {
       }
     );
 
-    const responseText = await response.text();
-    console.log("Response Text:", responseText);
+    const data = await response.json();
+    const accessToken = data.access_token;
 
-    const { access_token } = await response.json();
-    console.log(access_token);
-    return access_token;
+    return accessToken;
   } catch (error) {
     console.error("Error fetching bearer token:", error);
     throw error;
