@@ -374,7 +374,8 @@ export const sendPaymentRequest = async (req: Request, res: Response) => {
 
     const status = await checkpaymentStatus(
       invoiceNumber,
-      results.CheckoutRequestID
+      results.CheckoutRequestID,
+      accessToken
     );
 
     return res.status(200).json({ status });
@@ -388,7 +389,8 @@ const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export const checkpaymentStatus = async (
   invoiceNumber: string,
-  id?: string
+  id?: string,
+  accessToken?: string
 ) => {
   const timestamp = format(new Date(), "yyyyMMddHHmmss");
   let checkoutRequestID: string | null | undefined;
@@ -404,7 +406,7 @@ export const checkpaymentStatus = async (
   }
 
   const password = base64.encode(businessShortCode + passKey + timestamp);
-  const accessToken = await getBearerToken();
+  // const accessToken = await getBearerToken();
 
   const fetchPaymentStatus = async () => {
     console.log(checkoutRequestID);
