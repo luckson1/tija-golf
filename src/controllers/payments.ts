@@ -243,6 +243,7 @@ const sendPaymentRequestSchema = z.object({
   phoneNumber: z.number(),
   transactionDesc: z.string(),
   invoiceNumber: z.string(),
+  accessToken: z.string(),
 });
 
 const checkPaymentStatusSchema = z.object({
@@ -307,12 +308,18 @@ export const sendPaymentRequest = async (req: Request, res: Response) => {
       return res.status(400).json(parsedBody.error.errors);
     }
 
-    const { amount, partyA, phoneNumber, transactionDesc, invoiceNumber } =
-      parsedBody.data;
+    const {
+      amount,
+      partyA,
+      phoneNumber,
+      transactionDesc,
+      invoiceNumber,
+      accessToken,
+    } = parsedBody.data;
 
     const timestamp = format(new Date(), "yyyyMMddHHmmss");
     const password = base64.encode(businessShortCode + passKey + timestamp);
-    const accessToken = await getBearerToken();
+    // const accessToken = await getBearerToken();
     const callBackUrl = `${backendBaseUrl}/api/payments/webhook/mpesa/${invoiceNumber}`;
 
     const response = await fetch(
