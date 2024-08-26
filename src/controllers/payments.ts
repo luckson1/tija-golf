@@ -211,11 +211,12 @@ export const updatePaymentStatusFromWebhook = async (
 
 const getBearerToken = async () => {
   try {
+    // Encode the consumer key and secret
     const buffer = Buffer.from(`${consumerKey}:${consumerSecret}`);
     const auth = `Basic ${buffer.toString("base64")}`;
 
     const response = await fetch(
-      "https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials",
+      "https://api.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials",
       {
         method: "GET",
         headers: {
@@ -224,9 +225,14 @@ const getBearerToken = async () => {
       }
     );
 
+    if (response.status !== 200) {
+      throw new Error("Something went wrong");
+    }
+
     const data = await response.json();
     const accessToken = data.access_token;
-
+    const expiresIn = data.expires_in;
+    console.log(data, accessToken);
     return accessToken;
   } catch (error) {
     console.error("Error fetching bearer token:", error);
@@ -321,7 +327,7 @@ export const sendPaymentRequest = async (req: Request, res: Response) => {
     const callBackUrl = `${backendBaseUrl}/api/payments/webhook/mpesa/${invoiceNumber}`;
 
     const response = await fetch(
-      "https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest",
+      "https://api.safaricom.co.ke/mpesa/stkpush/v1/processrequest",
       {
         method: "POST",
         headers: {
@@ -409,7 +415,7 @@ export const checkpaymentStatus = async (
   const fetchPaymentStatus = async () => {
     console.log(checkoutRequestID);
     const response = await fetch(
-      "https://sandbox.safaricom.co.ke/mpesa/stkpushquery/v1/query",
+      "https://api.safaricom.co.ke/mpesa/stkpushquery/v1/query",
       {
         method: "POST",
         headers: {
