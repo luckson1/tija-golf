@@ -4,6 +4,7 @@ import { PaymentStatus, PrismaClient } from "@prisma/client";
 import base64 from "base-64"; // Ensure you have base-64 installed
 import { getUser } from "../utils";
 import { format } from "date-fns";
+import { Redis } from "ioredis";
 // Adjust the path as necessary
 
 interface WebhookResponse {
@@ -211,10 +212,21 @@ export const updatePaymentStatusFromWebhook = async (
 
 const getBearerToken = async () => {
   try {
-    // Encode the consumer key and secret
+    const redis = new Redis(process.env.REDIS_URL ?? "");
+    const cacheKey = `bearerToken`;
+
+    // Try to get the access token from Redis cache
+    const cachedAccessToken = await redis.get(cacheKey);
+    if (cachedAccessToken) {
+      console.log("Returning cached access token");
+      return cachedAccessToken;
+    }
+
+    // Encode the consumer key and secret for authentication
     const buffer = Buffer.from(`${consumerKey}:${consumerSecret}`);
     const auth = `Basic ${buffer.toString("base64")}`;
 
+    // Request a new access token from the API
     const response = await fetch(
       "https://api.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials",
       {
@@ -226,13 +238,17 @@ const getBearerToken = async () => {
     );
 
     if (response.status !== 200) {
-      throw new Error("Something went wrong");
+      throw new Error("Failed to fetch bearer token");
     }
 
     const data = await response.json();
-    const accessToken = data.access_token;
-    const expiresIn = data.expires_in;
-    console.log(data, accessToken);
+    const accessToken: string = data.access_token;
+    const expiresIn = Number(data.expires_in) || 3599; // Default to 1 hour if not provided
+
+    // Cache the new access token in Redis
+    await redis.set(cacheKey, accessToken, "EX", expiresIn - 60); // Subtract 2 minutes to ensure token refreshes before expiry
+
+    console.log("Fetched and cached new access token");
     return accessToken;
   } catch (error) {
     console.error("Error fetching bearer token:", error);
@@ -247,7 +263,6 @@ const sendPaymentRequestSchema = z.object({
   phoneNumber: z.number(),
   transactionDesc: z.string(),
   invoiceNumber: z.string(),
-  accessToken: z.string(),
 });
 
 const checkPaymentStatusSchema = z.object({
@@ -312,20 +327,14 @@ export const sendPaymentRequest = async (req: Request, res: Response) => {
       return res.status(400).json(parsedBody.error.errors);
     }
 
-    const {
-      amount,
-      partyA,
-      phoneNumber,
-      transactionDesc,
-      invoiceNumber,
-      accessToken,
-    } = parsedBody.data;
+    const { amount, partyA, phoneNumber, transactionDesc, invoiceNumber } =
+      parsedBody.data;
 
     const timestamp = format(new Date(), "yyyyMMddHHmmss");
     const password = base64.encode(businessShortCode + passKey + timestamp);
     // const accessToken = await getBearerToken();
     const callBackUrl = `${backendBaseUrl}/api/payments/webhook/mpesa/${invoiceNumber}`;
-
+    const accessToken = await getBearerToken();
     const response = await fetch(
       "https://api.safaricom.co.ke/mpesa/stkpush/v1/processrequest",
       {
@@ -378,8 +387,7 @@ export const sendPaymentRequest = async (req: Request, res: Response) => {
 
     const status = await checkpaymentStatus(
       invoiceNumber,
-      results.CheckoutRequestID,
-      accessToken
+      results.CheckoutRequestID
     );
 
     return res.status(200).json({ status });
@@ -393,8 +401,7 @@ const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export const checkpaymentStatus = async (
   invoiceNumber: string,
-  id?: string,
-  accessToken?: string
+  id?: string
 ) => {
   const timestamp = format(new Date(), "yyyyMMddHHmmss");
   let checkoutRequestID: string | null | undefined;
@@ -410,7 +417,7 @@ export const checkpaymentStatus = async (
   }
 
   const password = base64.encode(businessShortCode + passKey + timestamp);
-  // const accessToken = await getBearerToken();
+  const accessToken = await getBearerToken();
 
   const fetchPaymentStatus = async () => {
     console.log(checkoutRequestID);
