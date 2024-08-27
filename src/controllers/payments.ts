@@ -347,7 +347,7 @@ export const sendPaymentRequest = async (req: Request, res: Response) => {
           BusinessShortCode: businessShortCode,
           Password: password,
           Timestamp: timestamp,
-          TransactionType: "CustomerPayBillOnline",
+          TransactionType: "CustomerBuyGoodsOnline",
           Amount: amount,
           PartyA: partyA,
           PartyB: businessShortCode,
