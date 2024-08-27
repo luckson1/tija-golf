@@ -48,7 +48,7 @@ export const passKey = process.env.MPESA_PASS_KEY!;
 export const consumerKey = process.env.MPESA_CONSUMER_KEY!;
 export const consumerSecret = process.env.MPESA_CONSUMER_SECRET!;
 export const backendBaseUrl = process.env.BACKEND_BASE_URL!;
-export const businessShortCode = process.env.BUSINESSCODE ?? "174379"; // Add this line
+export const businessShortCode = process.env.BUSINESSCODE ?? "5065642"; // Add this line
 
 const prisma = new PrismaClient();
 
