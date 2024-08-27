@@ -16,7 +16,7 @@ interface WebhookResponse {
         Key: string;
       };
     };
-    ResultCode: number;
+    ResultCode: number | string;
     ResultDesc: string;
     ResultParameters?: {
       ResultParameter?: Array<{
@@ -59,7 +59,7 @@ const callbackMetadataItemSchema = z.object({
 const stkCallbackSchema = z.object({
   MerchantRequestID: z.string(),
   CheckoutRequestID: z.string(),
-  ResultCode: z.number(),
+  ResultCode: z.union([z.number(), z.string()]),
   ResultDesc: z.string(),
   CallbackMetadata: z
     .object({
@@ -353,7 +353,7 @@ export const sendPaymentRequest = async (req: Request, res: Response) => {
           PartyB: businessShortCode,
           PhoneNumber: phoneNumber,
           CallBackURL: callBackUrl,
-          AccountReference: "TIJA GOLF LTD",
+          AccountReference: "YEN GOLF LTD",
           TransactionDesc: transactionDesc,
         }),
       }
