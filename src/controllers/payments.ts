@@ -420,7 +420,7 @@ export const checkpaymentStatus = async (
   const password = base64.encode(businessShortCode + passKey + timestamp);
   const accessToken = await getBearerToken();
 
-  const fetchPaymentStatus = async () => {
+  const fetchPaymentStatus = async (): Promise<PaymentStatusResponse> => {
     try {
       const response = await fetch(
         "https://api.safaricom.co.ke/mpesa/stkpushquery/v1/query",
@@ -438,9 +438,10 @@ export const checkpaymentStatus = async (
           }),
         }
       );
-      const responseData = await response.json();
+      const responseData: PaymentStatusResponse = await response.json();
       console.log("checking for payment", responseData);
-
+      if (Number(responseData.ResultCode) !== 0)
+        throw new Error(`Error occured: ${responseData.ResultDesc}`);
       return responseData;
     } catch (error) {
       console.error("Error fetching payment status:", error);
