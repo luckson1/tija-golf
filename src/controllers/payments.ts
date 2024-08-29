@@ -350,7 +350,7 @@ export const sendPaymentRequest = async (req: Request, res: Response) => {
           TransactionType: "CustomerBuyGoodsOnline",
           Amount: amount,
           PartyA: partyA,
-          PartyB: businessShortCode,
+          PartyB: "4536014",
           PhoneNumber: phoneNumber,
           CallBackURL: callBackUrl,
           AccountReference: "YENA VENTURES LIMITED`",
