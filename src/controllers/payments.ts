@@ -437,7 +437,7 @@ export const checkpaymentStatus = async (
         }),
       }
     );
-    console.log("checking for payment", response);
+    console.log("checking for payment", response.json());
     if (!response.ok) {
       const errorData = await response.json();
       const errorMessage =
