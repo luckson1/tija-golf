@@ -360,7 +360,7 @@ export const sendPaymentRequest = async (req: Request, res: Response) => {
     );
 
     const results: PaymentResponse = await response.json();
-    console.log(results);
+
     if (response.status !== 200) {
       const errorData = await response.json();
       const errorMessage =
@@ -421,7 +421,6 @@ export const checkpaymentStatus = async (
   const accessToken = await getBearerToken();
 
   const fetchPaymentStatus = async () => {
-    console.log(checkoutRequestID);
     const response = await fetch(
       "https://api.safaricom.co.ke/mpesa/stkpushquery/v1/query",
       {
@@ -438,7 +437,7 @@ export const checkpaymentStatus = async (
         }),
       }
     );
-
+    console.log("checking for payment", response);
     if (!response.ok) {
       const errorData = await response.json();
       const errorMessage =
