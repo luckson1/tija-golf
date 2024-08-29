@@ -384,7 +384,7 @@ export const sendPaymentRequest = async (req: Request, res: Response) => {
       create: paymentData,
     });
 
-    await delay(15000);
+    await delay(20000);
 
     const status = await checkpaymentStatus(
       invoiceNumber,
