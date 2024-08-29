@@ -353,7 +353,7 @@ export const sendPaymentRequest = async (req: Request, res: Response) => {
           PartyB: businessShortCode,
           PhoneNumber: phoneNumber,
           CallBackURL: callBackUrl,
-          AccountReference: "YEN GOLF LTD",
+          // AccountReference: "YENA VENTURES LIMITED`",
           TransactionDesc: transactionDesc,
         }),
       }
