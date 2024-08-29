@@ -353,12 +353,14 @@ export const sendPaymentRequest = async (req: Request, res: Response) => {
           PartyB: businessShortCode,
           PhoneNumber: phoneNumber,
           CallBackURL: callBackUrl,
-          // AccountReference: "YENA VENTURES LIMITED`",
+          AccountReference: "YENA VENTURES LIMITED`",
           TransactionDesc: transactionDesc,
         }),
       }
     );
 
+    const results: PaymentResponse = await response.json();
+    console.log(results);
     if (response.status !== 200) {
       const errorData = await response.json();
       const errorMessage =
@@ -370,7 +372,6 @@ export const sendPaymentRequest = async (req: Request, res: Response) => {
       throw new Error(errorMessage);
     }
 
-    const results: PaymentResponse = await response.json();
     const paymentData = {
       invoiceNumber,
       amount: Number(amount),
@@ -383,7 +384,7 @@ export const sendPaymentRequest = async (req: Request, res: Response) => {
       create: paymentData,
     });
 
-    await delay(30000);
+    await delay(15000);
 
     const status = await checkpaymentStatus(
       invoiceNumber,
