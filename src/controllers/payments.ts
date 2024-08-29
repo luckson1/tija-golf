@@ -421,32 +421,31 @@ export const checkpaymentStatus = async (
   const accessToken = await getBearerToken();
 
   const fetchPaymentStatus = async () => {
-    const response = await fetch(
-      "https://api.safaricom.co.ke/mpesa/stkpushquery/v1/query",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({
-          BusinessShortCode: businessShortCode,
-          Password: password,
-          Timestamp: timestamp,
-          CheckoutRequestID: checkoutRequestID,
-        }),
-      }
-    );
-    console.log("checking for payment", await response.json());
-    if (!response.ok) {
-      const errorData = await response.json();
-      const errorMessage =
-        errorData.errorMessage || "Error occurred checking payment status";
-      console.error("Payment status check failed:", errorMessage);
-      throw new Error(errorMessage);
-    }
+    try {
+      const response = await fetch(
+        "https://api.safaricom.co.ke/mpesa/stkpushquery/v1/query",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({
+            BusinessShortCode: businessShortCode,
+            Password: password,
+            Timestamp: timestamp,
+            CheckoutRequestID: checkoutRequestID,
+          }),
+        }
+      );
+      const responseData = await response.json();
+      console.log("checking for payment", responseData);
 
-    return response.json();
+      return responseData;
+    } catch (error) {
+      console.error("Error fetching payment status:", error);
+      throw error;
+    }
   };
 
   let attempts = 0;
