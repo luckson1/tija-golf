@@ -54,6 +54,11 @@ const organizationSchema = z.object({
  *                     type: integer
  *                   teePrice:
  *                     type: number
+ *       openHours:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Array of open hours
  *       401:
  *         description: Unauthorized
  *       403:
@@ -67,11 +72,9 @@ export const getAllOrganisations = async (req: Request, res: Response) => {
     if (!token) return res.status(403).send("Forbidden");
     const usersId = await getUser(token);
 
-    console.log(" usersId", usersId);
-
     if (!usersId) return res.status(401).send("Unauthorized");
     const organizations = await prisma.organization.findMany();
-    console.log("orgs", organizations);
+
     res.json(organizations);
   } catch (error) {
     res.status(500).send(error);

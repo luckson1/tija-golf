@@ -17,6 +17,7 @@ import packageGroupsRoute from "./routes/package-groups";
 import membershipRoute from "./routes/membership";
 
 import { setupSwagger } from "./swagger";
+import { fetchData } from "./controllers/data";
 const app = express();
 
 const PORT = process.env.PORT || 4000;
@@ -27,11 +28,8 @@ app.use(express.urlencoded({ extended: true }));
 // Setup Swagger
 setupSwagger(app);
 // Define your routes and handlers here
-app.get("/", (req, res) =>
-  res.send(
-    ` Hello there and welcome: ${process.env.APPSETTING_AZURE_STORAGE_CONNECTION_STRING} `
-  )
-);
+app.get("/", (req, res) => res.send(` Hello there and welcome`));
+app.get("/api/data", fetchData);
 app.use("/api/tournaments", tournamentRoute);
 app.use("/api/partners", partnerRoute);
 app.use("/api/board", leadershipBoardRoute);

@@ -63,6 +63,7 @@ const prisma = new PrismaClient();
  *                 type: string
  *                 enum: ["9 holes", "18 holes"]
  *                 description: Number of holes
+ *
  *               kit:
  *                 type: string
  *                 enum: ["Yes", "No"]
