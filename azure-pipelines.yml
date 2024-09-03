@@ -4,18 +4,18 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
 
 trigger:
-- dev
+- main
 
 variables:
 
   # Azure Resource Manager connection created during pipeline creation
-  azureSubscription: '1771c79b-fb65-4aab-af91-37ed5c92d090'
+  azureSubscription: 'e7ea8977-1fd6-4777-aa10-56f75cd30f6c'
 
   # Web app name
-  webAppName: 'tijaclubmanager'
+  webAppName: 'clubmanagerapi'
 
   # Environment name
-  environmentName: 'tijaclubmanager'
+  environmentName: 'clubmanagerapi'
 
   # Agent VM image name
   vmImageName: 'ubuntu-latest'
@@ -32,7 +32,7 @@ stages:
     steps:
     - task: NodeTool@0
       inputs:
-        versionSpec: '>=6.10.0'
+        versionSpec: '20.x'
       displayName: 'Install Node.js'
 
     - script: |
@@ -68,11 +68,11 @@ stages:
         deploy:
           steps:
           - task: AzureWebApp@1
-            displayName: 'Azure Web App Deploy: tijaclubmanager'
+            displayName: 'Azure Web App Deploy: clubmanagerapi'
             inputs:
               azureSubscription: $(azureSubscription)
               appType: webAppLinux
               appName: $(webAppName)
-              runtimeStack: 'NODE|18-lts'
+              runtimeStack: 'NODE|20-lts'
               package: $(Pipeline.Workspace)/drop/$(Build.BuildId).zip
               startUpCommand: 'npm run start'
