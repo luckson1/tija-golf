@@ -332,7 +332,7 @@ export const sendPaymentRequest = async (req: Request, res: Response) => {
 
     const timestamp = format(new Date(), "yyyyMMddHHmmss");
     const password = base64.encode(businessShortCode + passKey + timestamp);
-    // const accessToken = await getBearerToken();
+
     const callBackUrl = `${backendBaseUrl}/api/payments/webhook/mpesa/${invoiceNumber}`;
     const accessToken = await getBearerToken();
     const response = await fetch(
