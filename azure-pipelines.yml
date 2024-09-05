@@ -12,10 +12,10 @@ variables:
   azureSubscription: 'e7ea8977-1fd6-4777-aa10-56f75cd30f6c'
 
   # Web app name
-  webAppName: 'clubmanagerapi'
+  webAppName: 'clubmanager'
 
   # Environment name
-  environmentName: 'clubmanagerapi'
+  environmentName: 'clubmanager'
 
   # Agent VM image name
   vmImageName: 'ubuntu-latest'
@@ -68,7 +68,7 @@ stages:
         deploy:
           steps:
           - task: AzureWebApp@1
-            displayName: 'Azure Web App Deploy: clubmanagerapi'
+            displayName: 'Azure Web App Deploy: clubmanager'
             inputs:
               azureSubscription: $(azureSubscription)
               appType: webAppLinux
