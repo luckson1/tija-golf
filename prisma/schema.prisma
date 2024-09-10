@@ -1,5 +1,6 @@
 generator client {
   provider        = "prisma-client-js"
+  binaryTargets   = ["native", "debian-openssl-3.0.x", "linux-musl-arm64-openssl-3.0.x"]
   previewFeatures = ["multiSchema"]
 }
 
@@ -322,7 +323,7 @@ model Booking {
   usersId      String        @db.Uuid
   teeId        String?
   status       PaymentStatus @default(Pending)
-  bookingRef   Int           @default(autoincrement()) @unique
+  bookingRef   Int           @unique @default(autoincrement())
   class        Class?        @relation(fields: [classId], references: [id])
   event        Event?        @relation(fields: [eventId], references: [id])
   tee          Tee?          @relation(fields: [teeId], references: [id])
@@ -461,7 +462,7 @@ model Profile {
   phoneNumber  String
   cohort       Int
   level        String   @default("Beginner")
-  countryCode String @default("254")
+  countryCode  String   @default("254")
   memberNumber Int      @default(autoincrement())
   user         users    @relation(fields: [usersId], references: [id])
 
@@ -470,7 +471,7 @@ model Profile {
 
 model Payment {
   id                String        @id @default(cuid())
-  bookingId         String @unique
+  bookingId         String        @unique
   amount            Float
   status            PaymentStatus @default(Pending)
   paymentDate       DateTime      @default(now())
@@ -585,7 +586,6 @@ enum PaymentStatus {
   Received
   Rejected
   Accepted
-
 
   @@schema("auth")
 }

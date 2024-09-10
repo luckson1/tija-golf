@@ -17,11 +17,6 @@ const PORT= process.env.PORT || 5000
 
 app.use(express.json());
 
-
-
-
-
-
 // Define your routes and handlers here
 app.get("/", (req, res)=> res.send("Hi there, welcome here!!"))
 app.use('/api/tournaments', tournamentRoute);
