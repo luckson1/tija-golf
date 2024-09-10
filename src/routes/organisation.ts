@@ -1,17 +1,11 @@
-
-
-import express from 'express';
-import { getAllOrganisations, testOrganisations } from '../controllers/organisationControllers';
-
-
-
-
+import express from "express";
+import {
+  createOrganization,
+  getAllOrganisations,
+} from "../controllers/organisationControllers";
 
 const orgRoute = express.Router();
-
-orgRoute.get('/',  getAllOrganisations);
-
-orgRoute.get('/all',  testOrganisations);
-
+orgRoute.post("/", createOrganization);
+orgRoute.get("/all", getAllOrganisations);
 
 export default orgRoute;

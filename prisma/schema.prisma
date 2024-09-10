@@ -5,289 +5,9 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
-  schemas   = ["auth", "public"]
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model audit_log_entries {
-  instance_id String?   @db.Uuid
-  id          String    @id @db.Uuid
-  payload     Json?     @db.Json
-  created_at  DateTime? @db.Timestamptz(6)
-  ip_address  String    @default("") @db.VarChar(64)
-
-  @@index([instance_id], map: "audit_logs_instance_id_idx")
-  @@schema("auth")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model flow_state {
-  id                     String                @id @db.Uuid
-  user_id                String?               @db.Uuid
-  auth_code              String
-  code_challenge_method  code_challenge_method
-  code_challenge         String
-  provider_type          String
-  provider_access_token  String?
-  provider_refresh_token String?
-  created_at             DateTime?             @db.Timestamptz(6)
-  updated_at             DateTime?             @db.Timestamptz(6)
-  authentication_method  String
-  saml_relay_states      saml_relay_states[]
-
-  @@index([created_at(sort: Desc)])
-  @@index([auth_code], map: "idx_auth_code")
-  @@index([user_id, authentication_method], map: "idx_user_id_auth_method")
-  @@schema("auth")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model identities {
-  provider_id     String
-  user_id         String    @db.Uuid
-  identity_data   Json
-  provider        String
-  last_sign_in_at DateTime? @db.Timestamptz(6)
-  created_at      DateTime? @db.Timestamptz(6)
-  updated_at      DateTime? @db.Timestamptz(6)
-  email           String?   @default(dbgenerated("lower((identity_data ->> 'email'::text))"))
-  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  users           users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@unique([provider_id, provider], map: "identities_provider_id_provider_unique")
-  @@index([email])
-  @@index([user_id])
-  @@schema("auth")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model instances {
-  id              String    @id @db.Uuid
-  uuid            String?   @db.Uuid
-  raw_base_config String?
-  created_at      DateTime? @db.Timestamptz(6)
-  updated_at      DateTime? @db.Timestamptz(6)
-
-  @@schema("auth")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model mfa_amr_claims {
-  session_id            String   @db.Uuid
-  created_at            DateTime @db.Timestamptz(6)
-  updated_at            DateTime @db.Timestamptz(6)
-  authentication_method String
-  id                    String   @id(map: "amr_id_pk") @db.Uuid
-  sessions              sessions @relation(fields: [session_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@unique([session_id, authentication_method], map: "mfa_amr_claims_session_id_authentication_method_pkey")
-  @@schema("auth")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model mfa_challenges {
-  id          String      @id @db.Uuid
-  factor_id   String      @db.Uuid
-  created_at  DateTime    @db.Timestamptz(6)
-  verified_at DateTime?   @db.Timestamptz(6)
-  ip_address  String      @db.Inet
-  mfa_factors mfa_factors @relation(fields: [factor_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "mfa_challenges_auth_factor_id_fkey")
-
-  @@index([created_at(sort: Desc)], map: "mfa_challenge_created_at_idx")
-  @@schema("auth")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model mfa_factors {
-  id             String           @id @db.Uuid
-  user_id        String           @db.Uuid
-  friendly_name  String?
-  factor_type    factor_type
-  status         factor_status
-  created_at     DateTime         @db.Timestamptz(6)
-  updated_at     DateTime         @db.Timestamptz(6)
-  secret         String?
-  mfa_challenges mfa_challenges[]
-  users          users            @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@index([user_id, created_at], map: "factor_id_created_at_idx")
-  @@index([user_id])
-  @@schema("auth")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model refresh_tokens {
-  instance_id String?   @db.Uuid
-  id          BigInt    @id @default(autoincrement())
-  token       String?   @unique(map: "refresh_tokens_token_unique") @db.VarChar(255)
-  user_id     String?   @db.VarChar(255)
-  revoked     Boolean?
-  created_at  DateTime? @db.Timestamptz(6)
-  updated_at  DateTime? @db.Timestamptz(6)
-  parent      String?   @db.VarChar(255)
-  session_id  String?   @db.Uuid
-  sessions    sessions? @relation(fields: [session_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@index([instance_id])
-  @@index([instance_id, user_id])
-  @@index([parent])
-  @@index([session_id, revoked])
-  @@index([updated_at(sort: Desc)])
-  @@schema("auth")
-}
-
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model saml_providers {
-  id                String        @id @db.Uuid
-  sso_provider_id   String        @db.Uuid
-  entity_id         String        @unique
-  metadata_xml      String
-  metadata_url      String?
-  attribute_mapping Json?
-  created_at        DateTime?     @db.Timestamptz(6)
-  updated_at        DateTime?     @db.Timestamptz(6)
-  sso_providers     sso_providers @relation(fields: [sso_provider_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@index([sso_provider_id])
-  @@schema("auth")
-}
-
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model saml_relay_states {
-  id              String        @id @db.Uuid
-  sso_provider_id String        @db.Uuid
-  request_id      String
-  for_email       String?
-  redirect_to     String?
-  from_ip_address String?       @db.Inet
-  created_at      DateTime?     @db.Timestamptz(6)
-  updated_at      DateTime?     @db.Timestamptz(6)
-  flow_state_id   String?       @db.Uuid
-  flow_state      flow_state?   @relation(fields: [flow_state_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  sso_providers   sso_providers @relation(fields: [sso_provider_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@index([created_at(sort: Desc)])
-  @@index([for_email])
-  @@index([sso_provider_id])
-  @@schema("auth")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model schema_migrations {
-  version String @id @db.VarChar(255)
-
-  @@schema("auth")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model sessions {
-  id             String           @id @db.Uuid
-  user_id        String           @db.Uuid
-  created_at     DateTime?        @db.Timestamptz(6)
-  updated_at     DateTime?        @db.Timestamptz(6)
-  factor_id      String?          @db.Uuid
-  aal            aal_level?
-  not_after      DateTime?        @db.Timestamptz(6)
-  refreshed_at   DateTime?        @db.Timestamp(6)
-  user_agent     String?
-  ip             String?          @db.Inet
-  tag            String?
-  mfa_amr_claims mfa_amr_claims[]
-  refresh_tokens refresh_tokens[]
-  users          users            @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@index([not_after(sort: Desc)])
-  @@index([user_id])
-  @@index([user_id, created_at], map: "user_id_created_at_idx")
-  @@schema("auth")
-}
-
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-/// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
-model sso_domains {
-  id              String        @id @db.Uuid
-  sso_provider_id String        @db.Uuid
-  domain          String
-  created_at      DateTime?     @db.Timestamptz(6)
-  updated_at      DateTime?     @db.Timestamptz(6)
-  sso_providers   sso_providers @relation(fields: [sso_provider_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@index([sso_provider_id])
-  @@schema("auth")
-}
-
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-/// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
-model sso_providers {
-  id                String              @id @db.Uuid
-  resource_id       String?
-  created_at        DateTime?           @db.Timestamptz(6)
-  updated_at        DateTime?           @db.Timestamptz(6)
-  saml_providers    saml_providers[]
-  saml_relay_states saml_relay_states[]
-  sso_domains       sso_domains[]
-
-  @@schema("auth")
-}
-
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-/// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
-model users {
-  instance_id                 String?              @db.Uuid
-  id                          String               @id @db.Uuid
-  aud                         String?              @db.VarChar(255)
-  role                        String?              @db.VarChar(255)
-  email                       String?              @db.VarChar(255)
-  encrypted_password          String?              @db.VarChar(255)
-  email_confirmed_at          DateTime?            @db.Timestamptz(6)
-  invited_at                  DateTime?            @db.Timestamptz(6)
-  confirmation_token          String?              @db.VarChar(255)
-  confirmation_sent_at        DateTime?            @db.Timestamptz(6)
-  recovery_token              String?              @db.VarChar(255)
-  recovery_sent_at            DateTime?            @db.Timestamptz(6)
-  email_change_token_new      String?              @db.VarChar(255)
-  email_change                String?              @db.VarChar(255)
-  email_change_sent_at        DateTime?            @db.Timestamptz(6)
-  last_sign_in_at             DateTime?            @db.Timestamptz(6)
-  raw_app_meta_data           Json?
-  raw_user_meta_data          Json?
-  is_super_admin              Boolean?
-  created_at                  DateTime?            @db.Timestamptz(6)
-  updated_at                  DateTime?            @db.Timestamptz(6)
-  phone                       String?              @unique
-  phone_confirmed_at          DateTime?            @db.Timestamptz(6)
-  phone_change                String?              @default("")
-  phone_change_token          String?              @default("") @db.VarChar(255)
-  phone_change_sent_at        DateTime?            @db.Timestamptz(6)
-  confirmed_at                DateTime?            @default(dbgenerated("LEAST(email_confirmed_at, phone_confirmed_at)")) @db.Timestamptz(6)
-  email_change_token_current  String?              @default("") @db.VarChar(255)
-  email_change_confirm_status Int?                 @default(0) @db.SmallInt
-  banned_until                DateTime?            @db.Timestamptz(6)
-  reauthentication_token      String?              @default("") @db.VarChar(255)
-  reauthentication_sent_at    DateTime?            @db.Timestamptz(6)
-  is_sso_user                 Boolean              @default(false)
-  deleted_at                  DateTime?            @db.Timestamptz(6)
-  Booking                     Booking[]
-  EventMember                 EventMember[]
-  LikedEventMember            LikedEventMember[]
-  OrganizationMember          OrganizationMember[]
-  Payment                     Payment[]
-  Profile                     Profile?
-  identities                  identities[]
-  mfa_factors                 mfa_factors[]
-  sessions                    sessions[]
-  LeaderBoardPoint            LeaderBoardPoint[]
-
-  @@index([instance_id])
-  @@schema("auth")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["auth", "public"]
 }
 
 model Organization {
@@ -295,32 +15,68 @@ model Organization {
   name               String
   image              String
   location           String
+  kitPrice           Int                  @default(1500)
+  teePrice           Float                @default(4500)
+  openHours          String[]             @default(["07:00 am", "8:00 am", "9:00 am", "10:00 am", "11:00 am", "12:00 pm", "01:00 pm", "02:00 pm", "03:00 pm", "4:00 pm"])
   Class              Class[]
   OrganizationMember OrganizationMember[]
   Payment            Payment[]
   Tee                Tee[]
   Tournament         Tournament[]
+  HolesPrices        HolesPrices[]
+  KitPrices          KitPrices[]
+  memberships        Membership[]
+  
+  @@schema("auth")
+}
+
+enum HolesNumber {
+  Nine
+  Eighteen
+
+  @@schema("auth")
+}
+
+model HolesPrices {
+  id             String        @id @default(cuid())
+  amount         Float
+  numberOfHoles  HolesNumber
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  organizationId String?
+  ListedEvent    ListedEvent?  @relation(fields: [listedEventId], references: [id])
+  listedEventId  String?
+
+  @@schema("auth")
+}
+
+model KitPrices {
+  id             String        @id @default(cuid())
+  amount         Float
+  Organization   Organization? @relation(fields: [organizationId], references: [id])
+  organizationId String?
+  ListedEvent    ListedEvent?  @relation(fields: [listedEventId], references: [id])
+  listedEventId  String?
 
   @@schema("auth")
 }
 
 model OrganizationMember {
-  usersId        String       @db.Uuid
+  usersId        String
   organizationId String
   organisation   Organization @relation(fields: [organizationId], references: [id])
-  user           users        @relation(fields: [usersId], references: [id])
 
   @@id([usersId, organizationId])
   @@schema("auth")
 }
 
 model Booking {
-  id           String        @id @default(cuid())
+  id           String        @unique @default(cuid())
   eventId      String?
   classId      String?
+  slug         String?       @unique
   tournamentId String?
   bookingDate  DateTime      @default(now())
-  usersId      String        @db.Uuid
+  usersId      String
   teeId        String?
   status       PaymentStatus @default(Pending)
   bookingRef   Int           @unique @default(autoincrement())
@@ -328,9 +84,38 @@ model Booking {
   event        Event?        @relation(fields: [eventId], references: [id])
   tee          Tee?          @relation(fields: [teeId], references: [id])
   tournament   Tournament?   @relation(fields: [tournamentId], references: [id])
-  user         users         @relation(fields: [usersId], references: [id])
   payments     Payment?
 
+  @@id([id, usersId])
+  @@schema("auth")
+}
+
+model Cart {
+  id        String         @id @default(cuid())
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  usersId   String
+  items     ShoppingItem[]
+  slug      String?        @unique
+  cartRef   Int            @default(autoincrement())
+  total     Float          @default(0)
+  status    PaymentStatus  @default(Pending)
+
+  // ... other fields
+  @@schema("auth")
+}
+
+model ShoppingItem {
+  id        String @id @default(cuid())
+  cartId    String
+  cart      Cart   @relation(fields: [cartId], references: [id])
+  productId Int // WooCommerce product ID
+  name      String // Product name from WooCommerce
+  price     Float // Product price from WooCommerce
+  quantity  Int // Quantity of the product
+  src       String
+
+  // ... other fields that might be relevant, such as product image URL, etc.
   @@schema("auth")
 }
 
@@ -349,20 +134,18 @@ model Tee {
 }
 
 model EventMember {
-  usersId       String      @db.Uuid
+  usersId       String
   listedEventId String
   events        ListedEvent @relation(fields: [listedEventId], references: [id])
-  user          users       @relation(fields: [usersId], references: [id])
 
   @@id([usersId, listedEventId])
   @@schema("auth")
 }
 
 model LikedEventMember {
-  usersId       String      @db.Uuid
+  usersId       String
   listedEventId String
   events        ListedEvent @relation(fields: [listedEventId], references: [id])
-  user          users       @relation(fields: [usersId], references: [id])
 
   @@id([usersId, listedEventId])
   @@schema("auth")
@@ -373,14 +156,63 @@ model ListedEvent {
   name             String
   location         String
   description      String
-  image            String
-  startDate        DateTime           @default(now())
+  image            String?            @default("https://res.cloudinary.com/dhciks96e/image/upload/v1706864390/MicrosoftTeams-image_1_1_yzivon.png")
+  kitPrice         Int                @default(1500)
+  startDate        DateTime?
   type             String             @default("Tournament")
   Event            Event[]
   EventMember      EventMember[]
   LikedEventMember LikedEventMember[]
-  Package          Package[]
+  PackageGroup     PackageGroup[]
   Payment          Payment[]
+  KitPrices        KitPrices[]
+  HolesPrices      HolesPrices[]
+  Package          Package[]
+
+  @@schema("auth")
+}
+
+model PackageGroup {
+  id            String      @id @default(cuid())
+  name          String
+  listedEventId String
+  listedEvent   ListedEvent @relation(fields: [listedEventId], references: [id])
+  packages      Package[]
+
+  @@schema("auth")
+}
+
+model Membership {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  startDate   DateTime
+  endDate     DateTime
+  usersId     String
+  profileId   String   @unique
+  number      Int      @default(autoincrement())
+  slug        String?
+
+  feeAmount Float
+  dueDate   DateTime
+
+  organizations Organization[]
+  paymentStatus PaymentStatus  @default(Pending)
+  profile       Profile        @relation(fields: [profileId], references: [id])
+
+  @@schema("auth")
+}
+
+model Package {
+  id             String        @id @default(cuid())
+  amount         String
+  price          Int           @default(0)
+  name           String
+  listedEventId  String
+  packageGroupId String?
+  packageGroup   PackageGroup? @relation(fields: [packageGroupId], references: [id])
+  event          ListedEvent   @relation(fields: [listedEventId], references: [id])
+  Event          Event[]
 
   @@schema("auth")
 }
@@ -397,17 +229,6 @@ model Event {
   ListedEvent    ListedEvent @relation(fields: [listedEventId], references: [id])
   package        Package     @relation(fields: [packageId], references: [id])
   payments       Payment[]
-
-  @@schema("auth")
-}
-
-model Package {
-  id            String      @id @default(cuid())
-  amount        String
-  name          String
-  listedEventId String
-  Event         Event[]
-  event         ListedEvent @relation(fields: [listedEventId], references: [id])
 
   @@schema("auth")
 }
@@ -453,25 +274,27 @@ model Tournament {
 }
 
 model Profile {
-  id           String   @id @default(cuid())
-  name         String
-  email        String
-  usersId      String   @unique @db.Uuid
-  gender       Gender
-  dateOfBirth  DateTime
-  phoneNumber  String
-  cohort       Int
-  level        String   @default("Beginner")
-  countryCode  String   @default("254")
-  memberNumber Int      @default(autoincrement())
-  user         users    @relation(fields: [usersId], references: [id])
+  id               String             @id @default(cuid())
+  name             String
+  email            String
+  usersId          String             @unique
+  gender           Gender
+  dateOfBirth      DateTime
+  phoneNumber      String
+  cohort           Int
+  level            String             @default("Beginner")
+  countryCode      String             @default("254")
+  memberNumber     Int                @default(autoincrement())
+  LeaderBoardPoint LeaderBoardPoint[]
+  image            String             @default("https://res.cloudinary.com/dhciks96e/image/upload/v1708946800/vecteezy_profile-user-icon-isolated-on-white-background-vector-eps10__w5hsml.jpg")
+  Membership       Membership[]
 
   @@schema("auth")
 }
 
 model Payment {
   id                String        @id @default(cuid())
-  bookingId         String        @unique
+  bookingId         String?       @unique
   amount            Float
   status            PaymentStatus @default(Pending)
   paymentDate       DateTime      @default(now())
@@ -479,19 +302,40 @@ model Payment {
   eventId           String?
   classId           String?
   tournamentId      String?
-  organizationId    String
-  usersId           String        @db.Uuid
+  organizationId    String?
+  usersId           String?
   teeId             String?
-  checkoutRequestID Int?
+  checkoutRequestID String?
+  resultDescription String?
+  paymentCode       String?
+  invoiceNumber     String?       @unique
   listedEventId     String?
-  booking           Booking       @relation(fields: [bookingId], references: [id])
+  booking           Booking?      @relation(fields: [bookingId], references: [id])
   Class             Class?        @relation(fields: [classId], references: [id])
   Event             Event?        @relation(fields: [eventId], references: [id])
   ListedEvent       ListedEvent?  @relation(fields: [listedEventId], references: [id])
-  organisation      Organization  @relation(fields: [organizationId], references: [id])
+  organisation      Organization? @relation(fields: [organizationId], references: [id])
   Tee               Tee?          @relation(fields: [teeId], references: [id])
   Tournament        Tournament?   @relation(fields: [tournamentId], references: [id])
-  user              users         @relation(fields: [usersId], references: [id])
+
+  @@schema("auth")
+}
+
+model Announcement {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isActive  Boolean  @default(true)
+
+  @@schema("auth")
+}
+
+model WebhookJson {
+  id        String   @id @default(cuid())
+  body      Json
+  createdAt DateTime @default(now())
 
   @@schema("auth")
 }
@@ -510,13 +354,17 @@ model Partner {
 }
 
 model LeaderBoardPoint {
-  id            String      @id @default(cuid())
-  user          users       @relation(fields: [usersId], references: [id])
+  id            String  @id @default(cuid())
   points        Int
-  usersId       String      @db.Uuid
-  board         LeaderBoard @relation(fields: [leaderBoardId], references: [id])
   leaderBoardId String
+  profileId     String?
+  name          String
 
+  board LeaderBoard @relation(fields: [leaderBoardId], references: [id])
+
+  profile Profile? @relation(fields: [profileId], references: [id])
+
+  @@index([id])
   @@schema("auth")
 }
 
@@ -525,6 +373,7 @@ model LeaderBoard {
   date             DateTime           @default(now())
   LeaderBoardPoint LeaderBoardPoint[]
 
+  @@index([id])
   @@schema("auth")
 }
 
@@ -586,17 +435,21 @@ enum PaymentStatus {
   Received
   Rejected
   Accepted
+  In_Review
 
   @@schema("auth")
 }
 
 enum BookingStatus {
   Pending
-  Confirmed
   Completed
   Failed
   Refunded
   Partial
+  Expired
+  Received
+  Rejected
+  Accepted
 
   @@schema("auth")
 }

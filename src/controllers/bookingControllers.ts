@@ -15,6 +15,90 @@ const BookingSchema = z.object({
   bookingDate: z.date(),
 });
 type BookingData = z.infer<typeof BookingSchema>;
+
+/**
+ * @swagger
+ * /api/bookings:
+ *   post:
+ *     summary: Create a new booking
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               eventId:
+ *                 type: string
+ *                 description: The ID of the event
+ *               classId:
+ *                 type: string
+ *                 description: The ID of the class
+ *               slug:
+ *                 type: string
+ *                 description: The slug for the booking
+ *               tournamentId:
+ *                 type: string
+ *                 description: The ID of the tournament
+ *               bookingDate:
+ *                 type: string
+ *                 format: date-time
+ *                 description: The date of the booking
+ *               usersId:
+ *                 type: string
+ *                 description: The ID of the user
+ *               teeId:
+ *                 type: string
+ *                 description: The ID of the tee
+ *               status:
+ *                 type: string
+ *                 enum: [Pending, Completed, Failed, Refunded, Partial, Expired, Received, Rejected, Accepted]
+ *                 description: The status of the booking
+ *               bookingRef:
+ *                 type: integer
+ *                 description: The reference number for the booking
+ *     responses:
+ *       201:
+ *         description: Booking created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                 eventId:
+ *                   type: string
+ *                 classId:
+ *                   type: string
+ *                 slug:
+ *                   type: string
+ *                 tournamentId:
+ *                   type: string
+ *                 bookingDate:
+ *                   type: string
+ *                   format: date-time
+ *                 usersId:
+ *                   type: string
+ *                 teeId:
+ *                   type: string
+ *                 status:
+ *                   type: string
+ *                   enum: [Pending, Completed, Failed, Refunded, Partial, Expired, Received, Rejected, Accepted]
+ *                 bookingRef:
+ *                   type: integer
+ *       400:
+ *         description: Bad request
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       500:
+ *         description: Internal server error
+ */
 export const createBooking = async (req: Request, res: Response) => {
   try {
     const token = req.headers.authorization;
@@ -37,17 +121,59 @@ export const createBooking = async (req: Request, res: Response) => {
   }
 };
 
+/**
+ * @swagger
+ * /api/bookings:
+ *   get:
+ *     summary: Retrieve a list of all completed bookings for the authenticated user
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: A list of completed bookings
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                   slug:
+ *                     type: string
+ *                   name:
+ *                     type: string
+ *                   location:
+ *                     type: string
+ *                   date:
+ *                     type: string
+ *                     format: date-time
+ *                   image:
+ *                     type: string
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       500:
+ *         description: Internal server error
+ */
 export const getAllBookings = async (req: Request, res: Response) => {
+  const token = req.headers.authorization;
+  if (!token) return res.status(403).send("Forbidden");
+  const usersId = await getUser(token);
+  if (!usersId) return res.status(401).send("Unauthorised");
+
   try {
     const bookings = await prisma.booking.findMany({
       where: {
         status: "Completed",
+        usersId,
       },
-      select: {
-        id: true,
+      include: {
         event: {
-          select: {
-            startDate: true,
+          include: {
             ListedEvent: {
               select: {
                 name: true,
@@ -72,7 +198,9 @@ export const getAllBookings = async (req: Request, res: Response) => {
     });
     const bookedEvents = bookings.flatMap((b) =>
       b.event
-        ? {id: b.id,
+        ? {
+            id: b.id,
+            slug: b.slug,
             name: b.event?.ListedEvent.name,
             location: b.event?.ListedEvent.location,
             date: b.event?.startDate,
@@ -82,7 +210,9 @@ export const getAllBookings = async (req: Request, res: Response) => {
     );
     const bookedTees = bookings.flatMap((b) =>
       b.tee
-        ? {id:b.id,
+        ? {
+            id: b.id,
+            slug: b.slug,
             name: "Tee",
             location: b.tee?.organisation.name,
             date: b.tee?.startDate,
@@ -95,8 +225,8 @@ export const getAllBookings = async (req: Request, res: Response) => {
       name: string;
       location: string;
       date: Date;
-      image: string;
-      id:string
+      image: string | null;
+      id: string;
     };
     const processedEvents = combinedEvents.reduce<CombinedEvent[]>(
       (acc, item) => {
@@ -181,15 +311,9 @@ export async function getUpcomingActivities(req: Request, res: Response) {
               },
             },
           },
+
           {
-            class: {
-              startDate: {
-                gt: currentDate,
-              },
-            },
-          },
-          {
-            tournament: {
+            tee: {
               startDate: {
                 gt: currentDate,
               },
@@ -238,13 +362,80 @@ export async function getUpcomingActivities(req: Request, res: Response) {
     return activities;
   } catch (error) {}
 }
+
+/**
+ * @swagger
+ * /api/bookings/tee:
+ *   get:
+ *     summary: Retrieve a list of tee bookings for the authenticated user
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: A list of tee bookings
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                   eventId:
+ *                     type: string
+ *                   classId:
+ *                     type: string
+ *                   slug:
+ *                     type: string
+ *                   tournamentId:
+ *                     type: string
+ *                   bookingDate:
+ *                     type: string
+ *                     format: date-time
+ *                   usersId:
+ *                     type: string
+ *                   teeId:
+ *                     type: string
+ *                   status:
+ *                     type: string
+ *                     enum: [Pending, Completed, Failed, Refunded, Partial, Expired, Received, Rejected, Accepted]
+ *                   bookingRef:
+ *                     type: integer
+ *                   totalAmount:
+ *                     type: number
+ *                   tee:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                       startDate:
+ *                         type: string
+ *                         format: date-time
+ *                       organisation:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: string
+ *                           name:
+ *                             type: string
+ *                           image:
+ *                             type: string
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       500:
+ *         description: Internal server error
+ */
 export async function getTeeBookings(req: Request, res: Response) {
   try {
     const token = req.headers.authorization;
     if (!token) return res.status(403).send("Forbidden");
     const usersId = await getUser(token);
     if (!usersId) return res.status(401).send("Unauthorised");
-    // Fetch upcoming bookings for the user, including the event, class, or tournament details
+
     const bookings = await prisma.booking.findMany({
       where: {
         usersId: usersId,
@@ -252,29 +443,150 @@ export async function getTeeBookings(req: Request, res: Response) {
           not: null,
         },
       },
-
-      select: {
-        status: true,
-        id: true,
-        bookingRef: true,
+      include: {
         tee: {
           include: {
-            organisation: true,
+            organisation: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+                location: true,
+              },
+            },
           },
         },
       },
       orderBy: {
         tee: {
-          startDate: "asc", // Order by tee startDate in ascending order
+          startDate: "asc",
         },
       },
     });
 
-    res.json(bookings);
+    // Calculate the total amount for each tee booking
+    const bookingsWithAmount = await Promise.all(
+      bookings.map(async (booking) => {
+        let totalAmount = 0;
+        if (booking?.tee?.kit === "Yes") {
+          const kitCost = await prisma.kitPrices.findFirst({
+            where: {
+              organizationId: booking.tee.organisation.id,
+            },
+            select: {
+              amount: true,
+            },
+          });
+          totalAmount += kitCost ? kitCost.amount : 0;
+        }
+
+        const gameCost = await prisma.holesPrices.findFirst({
+          where: {
+            organizationId: booking?.tee?.organisation.id,
+            numberOfHoles:
+              booking?.tee?.holes === "9 holes" ? "Nine" : "Eighteen",
+          },
+          select: { amount: true },
+        });
+        totalAmount += gameCost ? gameCost.amount : 0;
+
+        return {
+          ...booking,
+          totalAmount,
+        };
+      })
+    );
+    console.log(bookingsWithAmount?.at(0)?.totalAmount);
+    res.json(bookingsWithAmount);
   } catch (error) {
     res.status(500).send(error);
   }
 }
+
+/**
+ * @swagger
+ * /api/bookings/event:
+ *   get:
+ *     summary: Retrieve a list of event bookings for the authenticated user
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: A list of event bookings
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                   eventId:
+ *                     type: string
+ *                   classId:
+ *                     type: string
+ *                   slug:
+ *                     type: string
+ *                   tournamentId:
+ *                     type: string
+ *                   bookingDate:
+ *                     type: string
+ *                     format: date-time
+ *                   usersId:
+ *                     type: string
+ *                   teeId:
+ *                     type: string
+ *                   status:
+ *                     type: string
+ *                     enum: [Pending, Completed, Failed, Refunded, Partial, Expired, Received, Rejected, Accepted]
+ *                   bookingRef:
+ *                     type: integer
+ *                   totalAmount:
+ *                     type: number
+ *                   event:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                       startDate:
+ *                         type: string
+ *                         format: date-time
+ *                       package:
+ *                         type: object
+ *                         properties:
+ *                           price:
+ *                             type: number
+ *                           name:
+ *                             type: string
+ *                       packageGroups:
+ *                         type: array
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             id:
+ *                               type: string
+ *                             name:
+ *                               type: string
+ *                             packages:
+ *                               type: array
+ *                               items:
+ *                                 type: object
+ *                                 properties:
+ *                                   id:
+ *                                     type: string
+ *                                   name:
+ *                                     type: string
+ *                                   price:
+ *                                     type: number
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       500:
+ *         description: Internal server error
+ */
 
 export async function getEventBookings(req: Request, res: Response) {
   try {
@@ -282,7 +594,7 @@ export async function getEventBookings(req: Request, res: Response) {
     if (!token) return res.status(403).send("Forbidden");
     const usersId = await getUser(token);
     if (!usersId) return res.status(401).send("Unauthorised");
-    // Fetch upcoming bookings for the user, including the event, class, or tournament details
+
     const bookings = await prisma.booking.findMany({
       where: {
         usersId: usersId,
@@ -290,30 +602,18 @@ export async function getEventBookings(req: Request, res: Response) {
           not: null,
         },
       },
-
-      select: {
-        status: true,
-        id: true,
-        bookingRef: true,
+      include: {
         event: {
-          select: {
-            id: true,
-            startDate: true,
-            holes: true,
-            kit: true,
-
-            package: {
-              select: {
-                amount: true,
-                name: true,
-              },
-            },
+          include: {
+            package: true,
             ListedEvent: {
-              select: {
-                name: true,
-                location: true,
-                image: true,
-                type: true,
+              include: {
+                Package: true,
+                PackageGroup: {
+                  include: {
+                    packages: true,
+                  },
+                },
               },
             },
           },
@@ -321,12 +621,34 @@ export async function getEventBookings(req: Request, res: Response) {
       },
       orderBy: {
         event: {
-          startDate: "asc", // Order by tee startDate in ascending order
+          startDate: "asc",
         },
       },
     });
 
-    res.json(bookings);
+    // Calculate the total amount for each booking
+    const bookingsWithAmount = await Promise.all(
+      bookings.map(async (booking) => {
+        let totalAmount = booking?.event?.package.price ?? 0;
+        if (booking?.event?.kit === "Yes") {
+          const kitCost = await prisma.kitPrices.findFirst({
+            where: {
+              listedEventId: booking.event?.listedEventId,
+            },
+            select: {
+              amount: true,
+            },
+          });
+          totalAmount += kitCost ? kitCost.amount : 0;
+        }
+        return {
+          ...booking,
+          totalAmount,
+        };
+      })
+    );
+
+    res.json(bookingsWithAmount);
   } catch (error) {
     res.status(500).send(error);
   }
