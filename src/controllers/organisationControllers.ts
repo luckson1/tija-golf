@@ -69,10 +69,10 @@ const organizationSchema = z.object({
 export const getAllOrganisations = async (req: Request, res: Response) => {
   try {
     const token = req.headers.authorization;
-    if (!token) return res.status(403).send("Forbidden");
-    const usersId = await getUser(token);
+    // if (!token) return res.status(403).send("Forbidden");
+    // const usersId = await getUser(token);
 
-    if (!usersId) return res.status(401).send("Unauthorized");
+    // if (!usersId) return res.status(401).send("Unauthorized");
     const organizations = await prisma.organization.findMany();
 
     res.json(organizations);
