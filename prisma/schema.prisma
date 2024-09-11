@@ -1,7 +1,7 @@
 generator client {
   provider        = "prisma-client-js"
-  binaryTargets   = ["native", "debian-openssl-3.0.x", "linux-musl-arm64-openssl-3.0.x"]
   previewFeatures = ["multiSchema"]
+  binaryTargets   = ["native", "debian-openssl-3.0.x", "linux-musl-arm64-openssl-3.0.x"]
 }
 
 datasource db {
@@ -17,22 +17,14 @@ model Organization {
   location           String
   kitPrice           Int                  @default(1500)
   teePrice           Float                @default(4500)
-  openHours          String[]             @default(["07:00 am", "8:00 am", "9:00 am", "10:00 am", "11:00 am", "12:00 pm", "01:00 pm", "02:00 pm", "03:00 pm", "4:00 pm"])
   Class              Class[]
+  HolesPrices        HolesPrices[]
+  KitPrices          KitPrices[]
   OrganizationMember OrganizationMember[]
   Payment            Payment[]
   Tee                Tee[]
   Tournament         Tournament[]
-  HolesPrices        HolesPrices[]
-  KitPrices          KitPrices[]
-  memberships        Membership[]
-  
-  @@schema("auth")
-}
-
-enum HolesNumber {
-  Nine
-  Eighteen
+  memberships        Membership[]         @relation("MembershipToOrganization")
 
   @@schema("auth")
 }
@@ -41,10 +33,10 @@ model HolesPrices {
   id             String        @id @default(cuid())
   amount         Float
   numberOfHoles  HolesNumber
-  organization   Organization? @relation(fields: [organizationId], references: [id])
   organizationId String?
-  ListedEvent    ListedEvent?  @relation(fields: [listedEventId], references: [id])
   listedEventId  String?
+  ListedEvent    ListedEvent?  @relation(fields: [listedEventId], references: [id])
+  organization   Organization? @relation(fields: [organizationId], references: [id])
 
   @@schema("auth")
 }
@@ -52,10 +44,10 @@ model HolesPrices {
 model KitPrices {
   id             String        @id @default(cuid())
   amount         Float
-  Organization   Organization? @relation(fields: [organizationId], references: [id])
   organizationId String?
-  ListedEvent    ListedEvent?  @relation(fields: [listedEventId], references: [id])
   listedEventId  String?
+  ListedEvent    ListedEvent?  @relation(fields: [listedEventId], references: [id])
+  Organization   Organization? @relation(fields: [organizationId], references: [id])
 
   @@schema("auth")
 }
@@ -95,27 +87,25 @@ model Cart {
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
   usersId   String
-  items     ShoppingItem[]
   slug      String?        @unique
   cartRef   Int            @default(autoincrement())
   total     Float          @default(0)
   status    PaymentStatus  @default(Pending)
+  items     ShoppingItem[]
 
-  // ... other fields
   @@schema("auth")
 }
 
 model ShoppingItem {
   id        String @id @default(cuid())
   cartId    String
-  cart      Cart   @relation(fields: [cartId], references: [id])
-  productId Int // WooCommerce product ID
-  name      String // Product name from WooCommerce
-  price     Float // Product price from WooCommerce
-  quantity  Int // Quantity of the product
+  productId Int
+  name      String
+  price     Float
+  quantity  Int
   src       String
+  cart      Cart   @relation(fields: [cartId], references: [id])
 
-  // ... other fields that might be relevant, such as product image URL, etc.
   @@schema("auth")
 }
 
@@ -162,12 +152,12 @@ model ListedEvent {
   type             String             @default("Tournament")
   Event            Event[]
   EventMember      EventMember[]
+  HolesPrices      HolesPrices[]
+  KitPrices        KitPrices[]
   LikedEventMember LikedEventMember[]
+  Package          Package[]
   PackageGroup     PackageGroup[]
   Payment          Payment[]
-  KitPrices        KitPrices[]
-  HolesPrices      HolesPrices[]
-  Package          Package[]
 
   @@schema("auth")
 }
@@ -176,29 +166,27 @@ model PackageGroup {
   id            String      @id @default(cuid())
   name          String
   listedEventId String
-  listedEvent   ListedEvent @relation(fields: [listedEventId], references: [id])
   packages      Package[]
+  listedEvent   ListedEvent @relation(fields: [listedEventId], references: [id])
 
   @@schema("auth")
 }
 
 model Membership {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  startDate   DateTime
-  endDate     DateTime
-  usersId     String
-  profileId   String   @unique
-  number      Int      @default(autoincrement())
-  slug        String?
-
-  feeAmount Float
-  dueDate   DateTime
-
-  organizations Organization[]
+  id            String         @id @default(cuid())
+  name          String
+  description   String?
+  startDate     DateTime
+  endDate       DateTime
+  usersId       String
+  profileId     String         @unique
+  number        Int            @default(autoincrement())
+  slug          String?
+  feeAmount     Float
+  dueDate       DateTime
   paymentStatus PaymentStatus  @default(Pending)
   profile       Profile        @relation(fields: [profileId], references: [id])
+  organizations Organization[] @relation("MembershipToOrganization")
 
   @@schema("auth")
 }
@@ -210,9 +198,9 @@ model Package {
   name           String
   listedEventId  String
   packageGroupId String?
-  packageGroup   PackageGroup? @relation(fields: [packageGroupId], references: [id])
-  event          ListedEvent   @relation(fields: [listedEventId], references: [id])
   Event          Event[]
+  event          ListedEvent   @relation(fields: [listedEventId], references: [id])
+  packageGroup   PackageGroup? @relation(fields: [packageGroupId], references: [id])
 
   @@schema("auth")
 }
@@ -285,9 +273,9 @@ model Profile {
   level            String             @default("Beginner")
   countryCode      String             @default("254")
   memberNumber     Int                @default(autoincrement())
+  image            String             @default("https://res.cloudinary.com/dhciks96e/image/upload/v1703149574/DALL_E_2023-12-21_12.05.54_-_A_realistic_headshot_of_a_30-year-old_Kenyan_man_with_a_friendly_and_confident_expression._He_s_wearing_a_golf_cap_and_a_polo_shirt_suggesting_his_in_mg0tge.png")
   LeaderBoardPoint LeaderBoardPoint[]
-  image            String             @default("https://res.cloudinary.com/dhciks96e/image/upload/v1708946800/vecteezy_profile-user-icon-isolated-on-white-background-vector-eps10__w5hsml.jpg")
-  Membership       Membership[]
+  Membership       Membership?
 
   @@schema("auth")
 }
@@ -306,10 +294,10 @@ model Payment {
   usersId           String?
   teeId             String?
   checkoutRequestID String?
-  resultDescription String?
-  paymentCode       String?
   invoiceNumber     String?       @unique
   listedEventId     String?
+  resultDescription String?
+  paymentCode       String?
   booking           Booking?      @relation(fields: [bookingId], references: [id])
   Class             Class?        @relation(fields: [classId], references: [id])
   Event             Event?        @relation(fields: [eventId], references: [id])
@@ -354,15 +342,13 @@ model Partner {
 }
 
 model LeaderBoardPoint {
-  id            String  @id @default(cuid())
+  id            String      @id @default(cuid())
   points        Int
   leaderBoardId String
   profileId     String?
   name          String
-
-  board LeaderBoard @relation(fields: [leaderBoardId], references: [id])
-
-  profile Profile? @relation(fields: [profileId], references: [id])
+  board         LeaderBoard @relation(fields: [leaderBoardId], references: [id])
+  profile       Profile?    @relation(fields: [profileId], references: [id])
 
   @@index([id])
   @@schema("auth")
@@ -374,6 +360,13 @@ model LeaderBoard {
   LeaderBoardPoint LeaderBoardPoint[]
 
   @@index([id])
+  @@schema("auth")
+}
+
+enum HolesNumber {
+  Nine
+  Eighteen
+
   @@schema("auth")
 }
 
