@@ -1,11 +1,10 @@
 import { createClient } from "@supabase/supabase-js";
 
 export const supabaseClient =
-  process.env.APPSETTING_AZURE_SUPABASE_URL &&
-  process.env.APPSETTING_AZURE_SUPABASE_SERVICE_ROLE_KEY
+  process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY
     ? createClient(
-        process.env.APPSETTING_AZURE_SUPABASE_URL,
-        process.env.APPSETTING_AZURE_SUPABASE_SERVICE_ROLE_KEY
+        process.env.SUPABASE_URL,
+        process.env.SUPABASE_SERVICE_ROLE_KEY
       )
     : null;
 
