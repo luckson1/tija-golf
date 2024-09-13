@@ -29,7 +29,9 @@ app.use(express.urlencoded({ extended: true }));
 setupSwagger(app);
 // Define your routes and handlers here
 app.get("/", (req, res) =>
-  res.send(` Hello there and welcome : ${process.env.SUPABASE_URL}`)
+  res.send(
+    ` Hello there and welcome. testing env :  ${process.env.SUPABASE_URL}`
+  )
 );
 app.get("/api/data", fetchData);
 app.use("/api/tournaments", tournamentRoute);
