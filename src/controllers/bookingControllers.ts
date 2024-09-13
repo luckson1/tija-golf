@@ -245,10 +245,36 @@ export const getAllBookings = async (req: Request, res: Response) => {
   }
 };
 
+/**
+ * @swagger
+ * /api/bookings/{id}:
+ *   get:
+ *     summary: Get a booking by its reference number
+ *     tags: [Bookings]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The booking reference number
+ *     responses:
+ *       200:
+ *         description: The booking status
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: string
+ *               enum: [Pending, Completed, Failed, Refunded, Partial, Expired, Received, Rejected, Accepted]
+ *       404:
+ *         description: Booking not found
+ *       500:
+ *         description: Internal server error
+ */
 export const getBooking = async (req: Request, res: Response) => {
   try {
     const bookingRef = Number(req.params.id);
-    console.log("bookingref", bookingRef);
+
     const booking = await prisma.booking.findUnique({
       where: { bookingRef },
       select: {
@@ -267,6 +293,43 @@ export const getBooking = async (req: Request, res: Response) => {
   }
 };
 
+/**
+ * @swagger
+ * /api/bookings/{id}:
+ *   put:
+ *     summary: Update a booking
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The booking ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/BookingData'
+ *     responses:
+ *       200:
+ *         description: The updated booking
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Booking'
+ *       400:
+ *         description: Invalid input data
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       500:
+ *         description: Internal server error
+ */
 export const updateBooking = async (
   req: Request<IdParams, {}, BookingData>,
   res: Response
@@ -505,7 +568,150 @@ export async function getTeeBookings(req: Request, res: Response) {
 
 /**
  * @swagger
- * /api/bookings/event:
+ * /api/bookings/tee/{organizationId}:
+ *   get:
+ *     summary: Retrieve a list of tee bookings for a specific organization
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: organizationId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the organization
+ *     responses:
+ *       200:
+ *         description: A list of tee bookings for the organization
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                   bookingDate:
+ *                     type: string
+ *                     format: date-time
+ *                   status:
+ *                     type: string
+ *                     enum: [Pending, Completed, Failed, Refunded, Partial, Expired, Received, Rejected, Accepted]
+ *                   totalAmount:
+ *                     type: number
+ *                   tee:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                       startDate:
+ *                         type: string
+ *                         format: date-time
+ *                       kit:
+ *                         type: string
+ *                       holes:
+ *                         type: string
+ *                       organisation:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: string
+ *                           name:
+ *                             type: string
+ *                           image:
+ *                             type: string
+ *                           location:
+ *                             type: string
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       500:
+ *         description: Internal server error
+ */
+
+export async function getOrganizationsTeeBookings(req: Request, res: Response) {
+  try {
+    const token = req.headers.authorization;
+    if (!token) return res.status(403).send("Forbidden");
+    const usersId = await getUser(token);
+    if (!usersId) return res.status(401).send("Unauthorised");
+    const { organizationId } = req.params;
+
+    const bookings = await prisma.booking.findMany({
+      where: {
+        tee: {
+          organizationId,
+        },
+        teeId: {
+          not: null,
+        },
+      },
+      include: {
+        tee: {
+          include: {
+            organisation: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+                location: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        tee: {
+          startDate: "asc",
+        },
+      },
+    });
+
+    // Calculate the total amount for each tee booking
+    const bookingsWithAmount = await Promise.all(
+      bookings.map(async (booking) => {
+        let totalAmount = 0;
+        if (booking?.tee?.kit === "Yes") {
+          const kitCost = await prisma.kitPrices.findFirst({
+            where: {
+              organizationId: booking.tee.organisation.id,
+            },
+            select: {
+              amount: true,
+            },
+          });
+          totalAmount += kitCost ? kitCost.amount : 0;
+        }
+
+        const gameCost = await prisma.holesPrices.findFirst({
+          where: {
+            organizationId: booking?.tee?.organisation.id,
+            numberOfHoles:
+              booking?.tee?.holes === "9 holes" ? "Nine" : "Eighteen",
+          },
+          select: { amount: true },
+        });
+        totalAmount += gameCost ? gameCost.amount : 0;
+
+        return {
+          ...booking,
+          totalAmount,
+        };
+      })
+    );
+    console.log(bookingsWithAmount?.at(0)?.totalAmount);
+    res.json(bookingsWithAmount);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+}
+
+/**
+ * @swagger
+ * /api/bookings/tee/{organizationId}
  *   get:
  *     summary: Retrieve a list of event bookings for the authenticated user
  *     tags: [Bookings]
@@ -653,3 +859,110 @@ export async function getEventBookings(req: Request, res: Response) {
     res.status(500).send(error);
   }
 }
+
+/**
+ * @swagger
+ * /api/bookings/events/{id}:
+ *   get:
+ *     summary: Retrieve a list of event bookings for a specific event
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: organizationId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the organization
+ *     responses:
+ *       200:
+ *         description: A list of event bookings for the organization
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/EventBooking'
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       500:
+ *         description: Internal server error
+ */
+export async function getOrganizationsEventBookings(
+  req: Request,
+  res: Response
+) {
+  try {
+    const token = req.headers.authorization;
+    if (!token) return res.status(403).send("Forbidden");
+    const usersId = await getUser(token);
+    if (!usersId) return res.status(401).send("Unauthorised");
+    const { id } = req.params;
+
+    const bookings = await prisma.booking.findMany({
+      where: {
+        event: {
+          ListedEvent: {
+            id,
+          },
+        },
+        eventId: {
+          not: null,
+        },
+      },
+      include: {
+        event: {
+          include: {
+            package: true,
+            ListedEvent: {
+              include: {
+                Package: true,
+                PackageGroup: {
+                  include: {
+                    packages: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        event: {
+          startDate: "asc",
+        },
+      },
+    });
+
+    // Calculate the total amount for each booking
+    const bookingsWithAmount = await Promise.all(
+      bookings.map(async (booking) => {
+        let totalAmount = booking?.event?.package.price ?? 0;
+        if (booking?.event?.kit === "Yes") {
+          const kitCost = await prisma.kitPrices.findFirst({
+            where: {
+              listedEventId: booking.event?.listedEventId,
+            },
+            select: {
+              amount: true,
+            },
+          });
+          totalAmount += kitCost ? kitCost.amount : 0;
+        }
+        return {
+          ...booking,
+          totalAmount,
+        };
+      })
+    );
+
+    res.json(bookingsWithAmount);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+}
+
+// ... existing code ...

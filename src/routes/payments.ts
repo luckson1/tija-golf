@@ -5,6 +5,8 @@ import {
   provideCode,
   sendPaymentRequest,
   updatePaymentStatusFromWebhook,
+  getAllPayments,
+  getPaymentByInvoiceNumber,
 } from "../controllers/payments";
 
 const paymentRoute = express.Router();
@@ -17,5 +19,7 @@ paymentRoute.post(
 paymentRoute.post("/send", sendPaymentRequest);
 paymentRoute.post("/check/:invoiceNumber", checkPaymentStatusController);
 paymentRoute.post("/code", provideCode);
+paymentRoute.get("/", getAllPayments);
+paymentRoute.get("/:invoiceNumber", getPaymentByInvoiceNumber);
 
 export default paymentRoute;

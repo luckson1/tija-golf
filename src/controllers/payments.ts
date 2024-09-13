@@ -620,3 +620,135 @@ export const provideCode = async (req: Request, res: Response) => {
     return res.status(500).send(error);
   }
 };
+
+// ... existing code ...
+
+/**
+ * @swagger
+ * /api/payments:
+ *   get:
+ *     summary: Fetch all payments
+ *     tags: [Payments]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *         description: Page number for pagination
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Number of items per page
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved payments
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 payments:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Payment'
+ *                 totalCount:
+ *                   type: integer
+ *                 totalPages:
+ *                   type: integer
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Internal server error
+ */
+export const getAllPayments = async (req: Request, res: Response) => {
+  try {
+    const token = req.headers.authorization;
+    if (!token) return res.status(403).send("Forbidden");
+    const userId = await getUser(token);
+    if (!userId) return res.status(401).send("Unauthorized");
+
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const skip = (page - 1) * limit;
+
+    const [payments, totalCount] = await prisma.$transaction([
+      prisma.payment.findMany({
+        skip,
+        take: limit,
+      }),
+      prisma.payment.count(),
+    ]);
+
+    const totalPages = Math.ceil(totalCount / limit);
+
+    return res.status(200).json({
+      payments,
+      totalCount,
+      totalPages,
+    });
+  } catch (error) {
+    console.error("Error fetching payments:", error);
+    return res.status(500).send("Internal server error");
+  }
+};
+
+/**
+ * @swagger
+ * /api/payments/{invoiceNumber}:
+ *   get:
+ *     summary: Fetch a payment by invoice number
+ *     tags: [Payments]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: invoiceNumber
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Invoice number of the payment to fetch
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved payment
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Payment'
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Payment not found
+ *       500:
+ *         description: Internal server error
+ */
+export const getPaymentByInvoiceNumber = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const token = req.headers.authorization;
+    if (!token) return res.status(403).send("Forbidden");
+    const userId = await getUser(token);
+    if (!userId) return res.status(401).send("Unauthorized");
+
+    const { invoiceNumber } = req.params;
+
+    const payment = await prisma.payment.findUnique({
+      where: { invoiceNumber },
+    });
+
+    if (!payment) {
+      return res.status(404).json({ message: "Payment not found" });
+    }
+
+    return res.status(200).json(payment);
+  } catch (error) {
+    console.error("Error fetching payment:", error);
+    return res.status(500).send("Internal server error");
+  }
+};
+
+// ... existing code ...

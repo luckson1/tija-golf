@@ -3,7 +3,7 @@ import { Request, Response } from "express";
 import multer from "multer";
 import csv from "csv-parser";
 import fs from "fs";
-import { z } from 'zod';
+import { z } from "zod";
 import { getUser } from "../utils";
 
 const prisma = new PrismaClient();
@@ -75,7 +75,6 @@ export const getLatestBoard = async (req: Request, res: Response) => {
       },
     });
 
-    console.log(board);
     if (!board || board?.at(0)?.LeaderBoardPoint?.length === 0) {
       return [];
     }
@@ -246,7 +245,9 @@ export const editLeaderboardPoint = async (req: Request, res: Response) => {
     const userId = await getUser(token);
     if (!userId) return res.status(401).send("Unauthorized");
 
-    const { name, points, profileId } = EditLeaderboardPointSchema.parse(req.body);
+    const { name, points, profileId } = EditLeaderboardPointSchema.parse(
+      req.body
+    );
 
     const updatedLeaderboardPoint = await prisma.leaderBoardPoint.update({
       where: { id },
@@ -261,12 +262,14 @@ export const editLeaderboardPoint = async (req: Request, res: Response) => {
   } catch (error: any) {
     if (error instanceof z.ZodError) {
       res.status(400).json(error.errors);
-    } else if (error.code === 'P2025') {
+    } else if (error.code === "P2025") {
       // Record not found
       res.status(404).send("LeaderboardPoint not found");
     } else {
       console.error("Error updating LeaderboardPoint:", error);
-      res.status(500).send("An error occurred while updating the LeaderboardPoint");
+      res
+        .status(500)
+        .send("An error occurred while updating the LeaderboardPoint");
     }
   } finally {
     await prisma.$disconnect();
