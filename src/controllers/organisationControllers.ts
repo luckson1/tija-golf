@@ -69,6 +69,7 @@ const organizationSchema = z.object({
 export const getAllOrganisations = async (req: Request, res: Response) => {
   try {
     const token = req.headers.authorization;
+    console.log("token", token);
     // if (!token) return res.status(403).send("Forbidden");
     // const usersId = await getUser(token);
 
