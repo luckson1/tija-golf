@@ -570,7 +570,7 @@ export async function getTeeBookings(req: Request, res: Response) {
  * @swagger
  * /api/bookings/tee/{organizationId}:
  *   get:
- *     summary: Retrieve a list of tee bookings for a specific organization
+ *     summary: Retrieve a list of event bookings for the authenticated user
  *     tags: [Bookings]
  *     security:
  *       - bearerAuth: []
@@ -583,7 +583,7 @@ export async function getTeeBookings(req: Request, res: Response) {
  *         description: The ID of the organization
  *     responses:
  *       200:
- *         description: A list of tee bookings for the organization
+ *         description: A list of event bookings
  *         content:
  *           application/json:
  *             schema:
@@ -593,15 +593,29 @@ export async function getTeeBookings(req: Request, res: Response) {
  *                 properties:
  *                   id:
  *                     type: string
+ *                   eventId:
+ *                     type: string
+ *                   classId:
+ *                     type: string
+ *                   slug:
+ *                     type: string
+ *                   tournamentId:
+ *                     type: string
  *                   bookingDate:
  *                     type: string
  *                     format: date-time
+ *                   usersId:
+ *                     type: string
+ *                   teeId:
+ *                     type: string
  *                   status:
  *                     type: string
  *                     enum: [Pending, Completed, Failed, Refunded, Partial, Expired, Received, Rejected, Accepted]
+ *                   bookingRef:
+ *                     type: integer
  *                   totalAmount:
  *                     type: number
- *                   tee:
+ *                   event:
  *                     type: object
  *                     properties:
  *                       id:
@@ -609,21 +623,33 @@ export async function getTeeBookings(req: Request, res: Response) {
  *                       startDate:
  *                         type: string
  *                         format: date-time
- *                       kit:
- *                         type: string
- *                       holes:
- *                         type: string
- *                       organisation:
+ *                       package:
  *                         type: object
  *                         properties:
- *                           id:
- *                             type: string
+ *                           price:
+ *                             type: number
  *                           name:
  *                             type: string
- *                           image:
- *                             type: string
- *                           location:
- *                             type: string
+ *                       packageGroups:
+ *                         type: array
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             id:
+ *                               type: string
+ *                             name:
+ *                               type: string
+ *                             packages:
+ *                               type: array
+ *                               items:
+ *                                 type: object
+ *                                 properties:
+ *                                   id:
+ *                                     type: string
+ *                                   name:
+ *                                     type: string
+ *                                   price:
+ *                                     type: number
  *       401:
  *         description: Unauthorized
  *       403:

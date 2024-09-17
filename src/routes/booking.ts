@@ -19,7 +19,7 @@ bookingsRoute.get("/", getAllBookings);
 bookingsRoute.get("/upcoming", getUpcomingActivities);
 bookingsRoute.get("/tee", getTeeBookings);
 bookingsRoute.get("/tee/:organizationId", getOrganizationsTeeBookings);
-bookingsRoute.get("/events/:organizationId", getOrganizationsEventBookings);
+bookingsRoute.get("/events/:id", getOrganizationsEventBookings);
 bookingsRoute.get("/events", getEventBookings);
 bookingsRoute.get("/:id", getBooking);
 bookingsRoute.put("/:id", updateBooking);
