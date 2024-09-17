@@ -18,7 +18,7 @@ import membershipRoute from "./routes/membership";
 import cors from "cors";
 
 import { setupSwagger } from "./swagger";
-import { fetchData } from "./controllers/data";
+// import { fetchData } from "./controllers/data";
 const app = express();
 
 const PORT = process.env.PORT || 8080;
@@ -37,7 +37,7 @@ app.get("/", (req, res) =>
     ` Hello there and welcome. testing env :  ${process.env.SUPABASE_URL}`
   )
 );
-app.get("/api/data", fetchData);
+// app.get("/api/data", fetchData);
 app.use("/api/tournaments", tournamentRoute);
 app.use("/api/partners", partnerRoute);
 app.use("/api/board", leadershipBoardRoute);
