@@ -15,21 +15,27 @@ import announcementRoute from "./routes/announcements";
 import packagesRoute from "./routes/packages";
 import packageGroupsRoute from "./routes/package-groups";
 import membershipRoute from "./routes/membership";
+import cors from "cors";
 
 import { setupSwagger } from "./swagger";
 import { fetchData } from "./controllers/data";
 const app = express();
 
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 8080;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Add CORS middleware
+app.use(cors());
 
 // Setup Swagger
 setupSwagger(app);
 // Define your routes and handlers here
 app.get("/", (req, res) =>
-  res.send(` Hello there and welcome : ${process.env.SUPABASE_URL}`)
+  res.send(
+    ` Hello there and welcome. testing env :  ${process.env.SUPABASE_URL}`
+  )
 );
 app.get("/api/data", fetchData);
 app.use("/api/tournaments", tournamentRoute);

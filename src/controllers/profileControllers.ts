@@ -42,6 +42,14 @@ export type ProfileInput = z.infer<typeof profileSchema>;
  *           type: string
  *           description: The country code of the user
  *           example: "254"
+ *         handicap:
+ *           type: string
+ *           description: The handicap of the user
+ *           example: "15"
+ *         handicapId:
+ *           type: string
+ *           description: The handicap ID of the user
+ *           example: "ABC123"
  */
 
 /**
@@ -132,6 +140,8 @@ const profileSchema = z.object({
   dateOfBirth: z.string().datetime(),
   cohort: z.number().min(1, "Cohort is required"),
   countryCode: z.string(),
+  handicap: z.string().optional(),
+  handicapId: z.string().optional(),
 });
 const prisma = new PrismaClient();
 

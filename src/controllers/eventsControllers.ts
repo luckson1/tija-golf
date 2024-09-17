@@ -49,7 +49,7 @@ const prisma = new PrismaClient();
  * /api/events:
  *   post:
  *     summary: Book a new event
- *     tags: [Events]
+ *     tags: [Bookings]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -369,8 +369,8 @@ const eventUpdateSchema = z.object({
  * @swagger
  * /api/events/{id}:
  *   put:
- *     summary: Update an existing event
- *     tags: [Events]
+ *     summary: Update an existing event booking
+ *     tags: [Bookings]
  *     security:
  *       - bearerAuth: []
  *     parameters:

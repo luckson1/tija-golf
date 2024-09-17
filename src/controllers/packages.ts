@@ -7,7 +7,6 @@ const prisma = new PrismaClient();
 
 // Zod schema for package validation
 const packageSchema = z.object({
-  amount: z.string(),
   price: z.number().int().nonnegative(),
   name: z.string(),
   listedEventId: z.string(),
@@ -179,7 +178,10 @@ export const createPackage = async (req: Request, res: Response) => {
     const data = packageSchema.parse(req.body);
 
     const newPackage = await prisma.package.create({
-      data,
+      data: {
+        ...data,
+        amount: "0",
+      },
     });
 
     res.status(201).json(newPackage);

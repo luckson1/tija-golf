@@ -10,6 +10,20 @@ const options = {
       version: "1.0.0",
       description: "APIs to manage virtual golf events",
     },
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+        },
+      },
+    },
+    security: [
+      {
+        bearerAuth: [],
+      },
+    ],
   },
   apis: ["./src/controllers/*.ts"],
 };
