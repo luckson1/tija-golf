@@ -26,6 +26,9 @@ const options = {
     ],
   },
   apis: ["./src/controllers/*.ts"],
+  swaggerOptions: {
+    resolveRefs: true,
+  },
 };
 
 const swaggerSpec = swaggerJSDoc(options);
