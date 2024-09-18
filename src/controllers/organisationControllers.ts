@@ -9,8 +9,6 @@ const organizationSchema = z.object({
   name: z.string().min(1, "Name is required"),
   image: z.string().url("Image must be a valid URL"),
   location: z.string().min(1, "Location is required"),
-  kitPrice: z.number().int().min(0, "Kit price must be a non-negative integer"),
-  teePrice: z.number().min(0, "Tee price must be a non-negative number"),
   holesPrices: z.array(
     z.object({
       amount: z.number().min(0, "Amount must be a non-negative number"),
@@ -198,8 +196,6 @@ export const createOrganization = async (req: Request, res: Response) => {
         name: data.name,
         image: data.image,
         location: data.location,
-        kitPrice: data.kitPrice,
-        teePrice: data.teePrice,
         HolesPrices: {
           create: data.holesPrices.map((holePrice) => ({
             amount: holePrice.amount,
