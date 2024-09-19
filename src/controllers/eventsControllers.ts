@@ -518,6 +518,25 @@ export const updateEvent = async (req: Request, res: Response) => {
   }
 };
 
+const PackageSchema = z.object({
+  amount: z.string(),
+  price: z.number().int().positive(),
+  name: z.string().min(1, "Package name is required"),
+});
+
+const ListEventSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  location: z.string().min(1, "Location is required"),
+  description: z.string(),
+  image: z.string().url().optional(),
+  startDate: z.string().optional(),
+  type: z.string().min(1, "Type is required"),
+  kitPrice: z.object({
+    amount: z.number().positive(),
+  }),
+  packages: z.array(PackageSchema).optional(),
+});
+
 /**
  * @swagger
  * /api/events/list:
@@ -532,6 +551,13 @@ export const updateEvent = async (req: Request, res: Response) => {
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - name
+ *               - location
+ *               - description
+ *               - type
+ *               - kitPrice
+ *               - packages
  *             properties:
  *               name:
  *                 type: string
@@ -544,6 +570,7 @@ export const updateEvent = async (req: Request, res: Response) => {
  *                 description: The description of the event
  *               image:
  *                 type: string
+ *                 format: uri
  *                 description: The image URL of the event
  *               startDate:
  *                 type: string
@@ -552,24 +579,32 @@ export const updateEvent = async (req: Request, res: Response) => {
  *               type:
  *                 type: string
  *                 description: The type of the event
- *               holesPrices:
- *                 type: array
- *                 items:
- *                   type: object
- *                   properties:
- *                     numberOfHoles:
- *                       type: string
- *                       enum: ["Nine", "Eighteen"]
- *                       description: The number of holes
- *                     amount:
- *                       type: number
- *                       description: The price for the holes
  *               kitPrice:
  *                 type: object
+ *                 required:
+ *                   - amount
  *                 properties:
  *                   amount:
  *                     type: number
  *                     description: The price for the kit
+ *               packages:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   required:
+ *                     - amount
+ *                     - price
+ *                     - name
+ *                   properties:
+ *                     amount:
+ *                       type: string
+ *                       description: The amount for the package
+ *                     price:
+ *                       type: integer
+ *                       description: The price for the package
+ *                     name:
+ *                       type: string
+ *                       description: The name of the package
  *     responses:
  *       201:
  *         description: Event listed successfully
@@ -579,31 +614,54 @@ export const updateEvent = async (req: Request, res: Response) => {
  *               type: object
  *               properties:
  *                 event:
- *                   $ref: '#/components/schemas/ListedEvent'
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                     location:
+ *                       type: string
+ *                     description:
+ *                       type: string
+ *                     image:
+ *                       type: string
+ *                     startDate:
+ *                       type: string
+ *                       format: date-time
+ *                     type:
+ *                       type: string
+ *                     KitPrices:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: string
+ *                           amount:
+ *                             type: number
+ *                     Package:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: string
+ *                           amount:
+ *                             type: string
+ *                           price:
+ *                             type: integer
+ *                           name:
+ *                             type: string
  *       400:
  *         description: Bad request
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
  *       500:
  *         description: Internal server error
  */
-
-const ListEventSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  location: z.string().min(1, "Location is required"),
-  description: z.string(),
-  image: z.string().url().optional(),
-  startDate: z.string().optional(),
-  type: z.string().min(1, "Type is required"),
-  holesPrices: z.array(
-    z.object({
-      numberOfHoles: z.enum(["Nine", "Eighteen"]),
-      amount: z.number().positive(),
-    })
-  ),
-  kitPrice: z.object({
-    amount: z.number().positive(),
-  }),
-});
-
 export const listEvent = async (req: Request, res: Response) => {
   try {
     const token = req.headers.authorization;
@@ -621,8 +679,8 @@ export const listEvent = async (req: Request, res: Response) => {
       image,
       startDate,
       type,
-      holesPrices,
       kitPrice,
+      packages,
     } = validatedData;
 
     // Use a transaction for all the database ops below
@@ -635,25 +693,22 @@ export const listEvent = async (req: Request, res: Response) => {
           image,
           startDate: startDate ? new Date(startDate) : undefined,
           type,
-        },
-      });
-
-      // Create related HolesPrices
-      for (const holesPrice of holesPrices) {
-        await prisma.holesPrices.create({
-          data: {
-            listedEventId: createdEvent.id,
-            numberOfHoles: holesPrice.numberOfHoles,
-            amount: holesPrice.amount,
+          KitPrices: {
+            create: {
+              amount: kitPrice.amount,
+            },
           },
-        });
-      }
-
-      // Create related KitPrice
-      await prisma.kitPrices.create({
-        data: {
-          listedEventId: createdEvent.id,
-          amount: kitPrice.amount,
+          Package: {
+            create: packages?.map((pkg) => ({
+              amount: pkg.amount,
+              price: pkg.price,
+              name: pkg.name,
+            })),
+          },
+        },
+        include: {
+          KitPrices: true,
+          Package: true,
         },
       });
 

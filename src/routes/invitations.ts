@@ -2,7 +2,11 @@ import express from "express";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-import { csvInvite, textInvite } from "../controllers/invitations";
+import {
+  csvInvite,
+  getAllInvitations,
+  textInvite,
+} from "../controllers/invitations";
 
 const uploadDirectory = path.join(__dirname, "uploads");
 
@@ -29,5 +33,9 @@ invitationsRouter.post("/", textInvite);
 
 // Route for inviting users from CSV file
 invitationsRouter.post("/csv", uploadFile.single("file"), csvInvite);
+// ... existing imports ...
+
+// Route for getting all invitations
+invitationsRouter.get("/", getAllInvitations);
 
 export default invitationsRouter;

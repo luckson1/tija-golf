@@ -166,3 +166,45 @@ export const csvInvite = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Failed to process CSV file" });
   }
 };
+
+// ... existing imports ...
+
+/**
+ * @swagger
+ * /api/invitations:
+ *   get:
+ *     summary: Get all invitations
+ *     description: Retrieves all invitations from the database
+ *     tags: [Invitations]
+ *     responses:
+ *       200:
+ *         description: Successful operation
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                   email:
+ *                     type: string
+ *                   status:
+ *                     type: string
+ *                   createdAt:
+ *                     type: string
+ *                     format: date-time
+ *       500:
+ *         description: Server error
+ */
+export const getAllInvitations = async (req: Request, res: Response) => {
+  try {
+    const invitations = await prisma.invitation.findMany();
+    res.json(invitations);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to retrieve invitations" });
+  }
+};
+
+// ... existing code ...

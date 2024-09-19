@@ -3,6 +3,8 @@ import express from "express";
 import {
   createBooking,
   getAllBookings,
+  getAllOrganizationsEventBookings,
+  getAllOrganizationsTeeBookings,
   getBooking,
   getEventBookings,
   getOrganizationsEventBookings,
@@ -23,5 +25,6 @@ bookingsRoute.get("/events/:id", getOrganizationsEventBookings);
 bookingsRoute.get("/events", getEventBookings);
 bookingsRoute.get("/:id", getBooking);
 bookingsRoute.put("/:id", updateBooking);
-
+bookingsRoute.get("/events/all", getAllOrganizationsEventBookings);
+bookingsRoute.get("/tee/all", getAllOrganizationsTeeBookings);
 export default bookingsRoute;

@@ -992,3 +992,199 @@ export async function getOrganizationsEventBookings(
 }
 
 // ... existing code ...
+
+/**
+ * @swagger
+ * /api/bookings/tee/all:
+ *   get:
+ *     summary: Retrieve a list of tee bookings for all organizations
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: A list of tee bookings for all organizations
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/TeeBooking'
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       500:
+ *         description: Internal server error
+ */
+export async function getAllOrganizationsTeeBookings(
+  req: Request,
+  res: Response
+) {
+  try {
+    const token = req.headers.authorization;
+    if (!token) return res.status(403).send("Forbidden");
+    const usersId = await getUser(token);
+    if (!usersId) return res.status(401).send("Unauthorised");
+
+    const bookings = await prisma.booking.findMany({
+      where: {
+        teeId: {
+          not: null,
+        },
+      },
+      include: {
+        tee: {
+          include: {
+            organisation: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+                location: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        tee: {
+          startDate: "asc",
+        },
+      },
+    });
+
+    // Calculate the total amount for each tee booking
+    const bookingsWithAmount = await Promise.all(
+      bookings.map(async (booking) => {
+        let totalAmount = 0;
+        if (booking?.tee?.kit === "Yes") {
+          const kitCost = await prisma.kitPrices.findFirst({
+            where: {
+              organizationId: booking.tee.organisation.id,
+            },
+            select: {
+              amount: true,
+            },
+          });
+          totalAmount += kitCost ? kitCost.amount : 0;
+        }
+
+        const gameCost = await prisma.holesPrices.findFirst({
+          where: {
+            organizationId: booking?.tee?.organisation.id,
+            numberOfHoles:
+              booking?.tee?.holes === "9 holes" ? "Nine" : "Eighteen",
+          },
+          select: { amount: true },
+        });
+        totalAmount += gameCost ? gameCost.amount : 0;
+
+        return {
+          ...booking,
+          totalAmount,
+        };
+      })
+    );
+
+    res.json(bookingsWithAmount);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+}
+
+// ... existing code ...
+
+/**
+ * @swagger
+ * /api/bookings/events/all:
+ *   get:
+ *     summary: Retrieve a list of event bookings for all events
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: A list of event bookings for all events
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/EventBooking'
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       500:
+ *         description: Internal server error
+ */
+export async function getAllOrganizationsEventBookings(
+  req: Request,
+  res: Response
+) {
+  try {
+    const token = req.headers.authorization;
+    if (!token) return res.status(403).send("Forbidden");
+    const usersId = await getUser(token);
+    if (!usersId) return res.status(401).send("Unauthorised");
+
+    const bookings = await prisma.booking.findMany({
+      where: {
+        eventId: {
+          not: null,
+        },
+      },
+      include: {
+        event: {
+          include: {
+            package: true,
+            ListedEvent: {
+              include: {
+                Package: true,
+                PackageGroup: {
+                  include: {
+                    packages: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        event: {
+          startDate: "asc",
+        },
+      },
+    });
+
+    // Calculate the total amount for each booking
+    const bookingsWithAmount = await Promise.all(
+      bookings.map(async (booking) => {
+        let totalAmount = booking?.event?.package.price ?? 0;
+        if (booking?.event?.kit === "Yes") {
+          const kitCost = await prisma.kitPrices.findFirst({
+            where: {
+              listedEventId: booking.event?.listedEventId,
+            },
+            select: {
+              amount: true,
+            },
+          });
+          totalAmount += kitCost ? kitCost.amount : 0;
+        }
+        return {
+          ...booking,
+          totalAmount,
+        };
+      })
+    );
+
+    res.json(bookingsWithAmount);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+}
+
+// ... existing code ...
