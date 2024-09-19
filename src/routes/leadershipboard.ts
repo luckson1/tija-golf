@@ -1,6 +1,5 @@
 import express from "express";
 import {
-  editLeaderboardPoint,
   getLatestBoard,
   uploadLeaderboard,
 } from "../controllers/leadershipboard";
@@ -31,10 +30,9 @@ const leadershipBoardRoute = express.Router();
 
 leadershipBoardRoute.get("/", getLatestBoard);
 leadershipBoardRoute.post(
-  "/leaderboard/upload",
+  "/upload",
   uploadFile.single("file"),
   uploadLeaderboard
 );
-leadershipBoardRoute.put("/leaderboardpoint/:id", editLeaderboardPoint);
 
 export default leadershipBoardRoute;
