@@ -283,6 +283,22 @@ model Profile {
   @@schema("auth")
 }
 
+enum InvitationStatus {
+  Pending
+  Accepted
+  Expired
+
+  @@schema("auth")
+}
+
+model Invitation {
+  id     String           @id @default(cuid())
+  email  String
+  status InvitationStatus @default(Pending)
+
+  @@schema("auth")
+}
+
 model Payment {
   id                String        @id @default(cuid())
   bookingId         String?       @unique

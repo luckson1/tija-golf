@@ -10,7 +10,7 @@ const packageSchema = z.object({
   price: z.number().int().nonnegative(),
   name: z.string(),
   listedEventId: z.string(),
-  packageGroupId: z.string(),
+  packageGroupId: z.string().optional(),
 });
 
 /**

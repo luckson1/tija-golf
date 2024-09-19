@@ -16,6 +16,7 @@ import packagesRoute from "./routes/packages";
 import packageGroupsRoute from "./routes/package-groups";
 import membershipRoute from "./routes/membership";
 import leaderboardPointRoute from "./routes/leaderboard-point";
+import invitationsRouter from "./routes/invitations";
 import cors from "cors";
 
 import { setupSwagger } from "./swagger";
@@ -57,6 +58,7 @@ app.use("/api/packageGroups", packageGroupsRoute);
 app.use("/api/membership", membershipRoute);
 app.use("/api/leaderboard", leadershipBoardRoute);
 app.use("/api/leaderboardpoint", leaderboardPointRoute);
+app.use("/api/invitations", invitationsRouter);
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);

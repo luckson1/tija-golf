@@ -300,6 +300,7 @@ export const getAllEvents = async (req: Request, res: Response) => {
             },
           },
         },
+
         Package: {
           orderBy: {
             price: "asc",
