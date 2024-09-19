@@ -22,7 +22,7 @@ import { fetchData } from "./controllers/data";
 const app = express();
 
 // const PORT = process.env.PORT || 8080;
-const PORT = 8080;
+const PORT = 8080; // hard-coded to fix azure web app service port issues
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
