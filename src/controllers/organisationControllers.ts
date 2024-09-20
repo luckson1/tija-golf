@@ -72,8 +72,19 @@ export const getAllOrganisations = async (req: Request, res: Response) => {
     // const usersId = await getUser(token);
 
     // if (!usersId) return res.status(401).send("Unauthorized");
-    const organizations = await prisma.organization.findMany();
-
+    const organizations = await prisma.organization.findMany({
+      include: {
+        KitPrices: true,
+        HolesPrices: true,
+      },
+    });
+    const org = organizations.map((o) => ({
+      ...o,
+      kitPrice: o.KitPrices[0].amount,
+      eighteen: o.HolesPrices.find((h) => h.numberOfHoles === "Eighteen")
+        ?.amount,
+      nine: o.HolesPrices.find((h) => h.numberOfHoles === "Nine")?.amount,
+    }));
     res.json(organizations);
   } catch (error) {
     res.status(500).send(error);
