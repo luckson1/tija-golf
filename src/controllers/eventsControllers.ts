@@ -519,7 +519,6 @@ export const updateEvent = async (req: Request, res: Response) => {
 };
 
 const PackageSchema = z.object({
-  amount: z.string(),
   price: z.number().int().positive(),
   name: z.string().min(1, "Package name is required"),
 });
@@ -592,13 +591,9 @@ const ListEventSchema = z.object({
  *                 items:
  *                   type: object
  *                   required:
- *                     - amount
  *                     - price
  *                     - name
  *                   properties:
- *                     amount:
- *                       type: string
- *                       description: The amount for the package
  *                     price:
  *                       type: integer
  *                       description: The price for the package
@@ -700,7 +695,7 @@ export const listEvent = async (req: Request, res: Response) => {
           },
           Package: {
             create: packages?.map((pkg) => ({
-              amount: pkg.amount,
+              amount: String(pkg.price),
               price: pkg.price,
               name: pkg.name,
             })),
