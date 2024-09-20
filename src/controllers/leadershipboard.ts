@@ -135,32 +135,35 @@ export const uploadLeaderboard = async (req: Request, res: Response) => {
     return res.status(400).send("No file uploaded");
   }
 
-  const results: { name: string; points: number; email?: string }[] = [];
+  const results: { name: string; points: number | string; email?: string }[] =
+    [];
 
   fs.createReadStream(file.path)
     .pipe(csv())
     .on("data", (data) => results.push(data))
     .on("end", async () => {
       try {
-        const leaderBoard = await prisma.leaderBoard.create({
-          data: {
-            date: new Date(),
-          },
-        });
-        console.log(results);
-        for (const item of results) {
-          const profile = await prisma.profile.findFirst({
-            where: { email: item.email },
-          });
-          await prisma.leaderBoardPoint.create({
+        await prisma.$transaction(async (prisma) => {
+          const leaderBoard = await prisma.leaderBoard.create({
             data: {
-              name: item.name,
-              points: item.points,
-              profileId: profile?.id,
-              leaderBoardId: leaderBoard.id,
+              date: new Date(),
             },
           });
-        }
+          console.log(results);
+          for (const item of results) {
+            const profile = await prisma.profile.findFirst({
+              where: { email: item.email },
+            });
+            await prisma.leaderBoardPoint.create({
+              data: {
+                name: item.name,
+                points: Number(item.points),
+                profileId: profile?.id,
+                leaderBoardId: leaderBoard.id,
+              },
+            });
+          }
+        });
 
         res.status(200).send("Leaderboard created successfully");
       } catch (error) {
