@@ -715,6 +715,7 @@ export const listEvent = async (req: Request, res: Response) => {
   } catch (error) {
     if (error instanceof z.ZodError) {
       // If the error is a Zod validation error, send a bad request response
+      console.log(error.message)
       return res.status(400).json(error.errors);
     }
     console.error("Error listing event:", error);
