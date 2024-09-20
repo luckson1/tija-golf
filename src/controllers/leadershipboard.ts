@@ -135,7 +135,7 @@ export const uploadLeaderboard = async (req: Request, res: Response) => {
     return res.status(400).send("No file uploaded");
   }
 
-  const results: { name: string; points: number; email: string }[] = [];
+  const results: { name: string; points: number; email?: string }[] = [];
 
   fs.createReadStream(file.path)
     .pipe(csv())
@@ -147,7 +147,7 @@ export const uploadLeaderboard = async (req: Request, res: Response) => {
             date: new Date(),
           },
         });
-
+        console.log(results);
         for (const item of results) {
           const profile = await prisma.profile.findFirst({
             where: { email: item.email },
