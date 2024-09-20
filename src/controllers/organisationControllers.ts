@@ -81,11 +81,11 @@ export const getAllOrganisations = async (req: Request, res: Response) => {
     const org = organizations.map((o) => ({
       ...o,
       kitPrice: o.KitPrices[0].amount,
-      eighteen: o.HolesPrices.find((h) => h.numberOfHoles === "Eighteen")
+      eighteenPrice: o.HolesPrices.find((h) => h.numberOfHoles === "Eighteen")
         ?.amount,
-      nine: o.HolesPrices.find((h) => h.numberOfHoles === "Nine")?.amount,
+      teePrice: o.HolesPrices.find((h) => h.numberOfHoles === "Nine")?.amount,
     }));
-    res.json(organizations);
+    res.json(org);
   } catch (error) {
     res.status(500).send(error);
   }
