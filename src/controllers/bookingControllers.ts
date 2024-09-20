@@ -1158,7 +1158,7 @@ export async function getAllOrganizationsEventBookings(
         },
       },
     });
-
+    console.log(bookings);
     // Calculate the total amount for each booking
     const bookingsWithAmount = await Promise.all(
       bookings.map(async (booking) => {
