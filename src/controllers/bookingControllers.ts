@@ -1054,6 +1054,7 @@ export async function getAllOrganizationsTeeBookings(
       },
     });
 
+    console.log("bookings", bookings);
     // Calculate the total amount for each tee booking
     const bookingsWithAmount = await Promise.all(
       bookings.map(async (booking) => {
