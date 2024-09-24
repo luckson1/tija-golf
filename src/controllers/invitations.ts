@@ -201,6 +201,7 @@ export const csvInvite = async (req: Request, res: Response) => {
 export const getAllInvitations = async (req: Request, res: Response) => {
   try {
     const invitations = await prisma.invitation.findMany();
+    console.log("here", invitations);
     res.json(invitations);
   } catch (error) {
     res.status(500).json({ error: "Failed to retrieve invitations" });
