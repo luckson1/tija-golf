@@ -19,12 +19,15 @@ const bookingsRoute = express.Router();
 bookingsRoute.post("/", createBooking);
 bookingsRoute.get("/", getAllBookings);
 bookingsRoute.get("/upcoming", getUpcomingActivities);
-bookingsRoute.get("/tee", getTeeBookings);
-bookingsRoute.get("/tee/:organizationId", getOrganizationsTeeBookings);
-bookingsRoute.get("/events/:id", getOrganizationsEventBookings);
-bookingsRoute.get("/events", getEventBookings);
-bookingsRoute.get("/:id", getBooking);
-bookingsRoute.put("/:id", updateBooking);
 bookingsRoute.get("/events/all", getAllOrganizationsEventBookings);
 bookingsRoute.get("/tee/all", getAllOrganizationsTeeBookings);
+
+bookingsRoute.get("/tee", getTeeBookings);
+bookingsRoute.get("/tee/:organizationId", getOrganizationsTeeBookings);
+bookingsRoute.get("/events", getEventBookings);
+bookingsRoute.get("/events/:id", getOrganizationsEventBookings);
+bookingsRoute.get("/:id", getBooking);
+bookingsRoute.put("/:id", updateBooking);
+
+// ... rest of the file ...
 export default bookingsRoute;
