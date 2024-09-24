@@ -1022,10 +1022,10 @@ export async function getAllOrganizationsTeeBookings(
   res: Response
 ) {
   try {
-    const token = req.headers.authorization;
-    if (!token) return res.status(403).send("Forbidden");
-    const usersId = await getUser(token);
-    if (!usersId) return res.status(401).send("Unauthorised");
+    // const token = req.headers.authorization;
+    // if (!token) return res.status(403).send("Forbidden");
+    // const usersId = await getUser(token);
+    // if (!usersId) return res.status(401).send("Unauthorised");
 
     const bookings = await prisma.booking.findMany({
       where: {
@@ -1125,10 +1125,10 @@ export async function getAllOrganizationsEventBookings(
   res: Response
 ) {
   try {
-    const token = req.headers.authorization;
-    if (!token) return res.status(403).send("Forbidden");
-    const usersId = await getUser(token);
-    if (!usersId) return res.status(401).send("Unauthorised");
+    // const token = req.headers.authorization;
+    // if (!token) return res.status(403).send("Forbidden");
+    // const usersId = await getUser(token);
+    // if (!usersId) return res.status(401).send("Unauthorised");
 
     const bookings = await prisma.booking.findMany({
       where: {
