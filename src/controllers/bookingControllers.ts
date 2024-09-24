@@ -559,7 +559,7 @@ export async function getTeeBookings(req: Request, res: Response) {
         };
       })
     );
-    console.log(bookingsWithAmount?.at(0)?.totalAmount);
+
     res.json(bookingsWithAmount);
   } catch (error) {
     res.status(500).send(error);
@@ -728,7 +728,7 @@ export async function getOrganizationsTeeBookings(req: Request, res: Response) {
         };
       })
     );
-    console.log(bookingsWithAmount?.at(0)?.totalAmount);
+
     res.json(bookingsWithAmount);
   } catch (error) {
     res.status(500).send(error);
@@ -1022,10 +1022,10 @@ export async function getAllOrganizationsTeeBookings(
   res: Response
 ) {
   try {
-    // const token = req.headers.authorization;
-    // if (!token) return res.status(403).send("Forbidden");
-    // const usersId = await getUser(token);
-    // if (!usersId) return res.status(401).send("Unauthorised");
+    const token = req.headers.authorization;
+    if (!token) return res.status(403).send("Forbidden");
+    const usersId = await getUser(token);
+    if (!usersId) return res.status(401).send("Unauthorised");
 
     const bookings = await prisma.booking.findMany({
       where: {
@@ -1054,7 +1054,6 @@ export async function getAllOrganizationsTeeBookings(
       },
     });
 
-    console.log("bookings", bookings);
     // Calculate the total amount for each tee booking
     const bookingsWithAmount = await Promise.all(
       bookings.map(async (booking) => {
@@ -1125,10 +1124,10 @@ export async function getAllOrganizationsEventBookings(
   res: Response
 ) {
   try {
-    // const token = req.headers.authorization;
-    // if (!token) return res.status(403).send("Forbidden");
-    // const usersId = await getUser(token);
-    // if (!usersId) return res.status(401).send("Unauthorised");
+    const token = req.headers.authorization;
+    if (!token) return res.status(403).send("Forbidden");
+    const usersId = await getUser(token);
+    if (!usersId) return res.status(401).send("Unauthorised");
 
     const bookings = await prisma.booking.findMany({
       where: {
@@ -1159,7 +1158,7 @@ export async function getAllOrganizationsEventBookings(
         },
       },
     });
-    console.log(bookings);
+
     // Calculate the total amount for each booking
     const bookingsWithAmount = await Promise.all(
       bookings.map(async (booking) => {
