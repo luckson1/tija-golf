@@ -366,7 +366,6 @@ export const sendPaymentRequest = async (req: Request, res: Response) => {
         responseData.errorMessage || "Error occurred initializing payment";
       console.log("Payment initialization failed:", errorMessage);
       console.log(JSON.stringify(responseData));
-      throw new Error(errorMessage);
     }
 
     const results: PaymentResponse = responseData;
@@ -439,8 +438,7 @@ export const checkpaymentStatus = async (
       );
       const responseData: PaymentStatusResponse = await response.json();
       console.log("checking for payment", responseData);
-      if (Number(responseData.ResultCode) !== 0)
-        throw new Error(`Error occured: ${responseData.ResultDesc}`);
+
       return responseData;
     } catch (error) {
       console.error("Error fetching payment status:", error);
