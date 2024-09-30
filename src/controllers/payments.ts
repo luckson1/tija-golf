@@ -317,14 +317,14 @@ const provideCodeSchema = z.object({
 export const sendPaymentRequest = async (req: Request, res: Response) => {
   try {
     const token = req.headers.authorization;
-    if (!token) return res.status(403).send("Forbidden");
+    if (!token) return res.status(403).json({ error: "Forbidden" });
     const userId = await getUser(token);
-    if (!userId) return res.status(401).send("Unauthorized");
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
 
     // Validate request body
     const parsedBody = sendPaymentRequestSchema.safeParse(req.body);
     if (!parsedBody.success) {
-      return res.status(400).json(parsedBody.error.errors);
+      return res.status(400).json({ errors: parsedBody.error.errors });
     }
 
     const { amount, partyA, phoneNumber, transactionDesc, invoiceNumber } =
@@ -332,9 +332,9 @@ export const sendPaymentRequest = async (req: Request, res: Response) => {
 
     const timestamp = format(new Date(), "yyyyMMddHHmmss");
     const password = base64.encode(businessShortCode + passKey + timestamp);
-    // const accessToken = await getBearerToken();
     const callBackUrl = `${backendBaseUrl}/api/payments/webhook/mpesa/${invoiceNumber}`;
     const accessToken = await getBearerToken();
+
     const response = await fetch(
       "https://api.safaricom.co.ke/mpesa/stkpush/v1/processrequest",
       {
@@ -359,18 +359,16 @@ export const sendPaymentRequest = async (req: Request, res: Response) => {
       }
     );
 
-    const results: PaymentResponse = await response.json();
+    const responseData = await response.json();
 
     if (response.status !== 200) {
-      const errorData = await response.json();
       const errorMessage =
-        errorData.errorMessage || "Error occurred initializing payment";
+        responseData.errorMessage || "Error occurred initializing payment";
       console.log("Payment initialization failed:", errorMessage);
-
-      console.log(JSON.stringify(response));
-
-      throw new Error(errorMessage);
+      console.log(JSON.stringify(responseData));
     }
+
+    const results: PaymentResponse = responseData;
 
     const paymentData = {
       invoiceNumber,
@@ -394,7 +392,7 @@ export const sendPaymentRequest = async (req: Request, res: Response) => {
     return res.status(200).json({ status });
   } catch (error) {
     console.error("Error sending payment request:", error);
-    return res.status(500).send(error);
+    return res.status(500).json({ error });
   }
 };
 
@@ -440,8 +438,7 @@ export const checkpaymentStatus = async (
       );
       const responseData: PaymentStatusResponse = await response.json();
       console.log("checking for payment", responseData);
-      if (Number(responseData.ResultCode) !== 0)
-        throw new Error(`Error occured: ${responseData.ResultDesc}`);
+
       return responseData;
     } catch (error) {
       console.error("Error fetching payment status:", error);
