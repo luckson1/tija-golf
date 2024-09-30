@@ -1054,8 +1054,8 @@ export async function getAllOrganizationsTeeBookings(
       },
     });
 
-    // Calculate the total amount for each tee booking
-    const bookingsWithAmount = await Promise.all(
+    // Calculate the total amount for each tee booking and include user profile
+    const bookingsWithAmountAndProfile = await Promise.all(
       bookings.map(async (booking) => {
         let totalAmount = 0;
         if (booking?.tee?.kit === "Yes") {
@@ -1080,14 +1080,21 @@ export async function getAllOrganizationsTeeBookings(
         });
         totalAmount += gameCost ? gameCost.amount : 0;
 
+        const user = await prisma.profile.findUnique({
+          where: {
+            usersId: booking.usersId,
+          },
+        });
+
         return {
           ...booking,
           totalAmount,
+          user,
         };
       })
     );
 
-    res.json(bookingsWithAmount);
+    res.json(bookingsWithAmountAndProfile);
   } catch (error) {
     res.status(500).send(error);
   }
@@ -1126,6 +1133,7 @@ export async function getAllOrganizationsEventBookings(
   try {
     const token = req.headers.authorization;
     if (!token) return res.status(403).send("Forbidden");
+
     const usersId = await getUser(token);
     if (!usersId) return res.status(401).send("Unauthorised");
 
@@ -1159,29 +1167,38 @@ export async function getAllOrganizationsEventBookings(
       },
     });
 
-    // Calculate the total amount for each booking
-    const bookingsWithAmount = await Promise.all(
+    const bookingsWithProfile = await Promise.all(
       bookings.map(async (booking) => {
-        let totalAmount = booking?.event?.package.price ?? 0;
-        if (booking?.event?.kit === "Yes") {
-          const kitCost = await prisma.kitPrices.findFirst({
-            where: {
-              listedEventId: booking.event?.listedEventId,
-            },
-            select: {
-              amount: true,
-            },
-          });
-          totalAmount += kitCost ? kitCost.amount : 0;
-        }
+        const user = await prisma.profile.findUnique({
+          where: {
+            usersId: booking.usersId,
+          },
+        });
+
+        const kitCost =
+          booking?.event?.kit === "Yes"
+            ? await prisma.kitPrices.findFirst({
+                where: {
+                  listedEventId: booking.event?.listedEventId,
+                },
+                select: {
+                  amount: true,
+                },
+              })
+            : null;
+
+        const totalAmount =
+          (booking?.event?.package.price ?? 0) + (kitCost?.amount ?? 0);
+
         return {
           ...booking,
+          user,
           totalAmount,
         };
       })
     );
 
-    res.json(bookingsWithAmount);
+    res.json(bookingsWithProfile);
   } catch (error) {
     res.status(500).send(error);
   }
