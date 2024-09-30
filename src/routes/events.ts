@@ -15,6 +15,6 @@ eventRoute.get("/", getAllEvents);
 eventRoute.get("/:id", getEvent);
 eventRoute.put("/:id", updateEvent);
 eventRoute.post("/list", listEvent);
-eventRoute.put("/edit/list/:id", editListedEvent);
+eventRoute.put("/edit/:id", editListedEvent);
 
 export default eventRoute;

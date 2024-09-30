@@ -727,7 +727,7 @@ export const listEvent = async (req: Request, res: Response) => {
 
 /**
  * @swagger
- * /api/events/edit/list:
+ * /api/events/edit/:id:
  *   put:
  *     summary: Edit an existing event
  *     tags: [Events]
